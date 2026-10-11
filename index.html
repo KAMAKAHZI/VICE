@@ -16,10 +16,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════════════════════════════
-   VICE OS — unified design system
-   Base: institutional dark. Accent: VICE gold. Data: JetBrains Mono.
-   ═══════════════════════════════════════════════════════════════════ */
 :root{
   --bg:#07080a; --bg2:#0a0b0d; --srf:#0f1115; --raised:#161920;
   --ln:rgba(201,168,76,.10); --ln2:rgba(201,168,76,.18); --ln3:rgba(201,168,76,.32);
@@ -68,7 +64,6 @@ body::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none
              radial-gradient(30% 30% at 60% 20%, rgba(217,73,47,.06), transparent 70%);
   animation:aurora 28s ease-in-out infinite alternate;}
 @keyframes aurora{0%{transform:translate3d(0,0,0) rotate(0deg)}100%{transform:translate3d(-4%,3%,0) rotate(8deg)}}
-
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:none;border:none;cursor:pointer}
 ul,ol{list-style:none}
@@ -80,7 +75,6 @@ img{max-width:100%}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#1c1d20;border-radius:8px}
 ::-webkit-scrollbar-thumb:hover{background:#25282e}
-
 h1,h2,h3,h4{font-weight:500;line-height:1.15;letter-spacing:-.02em}
 h1{font-size:1.3rem;font-weight:400}
 h1 em,h2 em{font-family:var(--sf);font-style:italic;font-weight:300;color:var(--gdl)}
@@ -91,8 +85,6 @@ p{color:var(--tx-2);margin:0}
 .mono{font-family:var(--mn)}
 .up{color:var(--up)} .down{color:var(--down)} .warn{color:var(--wn)} .ok{color:var(--gr)}
 [hidden]{display:none!important}
-
-/* ── App shell ── */
 .app{min-height:100%;display:flex;flex-direction:column}
 .tb{
   position:fixed;top:0;left:0;right:0;height:var(--nh);z-index:100;
@@ -136,8 +128,6 @@ p{color:var(--tx-2);margin:0}
 .mob{display:none;width:34px;height:34px;border-radius:6px;border:1px solid var(--ln2);align-items:center;justify-content:center;flex-direction:column;gap:4px;flex-shrink:0;cursor:pointer}
 .mob:hover{border-color:var(--ln3)}
 .mob span{display:block;width:14px;height:1.5px;background:var(--tx);border-radius:2px;transition:transform .3s var(--e)}
-
-/* Banner */
 .bnr{
   position:fixed;top:var(--nh);left:0;right:0;height:var(--bh);z-index:98;
   display:flex;align-items:center;justify-content:center;gap:8px;
@@ -147,8 +137,6 @@ p{color:var(--tx-2);margin:0}
 }
 .bnr.sim{background:linear-gradient(90deg,rgba(139,122,255,.22),rgba(201,168,76,.08),rgba(139,122,255,.22));color:var(--vi);border-bottom-color:rgba(139,122,255,.4)}
 .bnr .d{width:4px;height:4px;border-radius:50%;background:var(--wn);box-shadow:0 0 5px var(--wn);animation:pulse 2s infinite}
-
-/* Sidebar (main nav — desktop) */
 .sb{
   position:fixed;top:calc(var(--nh) + var(--bh));left:0;bottom:0;width:var(--sw);
   background:rgba(9,10,13,.55);
@@ -191,12 +179,8 @@ p{color:var(--tx-2);margin:0}
 .sbdg.wn{background:rgba(245,165,36,.14);color:var(--wn);border-color:rgba(245,165,36,.3)}
 .sb-foot{margin-top:auto;padding:14px 12px;font-size:12px;color:var(--tx3);line-height:1.6;border-top:1px solid var(--ln);margin-top:18px}
 .sb-foot b{color:var(--gd);font-family:var(--mn);font-size:11px}
-
-/* Main */
 .mn{margin-left:var(--sw);padding-top:calc(var(--nh) + var(--bh));min-height:100vh;transition:margin-left .4s var(--e)}
 .mni{padding:22px 28px 60px;max-width:1800px;margin:0 auto;min-width:0}
-
-/* ── Page header ── */
 .ph{margin-bottom:18px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .ph .eb{
   font-family:var(--mn);font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;
@@ -206,8 +190,6 @@ p{color:var(--tx-2);margin:0}
 .ph h1{font-size:1.36rem}
 .ph p{font-size:.82rem;color:var(--tx3);margin-top:5px;max-width:72ch;line-height:1.55}
 .ph-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-
-/* ── Cards / Panels ── */
 .pnl{background:var(--card);border:1px solid var(--card-line);border-radius:var(--radius-l);overflow:hidden;margin-bottom:12px;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 20px 44px -28px rgba(0,0,0,.7);transition:border-color .35s var(--ease)}
 .pnl:hover{border-color:rgba(201,168,76,.24)}
@@ -222,8 +204,6 @@ p{color:var(--tx-2);margin:0}
 .band:hover{border-color:rgba(201,168,76,.24)}
 .band-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .band-head h2{font-size:1rem;font-weight:500}
-
-/* ── Grid ── */
 .grid{display:grid;gap:18px;min-width:0}
 .grid > *{min-width:0}
 .cols-2{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
@@ -242,11 +222,8 @@ p{color:var(--tx-2);margin:0}
 .st .v.gr{color:var(--up)} .st .v.rd{color:var(--down)} .st .v.gd{color:var(--gdl)} .st .v.vi{color:var(--vi)}
 .st .v.sm{font-family:var(--mn);font-size:.8rem;letter-spacing:.06em;color:var(--wn)}
 .st .n{font-family:var(--mn);font-size:.5rem;color:var(--tx4);margin-top:5px}
-
 .figure{font-size:clamp(30px,7vw,46px);font-weight:600;letter-spacing:-.025em;line-height:1.05;font-variant-numeric:tabular-nums}
 .figure.sm{font-size:clamp(22px,5vw,30px)}
-
-/* ── Buttons ── */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
   font-size:.82rem;font-weight:500;padding:9px 14px;border-radius:10px;
@@ -272,8 +249,6 @@ p{color:var(--tx-2);margin:0}
 .btn-icon{padding:8px;border-radius:8px}
 .btn-mark{display:inline-flex;align-items:center;gap:9px}
 .btn-mark svg{width:17px;height:14.7px;flex:none}
-
-/* ── Forms ── */
 .ff{display:flex;flex-direction:column;gap:6px}
 .ff label{font-family:var(--mn);font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3)}
 .ff input,.ff select,.ff textarea,table input,.field input,.field select,.field textarea{
@@ -294,8 +269,6 @@ table input:focus,.field input:focus,.field select:focus,.field textarea:focus{
 .toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line-soft);font-size:14px;cursor:pointer}
 .toggle:first-of-type{border-top:0}
 .toggle input{width:40px;height:22px;accent-color:var(--gd);flex-shrink:0}
-
-/* ── Tables ── */
 table{width:100%;border-collapse:collapse;font-size:.82rem}
 th{
   font-family:var(--mn);font-size:.46rem;letter-spacing:.14em;text-transform:uppercase;
@@ -316,8 +289,6 @@ td.acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .pos-tbl tr.hedge td:first-child{border-left:2px solid var(--vi)}
 .pos-tbl tr.macro td:first-child{border-left:2px solid var(--gd)}
 .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius-l);border:1px solid var(--card-line)}
-
-/* ── Badges ── */
 .bdg,.badge{
   display:inline-flex;align-items:center;gap:3px;
   font-family:var(--mn);font-size:.46rem;letter-spacing:.14em;text-transform:uppercase;
@@ -346,8 +317,6 @@ td.acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .ts-confirmation,.ts-rejection{background:rgba(201,168,76,.14);color:var(--gd);border-color:rgba(201,168,76,.35)}
 .ts-sweep,.ts-test,.ts-touch{background:rgba(60,140,255,.12);color:#8fb8ff;border-color:rgba(60,140,255,.3)}
 .ts-invalidated{background:rgba(217,73,47,.12);color:var(--down);border-color:rgba(217,73,47,.35)}
-
-/* ── Rows / lists ── */
 .rw{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line-soft);gap:14px;flex-wrap:wrap}
 .rw:last-child{border-bottom:none}
 .rw-l{font-size:.86rem;color:var(--tx-2);display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -379,8 +348,6 @@ button.row:hover .row-l b{color:var(--gd)}
 .progress span{display:block;height:100%;background:var(--gd);border-radius:99px;transition:width .4s var(--ease)}
 .cap-bar{height:8px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;margin:10px 0 6px}
 .cap-bar i{display:block;height:100%;background:linear-gradient(90deg,#8a6a2c,#c9a84c);border-radius:6px;transition:width .4s var(--ease)}
-
-/* ── Modal ── */
 .mb{position:fixed;inset:0;background:rgba(3,4,6,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:all .25s}
 .mb.on{opacity:1;visibility:visible}
@@ -398,8 +365,6 @@ button.row:hover .row-l b{color:var(--gd)}
 .mc:hover{color:var(--tx);border-color:var(--ln3);background:rgba(255,255,255,.04)}
 .mbd{padding:20px}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap}
-
-/* ── Sheets (mobile drawers) ── */
 .sheet-backdrop{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55)}
 .sheet-backdrop.light{background:rgba(0,0,0,.18)}
 .sheet{position:fixed;z-index:21;left:0;right:0;bottom:0;max-height:84vh;display:flex;flex-direction:column;
@@ -419,8 +384,6 @@ button.row:hover .row-l b{color:var(--gd)}
 @media (min-width:1024px){
   .sheet{left:auto;right:24px;bottom:auto;top:24px;width:440px;max-height:calc(100vh - 48px);border:1px solid var(--ln2);border-radius:18px;padding-bottom:18px}
 }
-
-/* ── Toasts ── */
 .tsts{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .tst{
   background:linear-gradient(180deg,rgba(20,22,28,.98),rgba(10,11,14,.98));
@@ -433,8 +396,6 @@ button.row:hover .row-l b{color:var(--gd)}
 }
 .tst.ok{border-left-color:var(--gr)} .tst.err{border-left-color:var(--rd)} .tst.warn{border-left-color:var(--wn)}
 @keyframes tin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-
-/* ── Chart ── */
 .cwrap{position:relative;height:min(62vh,560px);background:#0a0b0d;border:1px solid var(--ln);border-radius:16px;overflow:hidden;touch-action:none}
 #cv{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none;user-select:none}
 .hud{
@@ -522,8 +483,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
 .colors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
 .color-field{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tx-2);cursor:pointer}
 .color-field input{width:40px;height:30px;padding:0;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer}
-
-/* ── Login ── */
 .login-wrap{
   min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
   background:radial-gradient(ellipse 70% 90% at 50% 10%,rgba(160,24,40,.18),transparent 60%),var(--bg);
@@ -553,10 +512,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
 .login-links{display:flex;gap:16px;justify-content:center;margin-top:14px;flex-wrap:wrap}
 .login-link{font-family:var(--mn);font-size:.54rem;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;transition:color .2s;cursor:pointer;background:none;border:none}
 .login-link:hover{color:var(--gdl)}
-
-/* ═══════════════════════════════════════════════════════════════════
-   COMMS — Telegram-style. Bottom tabs are COMMS-ONLY.
-   ═══════════════════════════════════════════════════════════════════ */
 .cm-app{
   display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);
   gap:0;height:calc(100vh - var(--nh) - var(--bh) - 40px);
@@ -684,8 +639,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
   color:var(--tx4);font-size:.86rem;padding:40px;text-align:center;
 }
 .cm-empty svg{width:64px;height:55.7px;opacity:.15;margin-bottom:14px}
-
-/* Comms bottom tabs — ONLY visible inside Comms */
 .cm-tabs{
   display:none;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));
   z-index:15;height:64px;padding:6px;border-radius:22px;
@@ -714,7 +667,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
   background:linear-gradient(180deg, rgba(201,168,76,.21), rgba(201,168,76,.07));
   border:1px solid rgba(201,168,76,.3);transition:all .5s var(--spring);
 }
-/* Comms calls/contacts/settings panes */
 .cm-pane{padding:16px;overflow-y:auto;flex:1;min-width:0}
 .cm-pane h2{margin-bottom:14px;font-size:1rem}
 .cm-contact{
@@ -726,8 +678,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
   display:flex;align-items:center;gap:12px;padding:12px 6px;border-bottom:1px solid var(--line-soft);
 }
 .cm-call-row.missed .cm-call-name{color:var(--down)}
-
-/* ── SOLACE gauge ── */
 .gauge{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:stretch;min-width:0}
 .gauge-bar{position:relative;width:48px;min-height:230px;border-radius:8px;
   background:linear-gradient(to bottom, rgba(236,232,225,.10) 0 9%, transparent 9% 91%, rgba(60,140,255,.12) 91% 100%);
@@ -738,8 +688,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
 .gauge-bar .px::after{content:"";position:absolute;right:-8px;top:-5px;border:6px solid transparent;border-right-color:var(--gd)}
 .gauge-labels{position:relative;min-height:230px;min-width:0}
 .gauge-labels > div{position:absolute;left:0;transform:translateY(-50%);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* ── VICEBOT baskets ── */
 .bsk{padding:12px 14px;border-radius:12px;border:1px solid var(--ln2);background:rgba(0,0,0,.15);margin-bottom:10px}
 .bsk.macro{border-left:3px solid var(--gd)}
 .bsk.internal{border-left:3px solid var(--vi)}
@@ -754,13 +702,9 @@ input[type=range]{width:100%;accent-color:var(--gd)}
 .ebar .seg.filled{background:var(--gd)}
 .ebar .seg.closed{background:var(--up)}
 .ebar .seg.runner{background:var(--vi)}
-
-/* ── Log ── */
 .log{max-height:300px;overflow-y:auto;font-family:var(--mn);font-size:.64rem;color:var(--tx-2);padding:12px 14px;line-height:1.75}
 .log .t{color:var(--tx4);margin-right:7px}
 .log .ok{color:var(--up)} .log .no{color:var(--down)} .log .w{color:var(--wn)} .log .gd{color:var(--gdl)} .log .vi{color:var(--vi)}
-
-/* ── Academy ── */
 .lesson{max-width:800px;margin:0 auto}
 .lesson h1{font-size:clamp(24px,4vw,32px);letter-spacing:-.015em;margin:10px 0 18px}
 .lesson p{font-size:16px;line-height:1.76;color:var(--tx-2);margin:0 0 18px}
@@ -797,8 +741,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
   main,.mn,.mni{padding:0 !important;margin:0 !important}
   .cert{box-shadow:none}
 }
-
-/* ── Wallet ── */
 .phrase-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:14px}
 .pw{display:flex;align-items:center;gap:8px;padding:10px 13px;background:rgba(255,255,255,.03);border:1px solid var(--card-line);border-radius:9px;font-family:var(--mn);font-size:.84rem;user-select:all}
 .pw-n{color:var(--tx3);font-size:.7rem;min-width:18px;text-align:right}
@@ -815,8 +757,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
 .codes{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:9px;margin-top:12px}
 .codes code{font-family:var(--mn);font-size:.82rem;padding:10px;text-align:center;background:rgba(255,255,255,.04);border:1px solid var(--card-line);border-radius:9px;user-select:all;color:var(--tx)}
 .code{display:block;font-family:var(--mn);font-size:.84rem;background:rgba(255,255,255,.04);border:1px solid var(--card-line);border-radius:9px;padding:10px 13px;word-break:break-all;user-select:all;color:var(--tx)}
-
-/* ── Market cards ── */
 .cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .crd{background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:16px;transition:all .3s var(--e);cursor:pointer;position:relative;overflow:hidden}
 .crd:hover{border-color:rgba(201,168,76,.35);transform:translateY(-2px)}
@@ -824,8 +764,6 @@ input[type=range]{width:100%;accent-color:var(--gd)}
 .crd h4{font-size:.92rem;margin-bottom:6px;color:var(--tx);position:relative}
 .crd .d{font-size:.8rem;color:var(--tx3);line-height:1.55;margin-bottom:12px;position:relative}
 .crd .m{font-family:var(--mn);font-size:.54rem;color:var(--tx4);display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--line-soft);position:relative}
-
-/* ── O.I. orb + panel ── */
 #oi-orb{
   position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:15;
   width:62px;height:62px;border-radius:50%;border:0;padding:0;cursor:pointer;background:transparent;
@@ -900,14 +838,10 @@ html[data-locked="1"] #oi-orb{display:none}
 .hs.ok{border-color:rgba(111,212,154,.24)} .hs.ok b{color:var(--up)}
 .hs.bad{border-color:rgba(255,122,92,.28)} .hs.bad b{color:var(--down)}
 .hs.idle b{color:var(--tx-2)}
-
-/* ── Lock ── */
 .lock{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:radial-gradient(60% 50% at 50% 40%, rgba(201,168,76,.12), rgba(5,6,8,.98));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
 .lock-card{text-align:center;padding:32px;max-width:360px}
 .lock-card svg{width:82px;height:71px;margin-bottom:18px;filter:drop-shadow(0 0 18px rgba(201,168,76,.22))}
 .lock-card h2{margin-bottom:8px}
-
-/* ── Splash ── */
 #splash{
   position:fixed;inset:0;z-index:100;--mw:min(13vmax,150px);overflow:hidden;
   background:radial-gradient(circle 42vmax at 50% 50%, rgba(201,168,76,.10), rgba(201,168,76,0)), #07080a;
@@ -930,8 +864,6 @@ html[data-locked="1"] #oi-orb{display:none}
 .splash-name b:nth-child(3){animation-delay:.64s} .splash-name b:nth-child(4){animation-delay:.7s}
 .splash-sub{font-size:10.5px;font-weight:600;letter-spacing:.56em;padding-left:.56em;color:var(--gd);opacity:0;animation:letter .7s var(--ease) .86s forwards}
 @keyframes letter{to{opacity:1;transform:none}}
-
-/* ── Motion ── */
 #view{view-transition-name:page}
 ::view-transition-old(root),::view-transition-new(root){animation:none}
 ::view-transition-old(page){animation:vt-out .24s var(--ease) both}
@@ -944,8 +876,6 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
 @keyframes vt-in-back{from{opacity:0;transform:translateX(-4%) scale(.985)}}
 .enter [data-rise]{animation:rise .72s var(--ease) both;animation-delay:calc(var(--i,0) * 55ms + 40ms)}
 @keyframes rise{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
-
-/* ── Support / KB ── */
 .kb{border-top:1px solid var(--line-soft);padding:14px 0}
 .kb:first-of-type{border-top:0}
 .kb summary{cursor:pointer;font-weight:600;font-size:.9rem;padding:4px 0;transition:color .2s}
@@ -956,30 +886,22 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
 .sup-brand > div{flex:1;min-width:0}
 .sup-brand h1{margin:0}
 .sup-kicker{margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:.32em;color:var(--gd);font-family:var(--mn)}
-
-/* ── Marketplace modules ── */
 .module-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-top:1px solid var(--line-soft);flex-wrap:wrap}
 .module-row:first-of-type{border-top:0}
 .module-l{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
 .module-l b{font-size:.92rem;color:var(--tx)}
 .module-l span{font-size:.76rem;color:var(--tx3);line-height:1.5}
-
-/* ── Setup steps ── */
 .steps{counter-reset:s;list-style:none;padding:0;margin:16px 0 0;display:grid;gap:14px}
 .steps li{counter-increment:s;display:grid;grid-template-columns:32px 1fr;gap:14px;align-items:start;font-size:.86rem;line-height:1.55}
 .steps li::before{content:counter(s);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#16120a;background:linear-gradient(180deg,#dcbc76,#c29a4c)}
 .steps b{color:var(--tx)}
 .steps .meta{display:block;margin-top:3px;font-size:.8rem;line-height:1.5}
-
-/* ── Bridge / pairing ── */
 .pair-block{margin-top:16px}
 .pair-block h3{margin-bottom:6px;font-size:.94rem}
 .pair-form{display:flex;gap:9px;margin-top:10px;max-width:400px}
 .pair-form input{flex:1;min-width:0;font-size:20px;letter-spacing:.32em;text-align:center;background:rgba(0,0,0,.4);border:1px solid var(--ln2);border-radius:10px;padding:11px 14px;color:var(--tx);font-family:var(--mn)}
 .pair-form input:focus{border-color:var(--gd);outline:none}
 .pair-code{font-family:var(--mn);font-size:38px;font-weight:700;letter-spacing:.28em;color:var(--gdl)}
-
-/* ── Data rooms, docs, holders ── */
 .dr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .dr-card{background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:18px;transition:all .3s var(--e);cursor:pointer}
 .dr-card:hover{border-color:rgba(201,168,76,.35);transform:translateY(-2px)}
@@ -997,8 +919,6 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
   border-radius:12px;cursor:crosshair;touch-action:none;display:block;
 }
 .signature-pad.signed{border-style:solid;border-color:var(--gd)}
-
-/* ── Dist/tier admin ── */
 .standing{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:12px 0 8px}
 .std{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:14px;background:var(--raised);border:1px solid var(--line-soft);min-width:0}
 .std b{font-size:1rem;color:var(--gd)}
@@ -1007,18 +927,12 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
 .std-hist li{font-size:.78rem;padding:6px 0;border-top:1px solid var(--line-soft)}
 .std-hist li:first-child{border-top:0}
 .tstate-inline{font-family:var(--mn);font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tx4);margin-left:6px}
-
-/* ── Sparkline / equity ── */
 .spark{width:100%;height:44px;display:block}
-
-/* ── Frame / scroll-x guards ── */
 .total-card .figure{font-size:clamp(30px,8.4vw,54px);letter-spacing:-.02em;max-width:100%;overflow-wrap:anywhere;line-height:1.08}
 .total-card .figure.fig-xl{font-size:clamp(22px,6.6vw,44px)}
 .total-card .figure.fig-xxl{font-size:clamp(16px,4.6vw,34px)}
 .total-rows{margin-top:14px}
 .total-rows .asset{padding:12px 0}
-
-/* ── Responsive ── */
 @media (max-width:1400px){.sp2{grid-template-columns:1fr}.cols-4{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:1200px){.cm-app{grid-template-columns:minmax(260px,300px) minmax(0,1fr)}}
 @media (max-width:1100px){.cols-3{grid-template-columns:repeat(2,1fr)}.markets{grid-template-columns:1fr}}
@@ -1065,14 +979,11 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
   *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
   body::before{animation:none}
 }
-/* Final polish */
 .svg-defs{position:absolute;width:0;height:0;overflow:hidden}
 .fractal-note{font-family:var(--mn);font-size:.55rem;color:var(--tx3);letter-spacing:.08em}
 </style>
 </head>
 <body>
-
-<!-- SVG defs -->
 <svg class="svg-defs" aria-hidden="true" focusable="false"><defs>
   <linearGradient id="vice-gold" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#ecd28a"/><stop offset=".45" stop-color="#c9a84c"/><stop offset="1" stop-color="#9c7c33"/>
@@ -1082,7 +993,6 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
   </linearGradient>
 </defs></svg>
 
-<!-- Splash -->
 <div id="splash" aria-hidden="true">
   <svg class="splash-mark" viewBox="0 -144.3 1000 1010.4" focusable="false">
     <defs>
@@ -1105,7 +1015,6 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
 </div>
 
 <div class="app">
-  <!-- Top bar -->
   <header class="tb" id="tb">
     <button class="mob" id="sbToggle" aria-label="Menu"><span></span><span></span><span></span></button>
     <div class="brand" data-go="command">
@@ -1125,10 +1034,8 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
     </div>
   </header>
 
-  <!-- Banner -->
   <div class="bnr" id="bnr"><span class="d"></span><span id="bnrText">Institutional Record</span></div>
 
-  <!-- Sidebar nav -->
   <aside class="sb" id="sb">
     <div class="sb-brand">
       <svg viewBox="0 0 1000 866" aria-hidden="true" focusable="false"><path fill="url(#vice-gold)" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/></svg>
@@ -1138,18 +1045,15 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
     <div class="sb-foot"><span id="buildv"></span><br>Ctrl K · O.I. · / pairs</div>
   </aside>
 
-  <!-- Main -->
   <main class="mn"><div class="mni" id="view" tabindex="-1"></div></main>
 </div>
 
-<!-- Modal / sheets / toasts -->
 <div class="mb" id="modal" data-act="modal-close"><div class="mdl" id="modalContent" onclick="event.stopPropagation()"></div></div>
 <div id="sheet-root"></div>
 <div id="oi-root"></div>
 <div id="lock-root"></div>
 <div class="tsts" id="toasts"></div>
 
-<!-- O.I. orb -->
 <button id="oi-orb" data-act="oi-open" aria-label="Ask O.I. (Ctrl K)">
   <span class="orb-ring" aria-hidden="true"></span>
   <span class="orb-glass" aria-hidden="true"></span>
@@ -1157,7 +1061,6 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
   <span class="orb-label" aria-hidden="true">O.I.</span>
 </button>
 
-<!-- Comms bottom tabs — ONLY visible inside Comms view -->
 <div class="cm-tabs" id="cmTabs">
   <span class="nav-ind" id="cmInd"></span>
   <button data-cm-tab="chats" aria-current="page">
@@ -1178,7 +1081,6 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
   </button>
 </div>
 
-<!-- Login (when no server session) -->
 <section id="login" class="login-wrap" hidden>
   <div class="login-card">
     <div class="login-logo">
@@ -1204,21 +1106,16 @@ html[data-dir="back"]::view-transition-new(page){animation-name:vt-in-back}
   </div>
 </section>
 
-<!-- Hidden file inputs -->
 <input type="file" id="csv" accept=".csv,.txt,text/csv,text/plain" hidden>
 <input type="file" id="eaLog" accept=".csv,.txt,text/csv,text/plain" hidden>
-<input type="file" id="docUpload" accept=".pdf,.doc,.docx,.txt,.md,imageJ/*" hidden multiple>
+<input type="file" id="docUpload" accept=".pdf,.doc,.docx,.txt,.md,image/*" hidden multiple>
 
-<script src="https://cdn.jsdelivr.net/npmzd/@supabase/supabase-js@2.X49.4/dist/umBhd/supabase.min.js"></Ymscript>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script>
-/* ═════════════F══════════════════════════════════════════════════════
-   VICE OS — core runtime
-   Supabase · utils · state · mode · nav · router
-   ═══════════════════════════════════════════════════════════════════ */
 'use strict';
 
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOizZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'vice-os-auth', detectSessionInUrl: true }
@@ -1242,7 +1139,6 @@ const signCls = v => v > 0 ? 'up' : v < 0 ? 'down' : '';
 const shortAddr = a => a ? `${a.slice(0,6)}…${a.slice(-4)}` : '';
 const px = v => (v == null || v === 0 ? '—' : Number(v).toLocaleString('en-US', { maximumFractionDigits: 5 }));
 
-/* ─── Money: integer minor units only ─── */
 const Money = {
   toMinor(input) {
     const s = String(input ?? '').replace(/[$,\s]/g, '');
@@ -1275,7 +1171,6 @@ function toast(msg, type='info'){
   }catch(_){}
 }
 
-/* ─── Symbol canonicalization ─── */
 const PRETTY_ALIASES = {'^GSPC':'SPX','^NDX':'NDX','^DJI':'DJI','^RUT':'RUT','^FTSE':'FTSE','^N225':'N225','^HSI':'HSI','^GDAXI':'DAX','^FCHI':'CAC','^STOXX50E':'SX5E','^VIX':'VIX','GC=F':'GC','SI=F':'SI','CL=F':'CL','NG=F':'NG','HG=F':'HG','ES=F':'ES','NQ=F':'NQ','YM=F':'YM','RTY=F':'RTY'};
 const YAHOO_INVERSE = {'SPX':'^GSPC','NDX':'^NDX','DJI':'^DJI','RUT':'^RUT','FTSE':'^FTSE','N225':'^N225','HSI':'^HSI','DAX':'^GDAXI','CAC':'^FCHI','SX5E':'^STOXX50E','VIX':'^VIX','GC':'GC=F','SI':'SI=F','CL':'CL=F','NG':'NG=F','HG':'HG=F','ES':'ES=F','NQ':'NQ=F','YM':'YM=F','RTY':'RTY=F'};
 const CCY = ['USD','EUR','GBP','JPY','CHF','AUD','NZD','CAD','CNY','HKD','SEK','NOK','MXN','SGD','TRY','ZAR','INR','BRL','PLN','DKK','CZK','HUF','ILS','KRW','THB','PHP','IDR','MYR','RUB','SAR','AED'];
@@ -1301,14 +1196,9 @@ function prettyTicker(source, ticker){
 }
 function prettySymbol(pair){ const { source, ticker } = parseSymbol(pair); return prettyTicker(source, ticker); }
 
-/* ═══════════════════════════════════════════════════════════════════
-   Global state — merged from both codebases
-   ═══════════════════════════════════════════════════════════════════ */
 const S = {
   user:null, view:'command', tab:'command',
   profile:{ name:'', username:'', email:'', role:'HOLDER', title:'', phone:'', jurisdiction:'CH', timezone:'UTC', avatarInitials:'NA', vipAccess:false, memberId:null, clientId:null },
-
-  /* IRU + holders (institutional build) */
   invites:[], personalHoldings:{ viceUnits:0, v4xUnits:0 },
   iruClasses:[
     { class:'VICE', totalSupply:10000000, reserve:7500000, holderPool:2500000, allocated:0, ouv:2, maxHolders:250 },
@@ -1317,10 +1207,8 @@ const S = {
   ouvVersions:[], holders:[], proposals:[], distributions:[],
   documents:[], dataRooms:[], complianceCases:[], treasuryTx:[], audit:[],
   contracts:[], reconJobs:[], mt5:[], externalAccounts:[],
-  signatures:[],          // NEW: e-signature records
-  docFolders:[],          // NEW: document folders
-
-  /* DeFi / Wallet (both builds) */
+  signatures:[],
+  docFolders:[],
   defiWallet:{ initialized:false, chains:[
     { id:'ethereum', name:'Ethereum', symbol:'ETH', address:null, balance:0, usdRate:3420.55 },
     { id:'bitcoin',  name:'Bitcoin',  symbol:'BTC', address:null, balance:0, usdRate:68240.10 },
@@ -1328,8 +1216,6 @@ const S = {
     { id:'polygon',  name:'Polygon',  symbol:'MATIC',address:null, balance:0, usdRate:0.812 },
     { id:'usdc',     name:'USDC',     symbol:'USDC', address:null, balance:0, usdRate:1.00 },
   ], encryptionMeta:{ algorithm:'AES-256-GCM', kdf:'PBKDF2-SHA-256', iterations:250000 }},
-
-  /* Marketplace */
   marketplace:[
     { id:'svc-001', name:'Private Jet Charter', vendor:'Inspirato', category:'Transport', status:'ACTIVE', description:'Global private jet charter access.' },
     { id:'svc-002', name:'Yacht Charter', vendor:'Exalted Fleet', category:'Marine', status:'ACTIVE', description:'Mediterranean, Caribbean, Pacific charters.' },
@@ -1337,8 +1223,6 @@ const S = {
     { id:'svc-004', name:'Travel Concierge', vendor:'VICE Concierge', category:'Concierge', status:'ACTIVE', description:'Dedicated travel planning.' },
     { id:'svc-005', name:'Estate Planning', vendor:'Partner Counsel', category:'Advisory', status:'PENDING', description:'Estate and succession planning.' },
   ],
-
-  /* Comms (Telegram-style, both builds) */
   comms:{
     channels:[
       { id:'general',  name:'general',  topic:'General discussion', icon:'#', adminOnly:false, pinned:null },
@@ -1349,14 +1233,10 @@ const S = {
     activeChannel:'general', messages:{}, dms:{}, activeDm:null,
     online:new Set(), unread:{}, lastRead:{},
     peers:[{ id:'kahzi', name:'KAHZI', role:'OWNER' }, { id:'cfo', name:'CFO', role:'FINANCE' }, { id:'counsel', name:'Counsel', role:'LEGAL' }],
-    calls:[],              // NEW: call history
-    tab:'chats',           // NEW: comms bottom tab
+    calls:[],
+    tab:'chats',
   },
-
-  /* O.I. */
   oi:{ messages:[] },
-
-  /* Integrations status */
   integrations:{
     'marketdata.binance':  { family:'market-data', label:'Binance Live Feed', status:'CONNECTED' },
     'marketdata.yahoo':    { family:'market-data', label:'Yahoo Finance Feed', status:'CONNECTED' },
@@ -1366,30 +1246,20 @@ const S = {
     'storage.objects':     { family:'storage',     label:'Object Storage', status:'CONNECTED' },
     'identity.primary':    { family:'identity',    label:'Identity Provider', status:'CONNECTED' },
   },
-
-  /* Market chart (newer build) */
   sel: { symbol: 'PRACTICE', tf: 'H1', src: 'local' },
   view2: { count: 140, end: null },
   engine: { sens:'Balanced', minLegATR:2, noTighten:true, breakCloses:1, whipsaw:true, fallback:true, fbLen:20, atrLen:14, zoneTolATR:0.5 },
   chart: { preset:'vice-gold', type:'hollow', colors:null, show:{ grid:true, zones:true, history:true, events:true, lastPrice:true, watermark:true }, levelWidth:1.6 },
   sets: {},
   data:null, res:null,
-
-  /* Community / calculator (both) */
   community:{ profit:'1000.00', eligible:137, reservePct:'10', memberPct:'80', eligibleSet:false },
   staking:{ budget:'400.00', pub:'100000', priv:'100000', privWeight:'3' },
-
-  /* Risk / mirror (newer build) */
   risk:{ stackPct:'6', accounts:[
     { name:'Master', equity:'100000.00', riskPct:'1', mult:'1' },
     { name:'Follower A', equity:'25000.00', riskPct:'2', mult:'2' },
-    { name:'Follower B', equity:'50000.00', riskPct:'1', mult:'1' },
+    { name:'Follower B', equity:'50000.00', riskPct:'1.5', mult:'1' },
   ]},
-
-  /* MT5 live-link (newer build's "VICE Link") */
   link:{ url:'', token:'', status:'off', msg:'', admin:false, device:'', sources:[], portfolio:null, portfolioAt:0, audit:null, adminInfo:null },
-
-  /* VICEBOT engine (both builds) */
   engine2: {
     running:false, killSwitch:false,
     MAX_TOTAL:18, MAX_MACRO:9, MAX_INTERNAL:9,
@@ -1398,41 +1268,20 @@ const S = {
     events:[], costsPerLotBps:2.0,
     BASKET_SIZE:9, T1_R:2.0, T2_R:5.0, T1_CLOSE:0.25, T2_CLOSE:0.25,
   },
-
-  /* Chart SOLACE state (both builds) */
   ch: { pair:'BINANCE:BTCUSDT', tf:'1h', preset:'vice-gold',
     toggles:{poles:true, internal:true, choch:true, trades:true, zones:true, vol:true},
     candles:[], ltfCandles:[], ltfTf:null, ws:null, live:false, atr:0, zoomBars:200, mx:null, my:null },
-
-  /* Transient UI */
   sheet: null, query: '', flash:null, parity:null,
-
-  /* Academy */
   academy: { read:{}, quiz:{}, certs:[], view:null, answers:{}, result:null, msg:'' },
-
-  /* VICE Wallet (newer build) */
   wallet: { status:'none', accounts:null, unlocked:false, reveal:null, balances:{}, loading:false, rpc:'', chainId:null, msg:'', draftPhrase:null, vault:null },
-
-  /* Lab */
   lab: { strategy:'solace-reclaim', costs:null, seed:1, run:null, base:null, wf:null, mc:null, adv:null, stress:null, cc:null, repro:{}, msg:'', ledger:[], championParams:{} },
-
-  /* Desk */
   desk: { autopilot:false, gov:null, cursor:null, replay:false, broker:null, breaker:{ state:'NORMAL', log:[] }, policy:null, specs:{}, risk:null, order:null, msg:'', cf:{}, audit:[] },
-
-  /* Chain inspector */
   chain: { report:null, busy:false, msg:'' },
-
-  /* Support */
   support: { tickets:[], msg:'' },
-
-  /* IRU admin / distribution */
   iru: { mode:'local', demo:false, events:[], state:null, msg:'', preview:null, busy:false, draft:{ program:'V4X', value:'', reason:'', basis:'INTERNAL_REFERENCE' }, appoint:null, viewHolder:null, query:'', inviteFor:null, inviteOut:null, importMsg:'', vipMsg:'', vipQuery:'', mine:null, mineLoading:false },
-
-  /* Modules toggle (marketplace) */
   modules:{ off:{} },
 };
 
-/* ─── Role permissions ─── */
 const ROLE_PERMS = {
   SUPER_ADMIN:['*'],
   EXECUTIVE:['view','create','edit','submit','review','approve','export','download','share','exec','chat','dm','vip','sign','esign','invite'],
@@ -1459,7 +1308,6 @@ function isOwner(){ return S.profile?.role === 'SUPER_ADMIN'; }
 function isClient(){ return !!(S.profile?.clientId && S.profile.role === 'HOLDER'); }
 function canExecuteBot(){ return !!S.user && (can('exec') || isOwner()); }
 
-/* ─── App mode ─── */
 const MODE_KEY = 'vice-os-mode';
 let APP_MODE = (localStorage.getItem(MODE_KEY) || 'LIVE').toUpperCase();
 
@@ -1571,9 +1419,6 @@ function showApp(){
   go(S.tab || 'command');
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   NAV config (sidebar for full SaaS) + Router
-   ═══════════════════════════════════════════════════════════════════ */
 const ICONS = {
   home:'<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/>',
   chart:'<path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>',
@@ -1680,8 +1525,7 @@ function renderNav(){
   host.innerHTML = html;
 }
 
-/* ─── Router ─── */
-const VIEWS = {};   // populated in later parts
+const VIEWS = {};
 
 const TABS = ['command','markets','portfolio','wallet','academy','community','vicebot','desk','lab','treasury','vip','mt5','external','defi','holders','iru','governance','distributions','documents','data-rooms','compliance','contracts','invites','security','admin','audit','reconciliation','marketplace','oi','support','profile','comms'];
 
@@ -1690,15 +1534,11 @@ function go(tab){
   const same = tab === S.tab;
   const dir = TABS.indexOf(tab) < TABS.indexOf(S.tab) ? 'back' : 'fwd';
   S.tab = tab; S.sheet = null; S.query = '';
-
-  // Comms bottom tabs ONLY show in comms view
   const cmTabs = $('cmTabs');
   if(cmTabs) cmTabs.classList.toggle('on', tab === 'comms');
-
   renderNav();
   window.scrollTo(0,0);
   if(window.innerWidth <= 900) $('sb')?.classList.remove('open');
-
   if(same){ renderMain(); return; }
   if(window.matchMedia && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof document.startViewTransition === 'function'){
     document.documentElement.dataset.dir = dir;
@@ -1716,7 +1556,6 @@ function renderMain(){
   try{ fn(v); }catch(e){ v.innerHTML = `<div class="emp">Error: ${esc(e.message)}</div>`; console.error(e); }
 }
 
-/* ─── Modal ─── */
 function openModal(title, html){
   const mc = $('modalContent'); if(!mc) return;
   mc.innerHTML = `<div class="mh"><h3>${esc(title)}</h3><button class="mc" data-act="modal-close" aria-label="Close">×</button></div><div class="mbd">${html}</div>`;
@@ -1724,7 +1563,6 @@ function openModal(title, html){
 }
 function closeModal(){ $('modal')?.classList.remove('on'); }
 
-/* ─── Auth ─── */
 let authBusy = false;
 
 async function signInWithGoogle(){
@@ -1870,17 +1708,14 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
   }catch(_){}
 }
 
-/* ─── Value calcs ─── */
 function defiUsd(){ return S.defiWallet.chains.reduce((s,c)=>s+(c.balance*c.usdRate),0); }
 function mt5Usd(){ return S.mt5.reduce((s,a)=>s+Number(a.equity||0),0); }
 function externalUsd(){ const fx={USD:1,SGD:0.74,EUR:1.08,CHF:1.11,GBP:1.27}; return S.externalAccounts.reduce((s,a)=>s+(Number(a.balance||0)*(fx[a.currency]||1)),0); }
 function iruUsd(){ const v=S.iruClasses.find(c=>c.class==='VICE')?.ouv||2, x=S.iruClasses.find(c=>c.class==='V4X')?.ouv||320; return (S.personalHoldings.viceUnits*v) + (S.personalHoldings.v4xUnits*x); }
 function totalPersonalUsd(){ return iruUsd() + defiUsd() + mt5Usd() + externalUsd(); }
 
-/* ─── Sidebar toggle ─── */
 document.getElementById('sbToggle')?.addEventListener('click', () => $('sb').classList.toggle('open'));
 
-/* ─── Comms bottom tab indicator ─── */
 function paintCmTabs(){
   const t = $('cmTabs'); if(!t) return;
   const btns = [...t.querySelectorAll('button[data-cm-tab]')];
@@ -1888,7 +1723,7 @@ function paintCmTabs(){
   btns.forEach(b => b.setAttribute('aria-current', b.dataset.cmTab === S.comms.tab ? 'page' : 'false'));
   const ind = $('cmInd'); if(!ind || !active) return;
   ind.style.width = active.offsetWidth + 'px';
-  ind.style.height = (active.offsetHeight) + 'px';
+  ind.style.height = active.offsetHeight + 'px';
   ind.style.left = active.offsetLeft + 'px';
   ind.style.top = active.offsetTop + 'px';
   const badge = $('cmBadgeChats');
@@ -1899,19 +1734,15 @@ function paintCmTabs(){
   }
 }
 
-/* ─── Window hash boot ─── */
 document.addEventListener('DOMContentLoaded', () => {
   $('buildv').textContent = `v${BUILD.version}`;
-
   const lf = $('loginForm');
   if(lf) lf.addEventListener('submit', e => { e.preventDefault(); login(); });
-
   sb.auth.getSession().then(({data})=>{
     if(data?.session?.user) onAuthenticated(data.session.user);
   }).catch(()=>{});
 });
 
-/* ─── Delegated click router (single delegate, later parts add cases) ─── */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-go],[data-act]');
   if(!t || t.disabled) return;
@@ -1926,7 +1757,6 @@ document.addEventListener('click', (e) => {
     case 'forgot': forgotPassword(); return;
     case 'invite-help': openInviteHelp(); return;
     case 'sign-out': logout(); return;
-    /* later parts extend this switch */
   }
   if(typeof window.__viceAct === 'function') window.__viceAct(t, e);
 });
@@ -1998,7 +1828,6 @@ window.__viceAct = function(t, e){
   }
 };
 
-/* ─── Global keyboard shortcuts ─── */
 document.addEventListener('keydown', (e) => {
   if((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')){ e.preventDefault(); document.querySelector('[data-act="oi-open"]')?.click(); return; }
   const tg = e.target;
@@ -2006,13 +1835,13 @@ document.addEventListener('keydown', (e) => {
   if(e.metaKey || e.ctrlKey || e.altKey) return;
   if(e.key === '/'){ e.preventDefault(); try{ openSheet('symbols'); }catch(_){} }
 });
+</script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════
-   VICE OS — engines (part 3a)
-   SOLACE v5 · candle data · IRU event-sourced journal · Risk Kernel
+   VICE OS — engines
+   SOLACE v5 · candle data · IRU journal · Risk Kernel · Wallet · Lab · Link
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ─── SOLACE v5 — confirmed pivots → hold layer ─── */
 const Solace = (() => {
   function atr(bars, len) {
     const n = bars.length, out = new Array(n).fill(NaN);
@@ -2127,7 +1956,6 @@ const Solace = (() => {
   return { run, atr };
 })();
 
-/* ─── Candle data: Binance · Yahoo · MT5 import · Practice ─── */
 const BINANCE_TF = { '1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'4h','1d':'1d' };
 const YAHOO_TF = { '1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'1h','1d':'1d','1wk':'1wk' };
 const YAHOO_RANGE = { '1m':'5d','5m':'1mo','15m':'1mo','1h':'3mo','4h':'1y','1d':'2y','1wk':'5y' };
@@ -2317,7 +2145,6 @@ const Store = (() => {
            del: id => run('readwrite', st => st.delete(id)).catch(() => {}) };
 })();
 
-/* ─── Load candles + compute SOLACE ─── */
 async function fetchCandlesBinance(ticker, tf, limit=500){
   const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${ticker}&interval=${BINANCE_TF[tf]||'1h'}&limit=${limit}`);
   if(!r.ok) throw new Error('Binance HTTP ' + r.status);
@@ -2371,10 +2198,6 @@ function computeATR(){
   S.ch.atr = s/14;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   IRU Engine — event-sourced journal (from institutional build)
-   Holders · Allocations · Valuations · Tier · Legacy · Entry Class
-   ═══════════════════════════════════════════════════════════════════ */
 const IruEngine = (() => {
   const G = Object.freeze({ representsCorporateOwnership:false, representsEquity:false, transferable:false, sellableThroughVice:false });
   const PROGRAMS = Object.freeze({ VICE:{ id:'VICE', name:'VICE', side:'Public', unitLabel:'VICE IRU' }, V4X:{ id:'V4X', name:'V4X', side:'Private', unitLabel:'V4X IRU' } });
@@ -2571,9 +2394,6 @@ const IruEngine = (() => {
   return { G, PROGRAMS, ECON, VALUE_BASES, TIERS, LEGACY, emptyState, apply, replay, supplyView, capacity, checkInvariants, findByClientId, holderView, classificationOf, registry, previewValue, parseCents, parseUnits, tierForContribution };
 })();
 
-/* ═══════════════════════════════════════════════════════════════════
-   Risk Kernel (ViceCore) — pre-trade checks, sizing, circuit breaker
-   ═══════════════════════════════════════════════════════════════════ */
 const ViceCore = (() => {
   const HARD_LIMITS = Object.freeze({ riskPerTradeBps:200, dailyLossBps:500, drawdownBps:999, positions:10 });
   const DEFAULT_POLICY = Object.freeze({ riskPerTradeBps:50, dailyLossBps:300, drawdownBps:800, positions:3, maxSpreadAtr:0.25, maxDataAgeMs:120000, authorized:['tighten-f0f100'] });
@@ -2657,9 +2477,8 @@ const ViceCore = (() => {
       margin: Math.min(1, Math.min(Math.abs(er - 0.35), Math.abs(er - 0.15)) / 0.1) };
   }
   function tighten(bars, f0, f100, atr, i, side) {
-    let level = null, lb = null, state = 'SEARCHING', plan = null, touched = 0;
+    let level = null, state = 'SEARCHING', plan = null, touched = 0;
     const start = Math.max(2, i - 400);
-    const chain = [];
     for (let j = start; j <= i; j++) {
       const b = bars[j], a = atr[j]; if (!(a > 0)) continue;
       const lvl = side > 0 ? f0[j] : f100[j];
@@ -2668,11 +2487,11 @@ const ViceCore = (() => {
       if (reach >= 0 && reach <= a * 0.3) {
         level = lvl; touched = j;
         if (reach >= a * 0.1) state = 'TEST';
-        if (side > 0 ? (b.c > lvl) : (b.c < lvl)) state = side > 0 ? 'REJECTION' : 'REJECTION';
+        if (side > 0 ? (b.c > lvl) : (b.c < lvl)) state = 'REJECTION';
       }
       if (level !== null && state === 'REJECTION') {
         const back = side > 0 ? b.c > level : b.c < level;
-        if (back && (side > 0 ? b.l > level + a * 0.3 : b.h < level - a * 0.3)) { state = 'CONFIRMATION'; chain.push(j); }
+        if (back && (side > 0 ? b.l > level + a * 0.3 : b.h < level - a * 0.3)) state = 'CONFIRMATION';
         const struct = side > 0 ? bars[j-2] && b.c > Math.max(bars[j-1].h, bars[j-2].h) : bars[j-2] && b.c < Math.min(bars[j-1].l, bars[j-2].l);
         if (back && struct) {
           state = 'ARMED';
@@ -2766,12 +2585,7 @@ const ViceCore = (() => {
   }
   return { HARD_LIMITS, DEFAULT_POLICY, AP_REASONS, ORDER_FLOW, TRANSITIONS, effectivePolicy, sizePosition, preTrade, newBreaker, breakerStep, regimeAt, tighten, precisionMode, autopilotGovern, createPaperBroker };
 })();
-</script>
-<script>
-/* ═══════════════════════════════════════════════════════════════════
-   VICE Wallet — non-custodial BIP39/32 + SIWE signing
-   Nothing leaves the device except a signed message.
-   ═══════════════════════════════════════════════════════════════════ */
+
 const Wallet = (() => {
   const W = window.ViceWallet || null;
   const NETWORKS = {
@@ -2788,13 +2602,13 @@ const Wallet = (() => {
     st.rpc = saved.rpc || '';
     if (saved.vault) { st.vault = saved.vault; st.accounts = saved.vault.accounts; st.status = 'locked'; }
   }
-  const notify = () => { if(typeof safeRender === 'function') safeRender(); else renderMain(); };
+  const notify = () => { renderMain(); };
   const api = {
     state:st, networks:NETWORKS,
     has: () => st.status !== 'none' && st.status !== 'unsupported',
     unlocked: () => st.unlocked,
     address: net => st.accounts && st.accounts[NETWORKS[net].kind] && st.accounts[NETWORKS[net].kind].address,
-    start() { if (!W) { st.status = 'unsupported'; return; } load(); notify(); },
+    start() { if (!W) { st.status = 'unsupported'; return; } load(); },
     beginCreate() { if (!W) return; st.draftPhrase = W.newPhrase(); st.status = 'creating'; st.msg = ''; notify(); },
     cancelCreate() { st.draftPhrase = null; st.status = st.vault ? 'locked' : 'none'; st.msg = ''; notify(); },
     async finishCreate(password) {
@@ -2849,10 +2663,7 @@ const Wallet = (() => {
   return api;
 })();
 
-/* ─── Chain reader (from earlier build) ─── */
 const ChainReader = (() => {
-  const bytesToHex = (W) => W ? W.bytesToHex : null;
-  const utf8ToBytes = (W) => W ? W.utf8ToBytes : null;
   const pad = hex => hex.replace(/^0x/,'').toLowerCase().padStart(64,'0');
   const hexToBig = h => (h && h !== '0x' ? BigInt(h) : 0n);
   return function createChainReader(rpcUrl, { fetchImpl = fetch } = {}) {
@@ -2887,7 +2698,6 @@ window.formatUnits = function formatUnits(raw, decimals, maxFrac = 6) {
   return `${neg ? '-' : ''}${whole.toLocaleString('en-US')}${frac ? `.${frac}` : ''}`;
 };
 
-/* ─── Chain Inspector (read-only contract verification) ─── */
 const ChainCheck = (() => {
   const CONTRACTS = [
     { key:'VICE', label:'VICE Public Token', address:'0xd1b7660A5f13D669d3D939056d183eAfb15DFcb3',
@@ -2908,7 +2718,7 @@ const ChainCheck = (() => {
     { address:'0xC36442b4a4522E871399CD717aBDD847Ab11FE88', role:'UNKNOWN', note:'Labelled "Uniswap V3 Manager".' },
   ];
   const st = S.chain;
-  const notify = () => { if(typeof safeRender === 'function') safeRender(); else renderMain(); };
+  const notify = () => { renderMain(); };
   const api = {
     state:st, contracts:CONTRACTS, addresses:ADDRESSES,
     async run() {
@@ -2923,7 +2733,6 @@ const ChainCheck = (() => {
         for (const c of CONTRACTS) {
           const addr = c.address || (c.candidates ? c.candidates[0].address : null);
           if (!addr) { report.contracts.push({ key:c.key, label:c.label, address:null, verdict:'NO ADDRESS' }); continue; }
-          const code = await reader.rpc ? null : null; // placeholder — reader doesn't expose rpc
           report.contracts.push({ key:c.key, label:c.label, address:addr, verdict: c.candidates ? 'CONFLICT' : 'NOT VERIFIED',
             note: c.candidates ? `Two candidate addresses: ${c.candidates.map(x => x.address).join(' vs ')}` : '' });
         }
@@ -2935,9 +2744,6 @@ const ChainCheck = (() => {
   return api;
 })();
 
-/* ═══════════════════════════════════════════════════════════════════
-   Quant Lab — backtest/walk-forward/MC/adversarial on SOLACE levels
-   ═══════════════════════════════════════════════════════════════════ */
 const Lab = (() => {
   const st = S.lab;
   const STRATEGIES = {
@@ -3109,7 +2915,7 @@ const Lab = (() => {
     for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
     return (h >>> 0).toString(16).padStart(8,'0');
   }
-  const notify = () => { if(typeof safeRender === 'function') safeRender(); else renderMain(); };
+  const notify = () => { renderMain(); };
   return { state:st, strategies:STRATEGIES, metrics, backtest, walkForward, monteCarlo, adversarial, stress, championChallenger, dataset, defaultCosts,
     onChange:() => {},
     setCosts(c) { st.costs = c; },
@@ -3149,19 +2955,10 @@ const Lab = (() => {
       notify(); } };
 })();
 
-/* ═══════════════════════════════════════════════════════════════════
-   VICE Link — live MT5 broker connection (login + balance + positions)
-   This is the "real broker login" bridge. Add MT5 accounts with
-   server / login / password. The Windows VICE Bridge EA uses these
-   credentials (stored encrypted in the browser only) to authenticate
-   with the MT5 terminal and stream live data back over WebSocket.
-   ═══════════════════════════════════════════════════════════════════ */
 const Link = (() => {
   const st = S.link;
   const symbols = new Map(), series = new Map(), loading = new Set(), errors = new Map(), quotes = new Map(), reqs = new Map();
   let ws = null, retry = 0, timer = null, seq = 0, sub = null, startError = '';
-
-  /* Persisted account credentials — AES-GCM encrypted in localStorage */
   const accts = (() => {
     let list = [];
     try { list = JSON.parse(localStorage.getItem('vice-mt5-accounts') || '[]'); } catch(_) { list = []; }
@@ -3178,8 +2975,7 @@ const Link = (() => {
       return `enc:${btoa(String.fromCharCode(...iv))}:${btoa(String.fromCharCode(...ct))}`;
     } catch(_) { return pw; }
   }
-
-  const notify = () => { if(typeof safeRender === 'function') safeRender(); else renderMain(); };
+  const notify = () => { renderMain(); };
   const skey = (src, sym, tf) => `${src}|${sym}|${tf}`;
   function config() {
     const h = new URLSearchParams(location.hash.replace(/^#/,''));
@@ -3267,7 +3063,6 @@ const Link = (() => {
   }
   const api = {
     state:st, onChange:() => {},
-    /* MT5 accounts — the NEW login feature */
     accounts:accts,
     addAccount({ broker, server, login, password, mode = 'DEMO', label = '' }) {
       if (!server || !login || !password) { st.msg = 'Server, login and password are required.'; notify(); return null; }
@@ -3275,7 +3070,6 @@ const Link = (() => {
       const acct = { id, broker:broker || server.split('-')[0], server, login:String(login), mode, label:label || broker || login, addedAt:new Date().toISOString(), verified:false };
       encryptPassword(password).then(pwEnc => { acct._pwEnc = pwEnc; accts.push(acct); persistAccts();
         if (st.status === 'live' && st.admin) send({ t:'mt5-account', action:'add', account:acct });
-        // Try to verify immediately through the bridge if connected
         if (st.status === 'live') request({ t:'mt5-verify', account:{ server, login, password } })
           .then(r => { acct.verified = !!r.ok; acct.equity = r.equity || 0; acct.balance = r.balance || 0; acct.currency = r.currency || 'USD'; persistAccts(); notify();
             toast(acct.verified ? `Connected to ${acct.broker} · ${acct.login}` : 'Bridge could not verify that login','success'); })
@@ -3295,8 +3089,6 @@ const Link = (() => {
       catch(e) { toast('Verification failed: ' + e.message,'error'); }
       notify();
     },
-
-    /* Connection lifecycle */
     start() { config(); connect(); },
     stop() { clearTimeout(timer); if (ws) { const w = ws; ws = null; w.close(); } },
     send,
@@ -3325,96 +3117,93 @@ function brokerShort(x) { const p = String((x && x.server) || '').split('-')[0];
 function deviceName() { const u = navigator.userAgent || '';
   return /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android phone' : /Windows/.test(u) ? 'Windows PC' : /Mac/.test(u) ? 'Mac' : 'Device'; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   Academy — 27 chapters, 7 assessments, verifiable certificate
-   ═══════════════════════════════════════════════════════════════════ */
 const Academy = (() => {
   const COURSE = [
     { id:'I', title:'Foundational Sovereign Intelligence', core:true, chapters:[
-      { n:1, title:'Market Behavior & Human Anthropology', paras:['Markets are anthropological phenomena. Every price is the compressed residue of millions of human decisions made under radical uncertainty.','Loss aversion (Kahneman & Tversky): pain from a loss is roughly twice the pleasure from an equal gain, producing the disposition effect and other distortions.','Herd psychology: conformity is a survival adaptation that makes trends self-reinforcing and reversals violent.','The sovereign neurological edge: route market decisions through the prefrontal cortex via pre-commitment, environmental design and probabilistic reframing.'] },
-      { n:2, title:'High-Level Sovereign Mental Models', paras:['First-principles reasoning: strip away inherited assumptions and reason from verified bedrock facts.','Second-order thinking: ask what will happen as a consequence of what is happening — institutions engineer liquidity events.','Probabilistic architecture: every trade is one sample from a distribution, not a binary win/lose.','The infinite game: survival first, profit is a byproduct of compounding over decades.'] },
-      { n:3, title:'The VICE4X Doctrine', paras:['Born from the 2020 lockdown; institutionalized as VICE Capital.','Five axioms: markets are anthropological; institutional order flow is the prime mover; risk management IS wealth management; capital is permanent and positions temporary; sovereign wealth requires sovereign structure.','Dual-axis architecture: Precision (tactical) and Dynasty (structural) must develop in parallel.','The proprietary ecosystem: VICEBOT 2030, V4X SOLACE PRIME, PolyBot Ultra, Credit Division, Coopenomic Economy.'] },
+      { n:1, title:'Market Behavior & Human Anthropology', paras:['Markets are anthropological phenomena. Every price is the compressed residue of millions of human decisions made under radical uncertainty.','Loss aversion (Kahneman & Tversky): pain from a loss is roughly twice the pleasure from an equal gain.','Herd psychology: conformity is a survival adaptation that makes trends self-reinforcing.','The sovereign neurological edge: route market decisions through the prefrontal cortex.'] },
+      { n:2, title:'High-Level Sovereign Mental Models', paras:['First-principles reasoning: strip away inherited assumptions.','Second-order thinking: ask what will happen as a consequence of what is happening.','Probabilistic architecture: every trade is one sample from a distribution.','The infinite game: survival first, profit is a byproduct of compounding.'] },
+      { n:3, title:'The VICE4X Doctrine', paras:['Born from the 2020 lockdown; institutionalized as VICE Capital.','Five axioms: markets are anthropological; institutional order flow is the prime mover; risk management IS wealth management; capital is permanent and positions temporary; sovereign wealth requires sovereign structure.','Dual-axis architecture: Precision and Dynasty must develop in parallel.','The proprietary ecosystem: VICEBOT 2030, V4X SOLACE PRIME, PolyBot Ultra, Credit Division, Coopenomic Economy.'] },
     ]},
     { id:'II', title:'Market Structure & Liquidity Systems', core:true, chapters:[
-      { n:4, title:'Institutional Liquidity & Order Flow', paras:['Price moves toward liquidity — the concentrated stop-loss orders of retail participants.','Smart Money Concepts: CHoCH (Change of Character), BOS (Break of Structure), MSS (Market Structure Shift) as institutional footprints.','Order book dynamics: time-sliced institutional accumulation produces characteristic stack-and-step patterns.','Liquidity pools: equal highs/lows, prior session extremes, round numbers, fair value gaps.'] },
-      { n:5, title:'Market Microstructure & Algorithmic Footprints', paras:['HFT, statistical arbitrage, momentum-following and execution algorithms dominate modern volume.','Stack-and-step (large-order accumulation), symmetric retracement (stop hunts), volume-spike sweep (liquidity harvesting).','The institutional clock: Asian range, London Open killzone, New York Open, London Close.','Reserve maximum size for institutional trading windows only.'] },
-      { n:6, title:'Global Macro Synchronization', paras:['Macro hierarchy: Fed monetary policy → other central banks → cycle dynamics → geopolitics.','Cross-asset correlation shifts with regime: risk-on vs risk-off.','VICE4X requires at least two independent asset-class confirmations before significant size.','No single chart in isolation: triangulate before committing capital.'] },
+      { n:4, title:'Institutional Liquidity & Order Flow', paras:['Price moves toward liquidity — the concentrated stop-loss orders of retail participants.','Smart Money Concepts: CHoCH, BOS, MSS as institutional footprints.','Order book dynamics: time-sliced institutional accumulation.','Liquidity pools: equal highs/lows, prior extremes, round numbers, fair value gaps.'] },
+      { n:5, title:'Market Microstructure & Algorithmic Footprints', paras:['HFT, statistical arbitrage and momentum algorithms dominate modern volume.','Stack-and-step, symmetric retracement, volume-spike sweep.','The institutional clock: Asian range, London Open, New York Open, London Close.','Reserve maximum size for institutional trading windows only.'] },
+      { n:6, title:'Global Macro Synchronization', paras:['Macro hierarchy: Fed monetary policy → other central banks → cycle dynamics → geopolitics.','Cross-asset correlation shifts with regime.','VICE4X requires at least two independent asset-class confirmations.','No single chart in isolation: triangulate.'] },
     ]},
     { id:'III', title:'Price Action & Institutional Technical', core:true, chapters:[
-      { n:7, title:'Market Geometry', paras:['Fibonacci principle: 0.236, 0.382, 0.618, 1.618, 2.618 recur across all major asset classes and timeframes.','Daily Range Framework: 0% = Daily Low, 50% = first take-profit, 61.8%/78.6% = OTE zones, 100% = Daily High.','Harmonic patterns (Bat, Gartley, Crab, Butterfly, Cypher) provide mathematically specific reversal zones.','Confluence: multiple independently derived geometric measurements converging on the same price zone is the highest-probability configuration.'] },
-      { n:8, title:'Order Blocks & Repricing Zones', paras:['Order block: the final candle(s) before a sustained displacement — an institutional entry zone.','Fair Value Gaps: price imbalances created by impulsive moves that the market tends to revisit.','Breaker blocks: failed order blocks that become the opposite-side zone of trapped participants.','Multi-dimensional confluence of order block + FVG + Fibonacci + liquidity pool is Tier 1 territory.'] },
-      { n:9, title:'VICE4X Setup Library', paras:['Five core setups, each with precise structural/temporal/confirmation conditions.','Setup One: Daily Structural Reversal (DSR) — sweep, absorption, MSS, OTE entry within an institutional window.','Tier 1 = 4+ confluences (full size); Tier 2 = 2-3 confluences (50-65%); Tier 3 = paper only.','Allocation architecture: systematic overweighting of high-conviction setups is a major performance enhancer.'] },
+      { n:7, title:'Market Geometry', paras:['Fibonacci principle across all major asset classes and timeframes.','Daily Range Framework: 0% = Daily Low, 50% = first TP, 61.8%/78.6% = OTE zones, 100% = Daily High.','Harmonic patterns provide mathematically specific reversal zones.','Confluence: multiple independent measurements converging.'] },
+      { n:8, title:'Order Blocks & Repricing Zones', paras:['Order block: the final candle(s) before a sustained displacement.','Fair Value Gaps: price imbalances created by impulsive moves.','Breaker blocks: failed order blocks that become the opposite-side zone.','Multi-dimensional confluence is Tier 1 territory.'] },
+      { n:9, title:'VICE4X Setup Library', paras:['Five core setups, each with precise conditions.','Setup One: Daily Structural Reversal (DSR).','Tier 1 = 4+ confluences; Tier 2 = 2-3; Tier 3 = paper only.','Systematic overweighting of high-conviction setups is a major performance enhancer.'] },
     ]},
     { id:'IV', title:'Systems Engineering & Quant Logic', core:true, chapters:[
-      { n:10, title:'Algorithmic System Design', paras:['Systematic beats discretionary: eliminates omission errors (missing qualified setups) and commission errors (modifying rule-defined parameters).','VICEBOT 2030: hierarchical decision tree — Daily/Weekly bias, 4H/1H setup, 15m trigger.','Multi-layer risk protection: position sizing, daily and weekly circuit breakers.','V4X SOLACE PRIME dispatches signals to Discord and Telegram via FastAPI webhook.'] },
-      { n:11, title:'Probability & Quant Optimization', paras:['Mathematical expectancy = (win rate × avg win) − (loss rate × avg loss).','Kelly Criterion formula: f* = (bp − q) / b. VICE4X uses Quarter- to Half-Kelly for favourable drawdown characteristics.','Sharpe-per-trade, profit factor and max drawdown depth are the primary system-health metrics.','Win rate alone is meaningless without its risk-to-reward denominator.'] },
-      { n:12, title:'Multi-Timeframe Fusion', paras:['Self-affine fractal structure across all timeframes.','Three-tier hierarchy: Macro (M/W/D) → Structural (4H/1H) → Execution (15m/5m).','Top-down analysis protocol — never begin at execution frame.','Three-tier alignment required for Tier 1 or Tier 2 allocation.'] },
+      { n:10, title:'Algorithmic System Design', paras:['Systematic beats discretionary: eliminates omission and commission errors.','VICEBOT 2030: hierarchical decision tree.','Multi-layer risk protection.','V4X SOLACE PRIME dispatches signals to Discord and Telegram.'] },
+      { n:11, title:'Probability & Quant Optimization', paras:['Mathematical expectancy = (win rate × avg win) − (loss rate × avg loss).','Kelly Criterion formula: f* = (bp − q) / b. Fractional Kelly used here.','Sharpe-per-trade, profit factor and max drawdown are the primary health metrics.','Win rate alone is meaningless without its risk-to-reward denominator.'] },
+      { n:12, title:'Multi-Timeframe Fusion', paras:['Self-affine fractal structure across all timeframes.','Three-tier hierarchy: Macro → Structural → Execution.','Top-down analysis protocol.','Three-tier alignment required for Tier 1 or Tier 2 allocation.'] },
     ]},
     { id:'V', title:'Risk, Psychology & Capital Longevity', core:true, chapters:[
-      { n:13, title:'Risk Parity & Institutional Sizing', paras:['Traditional 60/40 achieves apparent, not true, diversification: 85-95% of risk is in equities.','Risk parity: equalize risk contribution, not capital allocation.','Total risk budget ≤ 5% of equity; volatility-adjusted allocation per instrument.','Five nested protection layers: per-trade, daily, weekly, correlation, drawdown recovery.'] },
-      { n:14, title:'Psychological Engineering', paras:['Design the environment; don\'t rely on willpower.','Pre-session protocol: physical prep, rules review, bias establishment, prior-session review.','Probabilistic orientation: review process-adherence, not P&L.','Acceptance and commitment therapy (ACT) framework for acknowledging difficult emotions without obeying them.'] },
-      { n:15, title:'Anti-Fragility & Drawdown Regeneration', paras:['Anti-fragile systems gain from disorder.','Post-session analysis converts every loss into a data point feeding the improvement process.','Automatic reduction of size during drawdown gives the system more time to identify improved conditions.','Annual system review with the year\'s adverse performance as primary input for the next version.'] },
+      { n:13, title:'Risk Parity & Institutional Sizing', paras:['Traditional 60/40 achieves apparent, not true, diversification.','Risk parity: equalize risk contribution, not capital allocation.','Total risk budget ≤ 5% of equity.','Five nested protection layers.'] },
+      { n:14, title:'Psychological Engineering', paras:['Design the environment; don\'t rely on willpower.','Pre-session protocol.','Probabilistic orientation.','Acceptance and commitment therapy framework.'] },
+      { n:15, title:'Anti-Fragility & Drawdown Regeneration', paras:['Anti-fragile systems gain from disorder.','Post-session analysis converts every loss into a data point.','Automatic reduction of size during drawdown.','Annual system review.'] },
     ]},
     { id:'VI', title:'Global Macro & Geopolitical Strategy', core:true, chapters:[
-      { n:16, title:'Global Liquidity Cycles', paras:['The Fed is the apex of the monetary hierarchy: a 100-bp hike tightens globally.','Track both the current rate and the futures-implied path over 12-24 months.','Four risk regimes: Risk-On Expansion, Risk-On Peak, Risk-Off Contraction, Risk-Off Trough.','Each regime has distinct optimal positioning across XAUUSD, indices and safe havens.'] },
-      { n:17, title:'Geopolitics & Capital Flows', paras:['Geopolitical events are surface manifestations of deep structural forces.','Four analytical traditions: Kindleberger hegemony cycle, petro-state allocation, sanctions architecture, electoral cycles.','Distinguish portfolio flows from direct investment, official-sector and speculative flows.','Correct flow-type identification dramatically improves currency-sensitive instrument assessments.'] },
-      { n:18, title:'Multi-Asset Strategy', paras:['VICE4X is universal across liquid, electronically traded markets.','Five categories: precious metals, majors, minors/exotics, equity indices, crypto.','XAUUSD is central: commodity + currency + reserve asset + fear barometer.','24-hour liquidity, institutional depth and macro sensitivity make XAUUSD the primary vehicle.'] },
+      { n:16, title:'Global Liquidity Cycles', paras:['The Fed is the apex of the monetary hierarchy.','Track both the current rate and the futures-implied path.','Four risk regimes.','Each regime has distinct optimal positioning.'] },
+      { n:17, title:'Geopolitics & Capital Flows', paras:['Geopolitical events are surface manifestations.','Four analytical traditions.','Distinguish portfolio flows from direct investment, official and speculative.','Correct flow-type identification improves assessments.'] },
+      { n:18, title:'Multi-Asset Strategy', paras:['VICE4X is universal across liquid markets.','Five categories: metals, majors, minors, indices, crypto.','XAUUSD is central: commodity + currency + reserve asset + fear barometer.','24-hour liquidity and institutional depth.'] },
     ]},
     { id:'VII', title:'AI, Autonomous Trading & Quantum Models', core:true, chapters:[
-      { n:19, title:'AI Market Prediction', paras:['OI — Omniscient Intelligence: multi-modal intelligence engine synthesizing tick, macro, options, COT, sentiment and correlation data.','Supervised, unsupervised, reinforcement learning and NLP techniques integrated.','Hidden Markov Model regime detection: volatility low/high, trend/reverting, risk-on/off.','Regime-appropriate strategy weighting delivers a significant edge over static configurations.'] },
-      { n:20, title:'Autonomous Agents & System Automation', paras:['Three-tier stack: VICEBOT 2030 (MQL5) → V4X SOLACE PRIME (Pine) → PolyBot Ultra (Python).','Vertical integration: information flows upward, directives flow downward.','Self-improving capital management organism.','No single algorithm operates in isolation: the stack is a coherent architecture.'] },
-      { n:21, title:'Chaos Theory & Quantum Prediction Science', paras:['Deterministic chaos: precise short-term prediction is possible; long-horizon prediction is not.','Mandelbrot: markets exhibit fat tails — extreme events are far more frequent than Gaussian models predict.','VICE4X risk architecture reflects this through conservative sizing and multiple circuit breakers.','Structural pattern recognition remains predictive because institutional behavior is constrained.'] },
+      { n:19, title:'AI Market Prediction', paras:['OI — Omniscient Intelligence: multi-modal engine.','Supervised, unsupervised, reinforcement learning and NLP.','Hidden Markov Model regime detection.','Regime-appropriate strategy weighting.'] },
+      { n:20, title:'Autonomous Agents & System Automation', paras:['Three-tier stack: VICEBOT 2030 (MQL5) → V4X SOLACE PRIME (Pine) → PolyBot Ultra (Python).','Vertical integration.','Self-improving capital management organism.','No single algorithm operates in isolation.'] },
+      { n:21, title:'Chaos Theory & Quantum Prediction Science', paras:['Deterministic chaos: precise short-term prediction is possible; long-horizon is not.','Mandelbrot: markets exhibit fat tails.','VICE4X risk architecture reflects this.','Structural pattern recognition remains predictive.'] },
     ]},
     { id:'VIII', title:'Sovereign Structures, Wealth Protection & Leverage', core:false, chapters:[
-      { n:22, title:'Institutional Wealth Architecture', paras:['Four-layer stack: Operational, Protective, Jurisdictional, Dynasty.','Wyoming LLC charging order protection; Nevis LLC as the offshore apex.','Dynasty Trust for multi-century continuity.','Complementary entity types offset each individual limitation.'] },
-      { n:23, title:'Diplomatic Structures & Jurisdictional Optimization', paras:['Five evaluation dimensions: asset protection, tax efficiency, banking infrastructure, operational requirements, political stability.','Nevis LLC Act: charging order as sole remedy, creditor must post $100,000 bond, US judgments not automatically recognised.','Cayman ELP/ELC as the standard for institutional fund structures.','Panama territorial tax system for foreign-sourced trading income.'] },
-      { n:24, title:'Sovereign Banking & Infinite Leverage Models', paras:['Premier private banking infrastructure: UBS, Julius Baer, Pictet, Lombard Odier.','Portfolio credit facility: 50-70% LTV against a diversified portfolio.','Infinite Leverage Model: borrow against existing assets without triggering a taxable disposal.','When VICE4X returns exceed the facility interest cost, the total capital base compounds significantly faster.'] },
+      { n:22, title:'Institutional Wealth Architecture', paras:['Four-layer stack: Operational, Protective, Jurisdictional, Dynasty.','Wyoming LLC charging order protection; Nevis LLC as the offshore apex.','Dynasty Trust for multi-century continuity.','Complementary entity types offset limitations.'] },
+      { n:23, title:'Diplomatic Structures & Jurisdictional Optimization', paras:['Five evaluation dimensions.','Nevis LLC Act: charging order as sole remedy.','Cayman ELP/ELC as standard for institutional funds.','Panama territorial tax system.'] },
+      { n:24, title:'Sovereign Banking & Infinite Leverage Models', paras:['Premier private banking infrastructure.','Portfolio credit facility: 50-70% LTV.','Infinite Leverage Model.','Total capital base compounds faster.'] },
     ]},
     { id:'IX', title:'Dynasty Building & The VICE Era', core:false, chapters:[
-      { n:25, title:'The 1000-Year Dynasty Protocol', paras:['Historical precedent: Vatican, Rothschild, Nishiyama Onsen Keiunkan (founded 705 CE).','Five shared features: foundational purpose, governance structure separate from any individual, written constitution, education transmission, purchasing-power preservation.','Three governing bodies: Sovereign Council, Operations Committee, Heritage Board.','Education protocol across five developmental stages; governance eligibility requires its completion.'] },
-      { n:26, title:'VICE4X DAO & Self-Healing Smart Contracts', paras:['Convergence of traditional legal enforceability with blockchain transparency and immutability.','Wyoming DAO LLC: statutory recognition of smart-contract governance with limited liability.','Governance tokens with 4-year vesting and 1-year cliff for founder alignment.','Self-healing contracts: proxy upgrade pattern plus circuit-breaker monitoring.'] },
-      { n:27, title:'The Final Sovereign Blueprint', paras:['Integration of Precision Axis (daily operational practice) with Dynasty Axis (structural protection).','Complete architecture: Operational → Protective → Jurisdictional → Dynasty.','Coopenomic Mandate: wealth creation as social architecture, not charity.','The Declaration: this era begins now.'] },
+      { n:25, title:'The 1000-Year Dynasty Protocol', paras:['Historical precedent: Vatican, Rothschild, Nishiyama Onsen Keiunkan.','Five shared features.','Three governing bodies.','Education protocol across five developmental stages.'] },
+      { n:26, title:'VICE4X DAO & Self-Healing Smart Contracts', paras:['Convergence of legal enforceability with blockchain transparency.','Wyoming DAO LLC.','Governance tokens with 4-year vesting and 1-year cliff.','Self-healing contracts: proxy upgrade pattern.'] },
+      { n:27, title:'The Final Sovereign Blueprint', paras:['Integration of Precision Axis with Dynasty Axis.','Complete architecture.','Coopenomic Mandate: wealth creation as social architecture.','The Declaration: this era begins now.'] },
     ]},
   ];
   const QUIZ = {
     I: [
-      { q:'Prospect theory finds that losses feel roughly twice as painful as equal gains. What error does this most directly produce?', o:['Taking profits too slowly','Holding losing trades too long and cutting winners too early','Trading too few markets','Using stop losses that are too wide by design'], a:1, why:'Loss aversion drives the disposition effect: traders avoid realising losses (so losers run) and rush to lock in gains (so winners are cut).' },
-      { q:'A strategy loses on its first five trades. What is the most defensible conclusion?', o:['The strategy has no edge','Five trades are too small a sample to judge an edge','The market regime has permanently changed','Risk per trade should be doubled to recover'], a:1, why:'Edge is a property of a large sample. Judge it over many trades, not a streak.' },
+      { q:'Prospect theory finds that losses feel roughly twice as painful as equal gains. What error does this most directly produce?', o:['Taking profits too slowly','Holding losing trades too long and cutting winners too early','Trading too few markets','Using stop losses that are too wide by design'], a:1, why:'Loss aversion drives the disposition effect.' },
+      { q:'A strategy loses on its first five trades. What is the most defensible conclusion?', o:['The strategy has no edge','Five trades are too small a sample to judge an edge','The market regime has permanently changed','Risk per trade should be doubled to recover'], a:1, why:'Edge is a property of a large sample.' },
       { q:'Studying only traders who became famous mainly risks which bias?', o:['Survivorship bias','Recency bias','Anchoring','Confirmation bias'], a:0, why:'Survivorship bias: the many who used the same methods and failed are invisible.' },
       { q:'Expected value per trade is best described as:', o:['Your largest winning trade','Average outcome over many repetitions','The win rate','The profit target of the next trade'], a:1, why:'Expected value weighs every outcome by its probability.' },
     ],
     II: [
-      { q:'Why do liquidity pools form just above swing highs and below swing lows?', o:['Brokers set prices there','Stop orders and breakout orders cluster at obvious levels','Central banks intervene there','Spreads are always zero there'], a:1, why:'Many traders place stops beyond obvious highs and lows; that concentration is liquidity.' },
+      { q:'Why do liquidity pools form just above swing highs and below swing lows?', o:['Brokers set prices there','Stop orders and breakout orders cluster at obvious levels','Central banks intervene there','Spreads are always zero there'], a:1, why:'That concentration is liquidity.' },
       { q:'You send a market buy order and are filled 3 points above the quoted price. This is:', o:['Commission','Slippage','The swap','A limit fill'], a:1, why:'Slippage is the difference between expected and actual fill price.' },
       { q:'In which condition does the bid-ask spread typically widen?', o:['Deep, calm, liquid sessions','Low liquidity and major news releases','When volume is highest','When price is trending smoothly'], a:1, why:'Spreads widen when liquidity providers face more uncertainty.' },
-      { q:'An aggressive market buy order mostly interacts with:', o:['Other market buy orders','Resting sell limit orders in the book','Stop losses of buyers','The previous day\'s close'], a:1, why:'Market orders take liquidity from the opposite side of the book.' },
+      { q:'An aggressive market buy order mostly interacts with:', o:['Other market buy orders','Resting sell limit orders in the book','Stop losses of buyers','The previous day\'s close'], a:1, why:'Market orders take liquidity from the opposite side.' },
     ],
     III: [
-      { q:'Which sequence defines an uptrend in market structure?', o:['Lower highs and lower lows','Higher highs and higher lows','Equal highs only','Any close above a moving average'], a:1, why:'Structure is read from swing points: HH/HL = uptrend.' },
-      { q:'In a range whose top is F100 and bottom is F0, price at the 80% level is in:', o:['Discount','Equilibrium','Premium','No man\'s land by definition'], a:2, why:'Above 50% is premium; below is discount.' },
-      { q:'What is the purpose of an invalidation level?', o:['To guarantee profit','To define where the trade idea is proven wrong, which sets the stop','To pick the lot size by feel','To avoid ever taking losses'], a:1, why:'A setup is a hypothesis; the invalidation level is where it fails.' },
-      { q:'A fair value gap in a three-candle sequence is:', o:['A gap between the first candle\'s wick and the third candle\'s wick that the middle candle moved through','Any candle with a long wick','The spread at market open','A pattern that must always be filled immediately'], a:0, why:'It marks fast one-sided movement; gaps are often revisited, not always.' },
+      { q:'Which sequence defines an uptrend in market structure?', o:['Lower highs and lower lows','Higher highs and higher lows','Equal highs only','Any close above a moving average'], a:1, why:'Structure is read from swing points.' },
+      { q:'In a range whose top is F100 and bottom is F0, price at the 80% level is in:', o:['Discount','Equilibrium','Premium','No man\'s land by definition'], a:2, why:'Above 50% is premium.' },
+      { q:'What is the purpose of an invalidation level?', o:['To guarantee profit','To define where the trade idea is proven wrong, which sets the stop','To pick the lot size by feel','To avoid ever taking losses'], a:1, why:'A setup is a hypothesis.' },
+      { q:'A fair value gap in a three-candle sequence is:', o:['A gap between the first candle\'s wick and the third candle\'s wick that the middle candle moved through','Any candle with a long wick','The spread at market open','A pattern that must always be filled immediately'], a:0, why:'It marks fast one-sided movement.' },
     ],
     IV: [
-      { q:'A system wins 40%, averages +2R on wins and −1R on losses. Expectancy per trade is:', o:['−0.2R','0R','+0.2R','+0.8R'], a:2, why:'E = 0.40×2 − 0.60×1 = +0.2R per trade, before costs.' },
+      { q:'A system wins 40%, averages +2R on wins and −1R on losses. Expectancy per trade is:', o:['−0.2R','0R','+0.2R','+0.8R'], a:2, why:'E = 0.40×2 − 0.60×1 = +0.2R.' },
       { q:'Optimising 12 parameters until a backtest looks excellent mainly risks:', o:['Underfitting','Overfitting to past noise','Lower slippage','More stable live results'], a:1, why:'More parameters tuned on the same data means more noise-fitting.' },
       { q:'A backtest using a candle\'s close to decide a trade taken at that candle\'s open suffers from:', o:['Look-ahead bias','Survivorship bias','Slippage','Commission drag'], a:0, why:'It uses information not yet available at decision time.' },
       { q:'In multi-timeframe analysis, the usual division of labour is:', o:['Lower timeframe sets trend, higher times entries','Higher timeframe sets bias; lower times entries','Only one timeframe should be used','All timeframes must agree on every candle'], a:1, why:'Higher timeframes carry more weight for direction.' },
     ],
     V: [
-      { q:'Account $10,000, risk 1%, stop 50 pips, pip value $10 per standard lot. Position size is:', o:['0.1 lots','0.2 lots','1 lot','2 lots'], a:1, why:'Risk = $100. Per lot, 50 pips × $10 = $500. $100 ÷ $500 = 0.2 lots.' },
-      { q:'After a 50% drawdown, what gain returns you to the starting balance?', o:['50%','75%','100%','150%'], a:2, why:'From half you must double it: +100%.' },
+      { q:'Account $10,000, risk 1%, stop 50 pips, pip value $10 per standard lot. Position size is:', o:['0.1 lots','0.2 lots','1 lot','2 lots'], a:1, why:'Risk = $100. Per lot = $500. $100 ÷ $500 = 0.2 lots.' },
+      { q:'After a 50% drawdown, what gain returns you to the starting balance?', o:['50%','75%','100%','150%'], a:2, why:'From half you must double it.' },
       { q:'Risk parity allocates capital so that:', o:['Each asset gets equal capital','Each asset contributes roughly equal risk','The riskiest asset gets the most capital','Only bonds are held'], a:1, why:'Equal capital ≠ equal risk.' },
       { q:'As risk per trade rises from 1% to 10%, the risk of ruin:', o:['Falls','Stays the same','Rises sharply','Becomes zero with a positive edge'], a:2, why:'Even with an edge, large bets make a losing streak fatal.' },
     ],
     VI: [
-      { q:'All else equal, a surprise central bank rate hike tends to:', o:['Weaken the currency','Strengthen the currency','Have no effect','Only affect equities'], a:1, why:'Higher expected yields attract capital. It\'s a tendency, not a law.' },
+      { q:'All else equal, a surprise central bank rate hike tends to:', o:['Weaken the currency','Strengthen the currency','Have no effect','Only affect equities'], a:1, why:'Higher expected yields attract capital.' },
       { q:'In a sharp risk-off episode, which assets have historically tended to be bid?', o:['High-yield currencies','Safe havens such as JPY, CHF, USD and gold','Small-cap equities','Emerging-market bonds'], a:1, why:'Capital seeks safety and carry trades unwind.' },
       { q:'Why should a correlation between two markets not be assumed stable?', o:['Correlations are fixed by law','Correlations shift across regimes and can flip','Correlation equals causation','They only change on weekends'], a:1, why:'Correlations are regime-dependent.' },
       { q:'A carry trade borrows a low-yield currency to hold a high-yield one. Its main risk is:', o:['Earning too much interest','A sudden unwind when risk appetite collapses','Zero volatility','Guaranteed losses'], a:1, why:'Carry earns slowly and can lose quickly.' },
     ],
     VII: [
-      { q:'Before an automated strategy trades live capital, the most important safeguard is:', o:['Higher leverage','Hard risk limits, a kill switch, and paper testing first','Removing stop losses','Letting the model retrain itself live'], a:1, why:'Automation magnifies errors. Validate and cap in code.' },
+      { q:'Before an automated strategy trades live capital, the most important safeguard is:', o:['Higher leverage','Hard risk limits, a kill switch, and paper testing first','Removing stop losses','Letting the model retrain itself live'], a:1, why:'Automation magnifies errors.' },
       { q:'Testing 5,000 strategy variants and keeping the best mainly risks:', o:['Selecting a strategy that looks good by chance','Too few trades','Lower costs','Better generalisation'], a:0, why:'With enough tries, some variants look excellent by luck.' },
       { q:'What does chaos theory imply for long-horizon market prediction?', o:['Markets are perfectly predictable with enough data','Sensitive dependence on initial conditions limits long-range forecasts','Prediction is easier further out','Quantum computers guarantee accuracy'], a:1, why:'The honest response is probabilities with uncertainty ranges.' },
       { q:'A backtest shows 90% accuracy, but live results are poor. The first thing to check is:', o:['Whether the broker is cheating','Leakage and look-ahead in the backtest, and live costs and slippage','Adding more indicators','Increasing position size'], a:1, why:'Implausible backtest accuracy usually means leakage or ignored costs.' },
@@ -3428,8 +3217,8 @@ const Academy = (() => {
   const api = {
     state:st, course:COURSE, quiz:QUIZ, TITLE, PASS, onChange:() => {},
     chapterKey:(m,n) => `${m}.${n}`,
-    open(view) { st.view = view; st.answers = {}; st.result = null; st.msg = ''; if(typeof safeRender === 'function') safeRender(); else renderMain(); },
-    markRead(m,n) { st.read[`${m}.${n}`] = new Date().toISOString(); save(); if(typeof safeRender === 'function') safeRender(); else renderMain(); },
+    open(view) { st.view = view; st.answers = {}; st.result = null; st.msg = ''; renderMain(); },
+    markRead(m,n) { st.read[`${m}.${n}`] = new Date().toISOString(); save(); renderMain(); },
     grade(mid) {
       const qs = QUIZ[mid], correct = qs.filter((q,i) => Number(st.answers[i]) === q.a).length, score = correct / qs.length;
       if (Object.keys(st.answers).length < qs.length) { st.msg = 'Answer every question first.'; renderMain(); return; }
@@ -3458,24 +3247,21 @@ const Academy = (() => {
   return api;
 })();
 
-/* ═══════════════════════════════════════════════════════════════════
-   Support + Knowledge Base + O.I.
-   ═══════════════════════════════════════════════════════════════════ */
 const KB = [
   ['connect-mt5','Connect MT5 terminals','Open each MT5 terminal: Tools → Options → Expert Advisors → tick "Allow WebRequest for listed URL" and add 127.0.0.1. Attach VICE_Bridge.mq5 to one chart per terminal and paste the bridge token from System → Bridge. Then add each account under MT5 Accounts with server, login and password.',['mt5','bridge','connect','terminal','broker','login','password','ea']],
   ['add-broker-account','Add an MT5 broker account','Open MT5 Accounts → Add Account. Enter the broker name, the exact server name (from the MT5 login dialog), the login number and the password. The password is encrypted in your browser with AES-GCM and sent only to your PC over VICE Link.',['broker','account','login','password','server','mt5']],
   ['pair-phone','Use VICE OS on your phone','With VICE OS running on your PC, open the address shown in System → Bridge on your phone (same Wi-Fi) and enter the 6-digit pairing code. Then Share → Add to Home Screen.',['phone','iphone','pair','pairing','code','mobile']],
   ['import-data','Import MT5 price history','In MT5 open View → Symbols (Ctrl+U) → Bars, choose the symbol and timeframe, Request, then Export. In Markets, tap Import MT5 bars. One M1 or M5 export unlocks every higher timeframe.',['import','csv','export','history','bars','chart']],
-  ['invite-call','Invite someone to a call','In Comms open a DM and tap the call button. Or send an invite link from Admin → Invite Links. The recipient opens the link, joins the room and their browser connects through Supabase Realtime.',['invite','call','video','voice','room','link']],
-  ['invite-platform','Invite someone to VICE OS','Admin → Beta Invites → Generate. Choose the role and tap Copy. Send them the link; they open it and set a password. The link works once and can be revoked.',['invite','beta','link','signup','register','holder']],
-  ['wallet-create','Create or restore the VICE Wallet','Open Wallet. Create a new wallet to get a 24-word recovery phrase, shown once. Or restore with an existing phrase. A wallet password encrypts it on this device.',['wallet','create','restore','recovery','phrase','seed','keys']],
-  ['two-step','Two-step verification','In System → Account turn on two-step verification and add the key to Authy or any authenticator app. Save the 10 recovery codes. Admin tools require a session that passed two-step.',['two-step','2fa','authy','code','recovery','mfa']],
-  ['documents-esign','Sign a document','Open Documents. Tap Sign on the document you need to sign, draw your signature on the pad, and confirm. The signature, timestamp, IP hint and a hash of the document are stored with the record.',['sign','document','esign','signature','contract']],
-  ['documents-download','Download or save a document','Open Documents. Each document has Download (saves to your device) and Save in app (keeps it in your VICE OS library). The library is stored in your browser using IndexedDB.',['download','save','document','file','export']],
-  ['holders-tokens','Can holders see their tokens?','Yes. Every appointed client can sign in with their Client ID or email and see their V4X and VICE units, allocation history, internal reference values and their Tier / Legacy / Entry Class in the Holder portal. Token balances are the IRU ledger entries, not on-chain balances.',['holder','tokens','v4x','vice','balance','portal']],
-  ['iru-value','What the IRU value and Locked mean','IRU values are set by VICE Capital. IRUs are Locked: they are internal accounting units, not shares or ownership, and cannot be sold, transferred or redeemed through VICE.',['iru','value','token','locked','vice','v4x']],
-  ['demo-mode','Demo mode','Admin → Demo mode seeds up to 250 clients on a separate simulated ledger. The real client reserve is never touched.',['demo','seed','simulated']],
-  ['comms-telegram','Comms','The Comms section uses a Telegram-style interface: chats, calls, contacts and settings tabs. Everything else in VICE OS uses the sidebar. Bottom tabs only appear inside Comms.',['comms','telegram','chat','dm','bottom','tabs']],
+  ['invite-call','Invite someone to a call','In Comms open a DM and tap the call button. Or send an invite link from Admin → Invite Links.',['invite','call','video','voice','room','link']],
+  ['invite-platform','Invite someone to VICE OS','Admin → Beta Invites → Generate. Choose the role and tap Copy.',['invite','beta','link','signup','register','holder']],
+  ['wallet-create','Create or restore the VICE Wallet','Open Wallet. Create a new wallet to get a 24-word recovery phrase, shown once.',['wallet','create','restore','recovery','phrase','seed','keys']],
+  ['two-step','Two-step verification','In System → Account turn on two-step verification and add the key to Authy or any authenticator app.',['two-step','2fa','authy','code','recovery','mfa']],
+  ['documents-esign','Sign a document','Open Documents. Tap Sign on the document you need to sign, draw your signature on the pad, and confirm.',['sign','document','esign','signature','contract']],
+  ['documents-download','Download or save a document','Open Documents. Each document has Download and Save in app.',['download','save','document','file','export']],
+  ['holders-tokens','Can holders see their tokens?','Yes. Every appointed client can sign in with their Client ID or email and see their V4X and VICE units, allocation history, internal reference values and their Tier / Legacy / Entry Class in the Holder portal.',['holder','tokens','v4x','vice','balance','portal']],
+  ['iru-value','What the IRU value and Locked mean','IRU values are set by VICE Capital. IRUs are Locked: they are internal accounting units, not shares or ownership.',['iru','value','token','locked','vice','v4x']],
+  ['demo-mode','Demo mode','Admin → Demo mode seeds up to 250 clients on a separate simulated ledger.',['demo','seed','simulated']],
+  ['comms-telegram','Comms','The Comms section uses a Telegram-style interface: chats, calls, contacts and settings tabs.',['comms','telegram','chat','dm','bottom','tabs']],
 ];
 KB.forEach(e => e.push(e[3].join(' ')));
 function kbSearch(q, k = 3) {
@@ -3496,7 +3282,7 @@ const OI = (() => {
   const ADVICE = /\b(should i (buy|sell|invest|hold)|what should i (buy|invest)|will (it|price|v4x|vice) go up|price prediction|guarantee|how much will i (make|earn))\b/i;
   const notify = () => { if(typeof paintOI === 'function') paintOI(false); };
   const TOOLS = {
-    query_market: { d:'The chart on screen: pair, timeframe, data source, last close, SOLACE F0/F100 levels and their source, position in the range.',
+    query_market: { d:'The chart on screen.',
       run: () => { if (!S.ch.candles || !S.res || !S.res.last) return { status:'NO_DATA', pair:S.sel.symbol, timeframe:S.sel.tf };
         const L = S.res.last, ev = S.res.events[S.res.events.length-1];
         return { pair:displaySymbol(S.sel.symbol), timeframe:S.sel.tf, dataSource:S.ch.live ? 'live MT5' : 'imported/practice',
@@ -3507,16 +3293,16 @@ const OI = (() => {
         const mt5 = Link.state.status !== 'live' ? { status:'NOT_CONNECTED' } : { accounts:(P ? P.accounts : []).map(a => ({ broker:brokerShort(a), mode:a.mode, currency:a.currency, equity:a.equity, balance:a.balance, positions:(a.positions||[]).length })) };
         const wal = !Wallet.has() ? { status:'NO_WALLET' } : !Wallet.unlocked() ? { status:'LOCKED' } : { ethereum: w.balances && w.balances.ethereum ? { native:w.balances.ethereum.native, tokens:(w.balances.ethereum.tokens||[]).map(t => [t.symbol, t.amount]) } : 'not read yet', bitcoin:'balance source not connected' };
         return { mt5, wallet:wal, total: fmtUsd(totalPersonalUsd()), accounts: S.mt5.length }; } },
-    query_distribution: { d:'V4X and VICE supply: Estate reserve, client reserve, allocated, distributed, remaining, client count.',
+    query_distribution: { d:'V4X and VICE supply.',
       run: () => { const st = S.iru.state || IruEngine.emptyState(); const cap = IruEngine.capacity(st);
         const one = id => { const v = IruEngine.supplyView(st, id), cur = st.current[id]; return { total:String(v.total), estateReserve:String(v.reserve), clientReserve:String(v.pool), allocated:String(v.allocated), distributed:String(v.distributed), remaining:String(v.remaining), internalReferenceValue: cur ? Money.fmt(cur.valueCents) : 'not set' }; };
         return { V4X:one('V4X'), VICE:one('VICE'), clients:`${cap.current}/${cap.max}`, integrity:IruEngine.checkInvariants(st) }; } },
-    query_risk: { d:'Risk ceilings and current mirror plan.', run:() => ({ perAccountCeiling:Money.bpsText(500), aggregateCeiling:Money.bpsText(900), accountsInPlan:S.risk.accounts.length }) },
+    query_risk: { d:'Risk ceilings.', run:() => ({ perAccountCeiling:Money.bpsText(500), aggregateCeiling:Money.bpsText(900), accountsInPlan:S.risk.accounts.length }) },
     query_contracts: { d:'Canonical contract registry.', run:() => ({ network:'Ethereum Mainnet', contracts:ChainCheck.contracts.map(c => ({ key:c.key, label:c.label, address:c.address, status:c.candidates ? 'CONFLICT' : 'NOT VERIFIED' })) }) },
-    query_system: { d:'Component health and build version.', run:() => ({ build:BUILD.version, liveMT5:Link.state.status === 'live', accounts:Link.accounts.length, wallet:Wallet.state.status }) },
-    query_lab: { d:'Latest Quant Lab backtest and adversarial result.', run:() => ({ experiments:Lab.state.ledger.length, latest:Lab.state.run && Lab.state.run.metrics, adversarial:Lab.state.adv ? Lab.state.adv.verdict : null }) },
+    query_system: { d:'Component health.', run:() => ({ build:BUILD.version, liveMT5:Link.state.status === 'live', accounts:Link.accounts.length, wallet:Wallet.state.status }) },
+    query_lab: { d:'Latest Quant Lab result.', run:() => ({ experiments:Lab.state.ledger.length, latest:Lab.state.run && Lab.state.run.metrics, adversarial:Lab.state.adv ? Lab.state.adv.verdict : null }) },
     query_desk: { d:'Trade Desk state.', run:() => ({ running:S.engine2.running, totalPositions:S.engine2.macro.positions.filter(p => p.status==='OPEN').length + S.engine2.internal.positions.filter(p => p.status==='OPEN').length }) },
-    search_knowledge: { d:'Search the VICE OS help knowledge base.', run: inp => ({ results:kbSearch(inp && inp.query).map(e => ({ id:e[0], title:e[1], text:e[2] })) }) },
+    search_knowledge: { d:'Search the VICE OS help library.', run: inp => ({ results:kbSearch(inp && inp.query).map(e => ({ id:e[0], title:e[1], text:e[2] })) }) },
   };
   const AGENTS = {
     market:{ name:'Market Analyst', tools:['query_market'], re:/price|chart|structure|solace|f0|f100|level|market|pair|gold|trend/i },
@@ -3535,7 +3321,7 @@ const OI = (() => {
     return hit.length ? hit.slice(0,3) : ['support','systems'];
   }
   function offlineAnswer(q, agents, results) {
-    if (ADVICE.test(q)) return 'I can explain what your data shows, but I can’t give personal investment advice or predict prices or returns.';
+    if (ADVICE.test(q)) return 'I can explain what your data shows, but I can\'t give personal investment advice or predict prices or returns.';
     const out = [];
     for (const a of agents) for (const name of AGENTS[a].tools) {
       const r = results[name]; if (!r) continue;
@@ -3548,7 +3334,7 @@ const OI = (() => {
       if (name === 'query_system') out.push(`System: build ${r.build}, VICE Link ${r.liveMT5 ? 'live' : 'off'}, ${r.accounts} MT5 account(s), wallet ${r.wallet}. [query_system]`);
       if (name === 'query_lab') out.push(`Quant Lab: ${r.experiments} experiment(s) on record${r.latest ? `, latest ${r.latest.trades} trades at ${fR(r.latest.expectancyR)}` : ''}${r.adversarial ? `, adversarial ${r.adversarial}` : ''}. [query_lab]`);
       if (name === 'query_desk') out.push(`Trade Desk: engine ${r.running ? 'running' : 'stopped'}, ${r.totalPositions} open paper position(s). [query_desk]`);
-      if (name === 'search_knowledge') out.push(r.results.length ? r.results.map(x => `${x.title}: ${x.text} [kb:${x.id}]`).join('\n\n') : 'I couldn’t find that in the help library. Use Support → Talk to a person.');
+      if (name === 'search_knowledge') out.push(r.results.length ? r.results.map(x => `${x.title}: ${x.text} [kb:${x.id}]`).join('\n\n') : 'I couldn\'t find that in the help library. Use Support → Talk to a person.');
     }
     return out.join('\n\n');
   }
@@ -3582,7 +3368,6 @@ const OI = (() => {
   };
 })();
 
-/* ─── Auto-start the core services ─── */
 Wallet.start();
 Link.start();
 </script>
@@ -3591,7 +3376,6 @@ Link.start();
    VIEWS — part 1
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ─── PRESETS + chart rendering ─── */
 const PRESETS = {
   'vice-gold': { name:'VICE Gold', type:'hollow', bg:'#0a0b0d', grid:'rgba(201,168,76,.05)', gridMajor:'rgba(201,168,76,.12)', text:'#a3968e',
     bull:'#c9a84c', bullB:'#ecd28a', bullW:'#9c7c33', bear:'#f2ebe4', bearB:'#3d3532', bearW:'#6b5f59', f100:'#f2ebe4', f0:'#3c8cff', raid:'#d9465a', last:'#c9a84c' },
@@ -3651,7 +3435,6 @@ function drawSolace(){
   _ctx.fillStyle = P.bg; _ctx.fillRect(0, 0, _W, _H);
   const cw = _W - PAD.l - PAD.r, ch = _H - PAD.t - PAD.b;
   const visCount = Math.min(S.view2.count, cs.length);
-  const start = cs.length - visCount;
   const end = S.view2.end == null ? cs.length : Math.min(cs.length, S.view2.end);
   const startIdx = Math.max(0, end - visCount);
 
@@ -3665,13 +3448,11 @@ function drawSolace(){
   const xAt = i => PAD.l + (i - startIdx)/(Math.max(1, end - startIdx - 1)) * cw;
   const yAt = v => PAD.t + (1 - (v - vmin)/(vmax - vmin)) * ch;
 
-  // grid
   _ctx.strokeStyle = P.grid; _ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) { const y = PAD.t + (i/5)*ch; _ctx.beginPath(); _ctx.moveTo(PAD.l, y); _ctx.lineTo(_W-PAD.r, y); _ctx.stroke(); }
   _ctx.strokeStyle = P.gridMajor;
   for (let i = 0; i <= 10; i++) { const x = PAD.l + (i/10)*cw; _ctx.beginPath(); _ctx.moveTo(x, PAD.t); _ctx.lineTo(x, _H-PAD.b); _ctx.stroke(); }
 
-  // candles
   const cw2 = Math.max(1.5, cw/Math.max(1, end - startIdx) - 1);
   for (let i = startIdx; i < end; i++) {
     const c = cs[i], x = xAt(i), up = c.c >= c.o;
@@ -3683,7 +3464,6 @@ function drawSolace(){
     _ctx.strokeStyle = bB; _ctx.strokeRect(x - cw2/2 + 0.5, top + 0.5, cw2 - 1, Math.max(1, bh - 1));
   }
 
-  // F0/F100 levels
   const f0 = S.res.f0[end-1], f100 = S.res.f100[end-1];
   if (f0 != null) { _ctx.strokeStyle = P.f0; _ctx.lineWidth = 1.5; _ctx.setLineDash([5,3]);
     const y = yAt(f0); _ctx.beginPath(); _ctx.moveTo(PAD.l, y); _ctx.lineTo(_W-PAD.r, y); _ctx.stroke(); _ctx.setLineDash([]);
@@ -3692,11 +3472,9 @@ function drawSolace(){
     const y = yAt(f100); _ctx.beginPath(); _ctx.moveTo(PAD.l, y); _ctx.lineTo(_W-PAD.r, y); _ctx.stroke(); _ctx.setLineDash([]);
     _ctx.fillStyle = P.f100; _ctx.font = '10px "JetBrains Mono", monospace'; _ctx.textAlign='left'; _ctx.fillText(`F100 ${fmtP(f100)}`, _W-PAD.r+5, y-4); }
 
-  // price axis
   _ctx.font = '9px "JetBrains Mono", monospace'; _ctx.fillStyle = P.text; _ctx.textBaseline = 'middle';
   for (let i = 0; i <= 5; i++) { const v = vmax - (i/5)*(vmax-vmin), y = PAD.t + (i/5)*ch; _ctx.fillText(v.toFixed(v > 100 ? 2 : 4), _W-PAD.r+5, y); }
 
-  // last price tag
   const last = cs[end-1], yLast = yAt(last.c);
   const tag = last.c.toFixed(last.c > 100 ? 2 : 4);
   const tw = _ctx.measureText(tag).width + 10;
@@ -3704,10 +3482,9 @@ function drawSolace(){
   _ctx.fillRect(_W-PAD.r+2, yLast-8, tw, 16);
   _ctx.fillStyle = '#07080a'; _ctx.textAlign='left'; _ctx.fillText(tag, _W-PAD.r+7, yLast);
 
-  // crosshair
   if (_cv._mx != null && _cv._my != null) {
     _ctx.strokeStyle = 'rgba(201,168,76,0.4)'; _ctx.lineWidth = 1; _ctx.setLineDash([3,3]);
-    _ctx.beginPath(); _ctx.moveTo(_cv._mx,? PAD.t); _ctx.lineTo(_cv._mx, _H-PAD.b); _ctx.stroke();
+    _ctx.beginPath(); _ctx.moveTo(_cv._mx, PAD.t); _ctx.lineTo(_cv._mx, _H-PAD.b); _ctx.stroke();
     _ctx.beginPath(); _ctx.moveTo(PAD.l, _cv._my); _ctx.lineTo(_W-PAD.r, _cv._my); _ctx.stroke();
     _ctx.setLineDash([]);
     const priceAtY = vmax - ((_cv._my - PAD.t)/(_H - PAD.t - PAD.b)) * (vmax - vmin);
@@ -3715,13 +3492,12 @@ function drawSolace(){
     _ctx.fillStyle = '#07080a'; _ctx.fillText(priceAtY.toFixed(priceAtY>100?2:4), _W-PAD.r+5, _cv._my);
   }
 
-  // HUD
   const hud = $('hud');
   if (hud) {
     const L = S.res.last, chg = ((last.c - last.o)/last.o * 100);
     hud.innerHTML = `<div><span class="k">${esc(displaySymbol(S.sel.symbol))}</span><span class="v">${S.sel.tf}</span></div>
       <div><span class="k">Last</span><span class="${chg>=0?'up':'dn'}">${fmtP(last.c)}</span> <span class="${chg>=0?'up':'dn'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span></div>
-      <div><span class="k">ATR</span><span class="v">${S.ch.atr.toFixed(S.ch.atr>12:5)}</span></div>
+      <div><span class="k">ATR</span><span class="v">${S.ch.atr.toFixed(S.ch.atr>1?2:5)}</span></div>
       <div><span class="k">Macro</span><span class="${L && L.position !== null ? 'gd' : 'w'}">${L && L.position !== null ? `${L.position.toFixed(1)}% of range` : '—'}</span></div>`;
   }
   const cstat = $('cstat');
@@ -3733,7 +3509,6 @@ function drawSolace(){
   }
 }
 
-/* ─── Home ─── */
 function viewCommand(el){
   const total = totalPersonalUsd();
   const mt5Live = Link.state.status === 'live' && Link.state.portfolio;
@@ -3784,7 +3559,6 @@ function healthStrip(){
   return `<div class="health">${items.map(c => `<div class="hs ${/OPERATIONAL/.test(c.state) ? 'ok' : /NO|EMPTY|NONE/.test(c.state) ? 'idle' : 'bad'}"><span>${esc(c.name)}</span><b>${esc(c.state.toLowerCase())}</b></div>`).join('')}</div>`;
 }
 
-/* ─── Markets ─── */
 function viewMarkets(el){
   el.innerHTML = `
     <div class="ph">
@@ -3823,7 +3597,6 @@ function viewMarkets(el){
   setTimeout(initCanvas, 20);
 }
 
-/* ─── Portfolio ─── */
 function viewPortfolio(el){
   const iru = iruUsd(), df = defiUsd(), mt = mt5Usd(), ex = externalUsd();
   const total = iru + df + mt + ex;
@@ -3858,7 +3631,6 @@ function viewPortfolio(el){
 }
 function signed(v, cur){ return `${v > 0 ? '+' : ''}${fmtMoney(v, cur)}`; }
 
-/* ─── MT5 Accounts — the broker login feature ─── */
 function viewMT5(el){
   const live = Link.state.status === 'live';
   const accts = Link.accounts;
@@ -3959,7 +3731,6 @@ function submitMT5Add(){
   if (r) { closeModal(); renderMain(); }
 }
 
-/* ─── Trade Desk ─── */
 function viewDesk(el){
   const c = Desk.ctx();
   if (!c) { el.innerHTML = '<div class="grid"><section class="band"><h1>Trade Desk</h1><p class="muted">Open a chart in Markets first.</p></section></div>'; return; }
@@ -4014,7 +3785,6 @@ function viewDesk(el){
   `;
 }
 
-/* ─── VICEBOT ─── */
 function viewVicebot(el){
   const E = S.engine2;
   const macroOpen = E.macro.positions.filter(p => p.status === 'OPEN');
@@ -4057,7 +3827,6 @@ function viewVicebot(el){
 }
 function totalOpen(){ return S.engine2.macro.positions.filter(p => p.status === 'OPEN').length + S.engine2.internal.positions.filter(p => p.status === 'OPEN').length; }
 
-/* ─── Quant Lab ─── */
 function viewLab(el){
   const L = Lab, st = L.state, ds = L.dataset();
   if (!ds) { el.innerHTML = '<div class="grid"><section class="band"><h1>Quant Lab</h1><p class="muted">Open a chart in Markets first.</p></section></div>'; return; }
@@ -4123,7 +3892,6 @@ function viewLab(el){
   `;
 }
 
-/* ─── Wallet ─── */
 function viewWallet(el){
   const W = Wallet.state;
   if (W.status === 'unsupported') { el.innerHTML = '<div class="grid"><section class="band"><h1>VICE Wallet</h1><p class="muted">This device can\'t run the wallet\'s cryptography.</p></section></div>'; return; }
@@ -4212,7 +3980,7 @@ function viewWallet(el){
 }
 function walletBalancesHtml(){
   const b = Wallet.state.balances || {};
-  const eth = b.ethereum, net = Wallet.networks.ethereum;
+  const eth = b.ethereum;
   let html = '';
   if (Wallet.state.loading && !eth) html += '<p class="meta" style="padding:10px 0">Reading balances…</p>';
   else if (eth && eth.error) html += `<p class="note warn">${esc(eth.error)}</p>`;
@@ -4230,7 +3998,6 @@ function assetRow(sym, name, amount, unit, note){
     <div class="asset-r"><b>${esc(amount)}</b> <span class="meta">${esc(unit)}</span></div></div>`;
 }
 
-/* ─── Desk helpers (used by Part 6 too) ─── */
 const Desk = (() => {
   const st = S.desk;
   st.policy = ViceCore.effectivePolicy(st.policy);
@@ -4249,7 +4016,7 @@ const Desk = (() => {
     return { bars, n, cur, atr, regime, long, short, active, spread, price:bars[cur].c, mode };
   };
   const audit = what => { st.audit.push({ at:new Date().toISOString(), what }); if (st.audit.length > 200) st.audit.shift(); };
-  const notify = () => { if(typeof safeRender === 'function') safeRender(); else renderMain(); };
+  const notify = () => { renderMain(); };
   const api = {
     state:st, ctx, spec,
     onChange:() => {},
@@ -4295,7 +4062,6 @@ const Desk = (() => {
   return api;
 })();
 
-/* ─── Register views ─── */
 VIEWS.command = viewCommand;
 VIEWS.markets = viewMarkets;
 VIEWS.portfolio = viewPortfolio;
@@ -4307,13 +4073,12 @@ VIEWS.wallet = viewWallet;
 </script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════
-   VIEWS — part 2 (final)
+   VIEWS — part 2
    Comms · Holders · IRU · Documents · Admin · Distributions · Treasury
    · VIP · Support · System · Marketplace · Invites · Audit ·
-   Reconciliation · Profile
+   Reconciliation · Profile · O.I.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ─── Comms (Telegram-style, bottom tabs ONLY here) ─── */
 function commsUnreadTotal(){
   return Object.values(S.comms.unread).reduce((a,b) => a + (b||0), 0);
 }
@@ -4567,7 +4332,6 @@ function endCall(){
   CS = { _localStream:null, _remoteStream:null, _pc:null, _callCh:CS._callCh };
 }
 
-/* ─── Holders registry + holder portal ─── */
 function viewHolders(el){
   const reg = IruEngine.registry(S.iru.state || IruEngine.emptyState());
   el.innerHTML = `
@@ -4587,7 +4351,7 @@ function viewHolders(el){
           <td class="mn">${fmtU(h.v4x)}</td>
           <td class="mn">${fmtU(h.vice)}</td>
           <td class="mn right">${h.refTotal === null ? '—' : Money.fmt(h.refTotal)}</td>
-          <td>${IruEngine.state === S.iru.state ? (S.iru.state.holders[h.holderId].status === 'ACTIVE' ? '<span class="bdg gr">Active</span>' : `<span class="bdg wn">${esc(S.iru.state.holders[h.holderId].status)}</span>`) : ''}</td>
+          <td>${S.iru.state && S.iru.state.holders[h.holderId] ? (S.iru.state.holders[h.holderId].status === 'ACTIVE' ? '<span class="bdg gr">Active</span>' : `<span class="bdg wn">${esc(S.iru.state.holders[h.holderId].status)}</span>`) : ''}</td>
           <td class="acts"><button class="btn btn-xs btn-g" data-act="view-holder" data-id="${esc(h.holderId)}">View</button>
             ${isOwner() ? `<button class="btn btn-xs btn-gd" data-act="classification-holder" data-id="${esc(h.holderId)}">Classify</button>` : ''}</td>
         </tr>`).join('')}
@@ -4670,7 +4434,6 @@ function iruCommitMany(list){
   return Promise.resolve(true);
 }
 
-/* ─── IRU Engine ─── */
 function viewIru(el){
   const st = S.iru.state || IruEngine.emptyState();
   const cap = IruEngine.capacity(st);
@@ -4743,7 +4506,6 @@ async function publishIruValue(){
   }
 }
 
-/* ─── Documents (e-sign + download + save) ─── */
 function viewDocuments(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Records</div><h1>Documents</h1>
@@ -4800,7 +4562,7 @@ async function confirmDocSign(id){
   const pad = $('signaturePad'); const name = $('signatureName')?.value.trim();
   if (!pad || !name) { toast('Draw your signature and enter your name','error'); return; }
   const data = pad.toDataURL('image/png');
-  const empty = data.length < 12000;   // a blank canvas produces a very small image
+  const empty = data.length < 12000;
   if (empty) { toast('Signature appears blank','error'); return; }
   const d = S.documents.find(x => String(x.id) === String(id));
   const hashInput = new TextEncoder().encode(`${d.id}|${d.name}|${name}|${Date.now()}`);
@@ -4840,8 +4602,7 @@ function uploadDocument(){
       const doc = { id, name:f.name, type:(f.name.split('.').pop()||'FILE').toUpperCase(), createdAt:new Date().toISOString(), blob:f, size:f.size };
       S.documents.unshift(doc);
       if (APP_MODE === 'LIVE' && S.user && S.user.id !== 'sim-user') {
-        try { const buf = await f.arrayBuffer();
-          await sb.from('documents').insert({ id, name:f.name, type:doc.type, size:f.size, owner_id:S.user.id }); } catch(_) {}
+        try { await sb.from('documents').insert({ id, name:f.name, type:doc.type, size:f.size, owner_id:S.user.id }); } catch(_) {}
       }
     }
     inp.value = '';
@@ -4850,7 +4611,6 @@ function uploadDocument(){
   inp.click();
 }
 
-/* ─── Admin ─── */
 function viewAdmin(el){
   if (!isOwner()) { el.innerHTML = '<div class="grid"><section class="band"><h1>Admin</h1><p class="muted">Admin tools require Owner role.</p></section></div>'; return; }
   el.innerHTML = `
@@ -4885,7 +4645,6 @@ function viewAdmin(el){
   `;
 }
 
-/* ─── Distributions ─── */
 function viewDistributions(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Records</div><h1>Distributions</h1>
@@ -4937,7 +4696,6 @@ function distOut(){
   </dl>`;
 }
 
-/* ─── Treasury ─── */
 function viewTreasury(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Records</div><h1>Treasury</h1>
@@ -4957,7 +4715,6 @@ function viewTreasury(el){
   `;
 }
 
-/* ─── VIP ─── */
 function viewVip(el){
   const reg = IruEngine.registry(S.iru.state || IruEngine.emptyState());
   const cap = IruEngine.capacity(S.iru.state || IruEngine.emptyState());
@@ -4995,7 +4752,6 @@ function viewVip(el){
   `;
 }
 
-/* ─── Support ─── */
 function viewSupport(el){
   const T = Support.state.tickets;
   el.innerHTML = `
@@ -5025,7 +4781,6 @@ function viewSupport(el){
   `;
 }
 
-/* ─── System ─── */
 function viewSystem(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Operations</div><h1>System</h1></div></div>
@@ -5054,7 +4809,6 @@ function viewSystem(el){
   `;
 }
 
-/* ─── Marketplace ─── */
 function viewMarketplace(el){
   const MODULES = [['desk','Trade Desk','Paper VICEBOT and risk kernel'],['lab','Quant Lab','Backtesting and research'],
     ['wallet','VICE Wallet','Non-custodial crypto'],['academy','Academy','VICE4X course and certificate'],
@@ -5075,7 +4829,6 @@ function viewMarketplace(el){
   `;
 }
 
-/* ─── Invites ─── */
 function viewInvites(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Operations</div><h1>Beta <em>Invites</em></h1>
@@ -5104,7 +4857,6 @@ function copyInviteLink(code){
   navigator.clipboard.writeText(url).then(() => toast('Copied: ' + url,'success')).catch(() => prompt('Copy:', url));
 }
 
-/* ─── Audit ─── */
 function viewAudit(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Operations</div><h1>Audit <em>Log</em></h1>
@@ -5123,7 +4875,6 @@ function viewAudit(el){
   `;
 }
 
-/* ─── Reconciliation ─── */
 function viewReconciliation(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Operations</div><h1>Reconciliation</h1></div></div>
@@ -5139,7 +4890,6 @@ function viewReconciliation(el){
   `;
 }
 
-/* ─── Profile ─── */
 async function viewProfile(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Overview</div><h1>My <em>Profile</em></h1></div></div>
@@ -5194,7 +4944,6 @@ async function setPassword(){
   catch(e) { toast(e.message,'error'); }
 }
 
-/* ─── O.I. panel + command palette ─── */
 const OI_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>';
 const CMD_VERB = /^(open|show|go to|goto|go|start|take me to|view)\b\s*/i;
 const COMMANDS = [
@@ -5217,13 +4966,13 @@ const COMMANDS = [
 ];
 function commandMatches(q){
   const s = String(q||'').trim(); if (s.length < 2) return [];
-  const words = s.toLowerCase().replace(CMD_VERB,'').replace(/[^a-z0-9’' .-]/g,' ').split(/\s+/).filter(w => w.length > 1 && !['the','my','me','to','of'].includes(w));
+  const words = s.toLowerCase().replace(CMD_VERB,'').replace(/[^a-z0-9'. -]/g,' ').split(/\s+/).filter(w => w.length > 1 && !['the','my','me','to','of'].includes(w));
   if (!words.length) return [];
   return COMMANDS.filter(c => { const hay = `${c.t.toLowerCase()} ${c.k}`; return words.every(w => hay.includes(w)); }).slice(0,5);
 }
 const cmdState = { list:[], sel:-1 };
 function paintCommands(q){
-  const box = $('oi-cmds'), input = document.querySelector('[data-role="oi-q"]'); if (!box) return;
+  const box = $('oi-cmds'); if (!box) return;
   cmdState.list = commandMatches(q);
   cmdState.sel = cmdState.list.length && (CMD_VERB.test(String(q).trim()) || String(q).trim().split(/\s+/).length <= 2) ? 0 : -1;
   box.hidden = !cmdState.list.length;
@@ -5269,7 +5018,6 @@ function paintOI(force){
   const m = root.querySelector('#oi-msgs'); if (m) { m.innerHTML = oiMessagesHtml(); m.scrollTop = m.scrollHeight; }
 }
 
-/* ─── Register remaining views ─── */
 VIEWS.comms = viewComms;
 VIEWS.holders = viewHolders;
 VIEWS.iru = viewIru;
@@ -5286,7 +5034,6 @@ VIEWS.audit = viewAudit;
 VIEWS.reconciliation = viewReconciliation;
 VIEWS.profile = viewProfile;
 
-/* ─── Simple read-only views for the remaining NAV entries ─── */
 VIEWS.governance = el => el.innerHTML = '<div class="ph"><div><div class="eb">Records</div><h1>Governance</h1></div></div><div class="grid"><section class="band"><p class="muted">Proposals appear here once the DAO is live.</p></section></div>';
 VIEWS['data-rooms'] = el => el.innerHTML = '<div class="ph"><div><div class="eb">Records</div><h1>Data Rooms</h1></div></div><div class="grid"><section class="band"><p class="muted">Private data rooms for due diligence. Not configured.</p></section></div>';
 VIEWS.compliance = el => el.innerHTML = '<div class="ph"><div><div class="eb">Compliance</div><h1>Compliance</h1></div></div><div class="grid"><section class="band"><p class="muted">Compliance case tracker. No open cases.</p></section></div>';
@@ -5328,9 +5075,6 @@ VIEWS.oi = el => {
     </section>`;
 };
 
-/* ═══════════════════════════════════════════════════════════════════
-   Delegated action handler — everything from Parts 5 & 6
-   ═══════════════════════════════════════════════════════════════════ */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-act]');
   if (!t || t.disabled) return;
@@ -5362,7 +5106,6 @@ document.addEventListener('click', (e) => {
       })();
       return;
     }
-    /* Market / chart */
     case 'open-symbol-sheet': openSymbolSheet(); return;
     case 'set-tf': S.sel.tf = t.dataset.tf; loadCandles(); renderMain(); return;
     case 'set-preset': { S.chart.preset = t.dataset.preset; S.chart.colors = { ...PRESETS[t.dataset.preset] }; drawAll(); renderMain(); return; }
@@ -5371,7 +5114,6 @@ document.addEventListener('click', (e) => {
     case 'zoom-out': zoomChart(1.25); return;
     case 'chart-reset': S.view2 = { count:140, end:null }; drawAll(); return;
     case 'import-bars': $('csv').click(); return;
-    /* MT5 accounts */
     case 'mt5-add': openMT5AddModal(); return;
     case 'mt5-add-submit': submitMT5Add(); return;
     case 'mt5-test': Link.testAccount(t.dataset.id); return;
@@ -5382,7 +5124,6 @@ document.addEventListener('click', (e) => {
       if (url !== null) { Link.setUrl(url, Link.state.token); toast('Saved','success'); }
       return;
     }
-    /* Desk / engine */
     case 'desk-start-replay': Desk.startReplay(); return;
     case 'desk-stop-replay': Desk.stopReplay(); return;
     case 'desk-next': Desk.advance(1); return;
@@ -5400,14 +5141,12 @@ document.addEventListener('click', (e) => {
       toast(E.running ? 'Engine started' : 'Engine stopped', E.running ? 'success' : 'info');
       renderMain(); return;
     }
-    /* Lab */
     case 'lab-run': { syncLabInputs(); Lab.run(); return; }
     case 'lab-wf': { syncLabInputs(); Lab.walk(); return; }
     case 'lab-mc': { syncLabInputs(); Lab.carlo(); return; }
     case 'lab-adv': { syncLabInputs(); Lab.attack(); return; }
     case 'lab-stress': { syncLabInputs(); Lab.stressNow(); return; }
     case 'lab-cc': { syncLabInputs(); Lab.champion(); return; }
-    /* Wallet */
     case 'w-create': Wallet.beginCreate(); return;
     case 'w-import-start': Wallet.state.status = 'importing'; Wallet.state.msg = ''; renderMain(); return;
     case 'w-cancel': Wallet.cancelCreate(); return;
@@ -5421,7 +5160,6 @@ document.addEventListener('click', (e) => {
     case 'w-reveal': Wallet.revealPhrase($('wRevealPass').value); return;
     case 'w-hide-phrase': Wallet.hidePhrase(); return;
     case 'w-copy-phrase': copyToClipboard(t.dataset.copy); return;
-    /* Comms */
     case 'cm-open': {
       const type = t.dataset.type, id = t.dataset.id;
       if (type === 'channel') { S.comms.activeChannel = id; S.comms.activeDm = null; S.comms.unread[id] = 0; }
@@ -5448,24 +5186,17 @@ document.addEventListener('click', (e) => {
     }
     case 'cm-call-voice': startCommsCall(false); return;
     case 'cm-call-video': startCommsCall(true); return;
-    case 'cm-invite-link': {
-      const url = commsCallInviteLink();
-      copyToClipboard(url);
-      toast('Call invite link copied','success'); return;
-    }
+    case 'cm-invite-link': { const url = commsCallInviteLink(); copyToClipboard(url); toast('Call invite link copied','success'); return; }
     case 'cm-invite-room': { const url = commsCallInviteLink(); copyToClipboard(url); renderMain(); return; }
     case 'cm-new-call': { if (S.comms.peers[0]) { S.comms.activeDm = S.comms.peers[0].id; startCommsCall(true); } return; }
-    /* Holders */
     case 'appoint-client': openAppointClient(); return;
     case 'appoint-client-submit': submitAppointClient(); return;
     case 'view-holder': S.iru.viewHolder = t.dataset.id; renderMain(); return;
     case 'close-holder-view': S.iru.viewHolder = null; renderMain(); return;
     case 'classification-holder': toast('Classification editor opens in Admin → Holders.','info'); go('holders'); return;
-    /* IRU */
     case 'iru-demo-toggle': { S.iru.demo = !S.iru.demo; toast(S.iru.demo ? 'Demo mode ON' : 'Demo mode OFF','success'); renderMain(); return; }
     case 'iru-demo-reset': { S.iru.events = []; S.iru.demo = true; toast('Demo reset','success'); renderMain(); return; }
     case 'iru-publish-value': publishIruValue(); return;
-    /* Documents */
     case 'doc-upload': uploadDocument(); return;
     case 'doc-sign': openDocSign(t.dataset.id); return;
     case 'sign-clear': {
@@ -5475,7 +5206,6 @@ document.addEventListener('click', (e) => {
     case 'sign-confirm': confirmDocSign(t.dataset.id); return;
     case 'doc-download': downloadDocument(t.dataset.id); return;
     case 'doc-save': saveDocumentInApp(t.dataset.id); return;
-    /* Distributions */
     case 'dist-add': {
       openModal('Record Distribution', `
         <div class="fg">
@@ -5502,7 +5232,6 @@ document.addEventListener('click', (e) => {
       S.distributions = S.distributions.filter(x => String(x.id) !== t.dataset.id);
       toast('Deleted','success'); renderMain(); return;
     }
-    /* VIP */
     case 'vip-send': {
       const id = $('vipId').value.trim().toUpperCase(), msg = $('vipMsg').value.trim();
       const h = IruEngine.findByClientId(S.iru.state || IruEngine.emptyState(), id);
@@ -5512,7 +5241,6 @@ document.addEventListener('click', (e) => {
         S.iru.vipMsg = `Request ${tk.id} saved with VIP priority.`; }
       renderMain(); return;
     }
-    /* Support */
     case 'sup-send': {
       const m = $('supMsg').value.trim();
       if (!m) { Support.state.msg = 'Tell us how we can help.'; }
@@ -5520,7 +5248,6 @@ document.addEventListener('click', (e) => {
         Support.state.msg = `Request ${tk.id} saved. VICE team will reply.`; }
       renderMain(); return;
     }
-    /* System */
     case 'link-set': {
       const url = $('linkUrl').value.trim(), token = $('linkToken').value.trim();
       Link.setUrl(url, token); toast('Saved','success'); return;
@@ -5529,14 +5256,11 @@ document.addEventListener('click', (e) => {
     case 'rotate-pair': Link.send({ t:'rotate' }); return;
     case 'chain-check': ChainCheck.run(); return;
     case 'reset-settings': if (confirm('Reset all local settings? This cannot be undone.')) { try { localStorage.clear(); } catch(_) {} location.reload(); } return;
-    /* Invites */
     case 'create-invite': createBetaInvite(); return;
     case 'copy-invite': copyInviteLink(t.dataset.code); return;
-    /* Profile */
     case 'save-profile': saveProfile(); return;
     case 'set-password': setPassword(); return;
     case 'start-2fa': toast('Two-step setup launches in the Windows app.','info'); return;
-    /* Module toggles */
     case 'module-toggle': {
       const id = t.dataset.id;
       S.modules.off[id] = !S.modules.off[id];
@@ -5544,17 +5268,14 @@ document.addEventListener('click', (e) => {
       toast(S.modules.off[id] ? 'Module hidden from nav' : 'Module shown', 'success');
       renderNav(); renderMain(); return;
     }
-    /* O.I. */
     case 'oi-open': OI.state.open = true; paintOI(true); return;
     case 'oi-close': OI.state.open = false; paintOI(true); return;
     case 'oi-send': { const q = document.querySelector('[data-role="oi-q"]'); if (q && q.value.trim()) { const v = q.value; q.value = ''; paintCommands(''); OI.ask(v); } return; }
     case 'oi-cmd': { const q = document.querySelector('[data-role="oi-q"]'); if (q) q.value = ''; runCommand(Number(t.dataset.i)); return; }
     case 'oi-chip': OI.state.open = true; paintOI(); OI.ask(t.dataset.q); return;
     case 'oi-mic': { if (!OI.listen(text => { const q = document.querySelector('[data-role="oi-q"]'); if (q) q.value = text; OI.ask(text); })) toast('Mic not available','warn'); return; }
-    /* Utilities */
     case 'copy': copyToClipboard(t.dataset.copy); return;
   }
-  /* The comms bottom tabs are handled via data-cm-tab */
   if (t.dataset.cmTab) { S.comms.tab = t.dataset.cmTab; renderMain(); }
 });
 function copyToClipboard(text){
@@ -5569,7 +5290,6 @@ function syncLabInputs(){
   Lab.setCosts({ spread:num(get('spread').value), slippage:num(get('slip').value), commission:0 });
 }
 
-/* ─── Symbol sheet ─── */
 function openSymbolSheet(){
   openModal('Choose a market', `
     <input class="search" id="symQ" placeholder="Search: EURUSD, gold, BTC, NAS100…" autocomplete="off">
@@ -5590,9 +5310,6 @@ function openSymbolSheet(){
   }, 20);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   Additional delegated handlers for sheet/scrub/lab inputs (Parts 5)
-   ═══════════════════════════════════════════════════════════════════ */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-act="pick-sym"]');
   if (t) { S.sel.symbol = t.dataset.sym; closeModal(); loadCandles(); renderMain(); }
@@ -5602,60 +5319,44 @@ document.addEventListener('input', (e) => {
   if (t.dataset.com) { S.community[t.dataset.com] = t.value; if (t.dataset.com === 'eligible') S.community.eligibleSet = true;
     const o = $('dist-out'); if (o) o.innerHTML = distOut(); }
 });
-document.addEventListener('change', (e) => {
-  const t = e.target;
-  if (t.dataset && t.dataset.act === 'scrub-range') { S.view2.count = Number(t.value); drawAll(); }
-});
-/* Range inputs */
 document.addEventListener('input', (e) => {
   if (e.target && e.target.dataset && e.target.dataset.act === 'scrub-range') { S.view2.count = Number(e.target.value); drawAll(); }
 });
-/* Slider live update of chart on drag */
-document.addEventListener('input', (e) => {
-  if (e.target.id === 'wRpc') { /* nothing */ }
-});
-
-/* ─── Modal click-outside closes ─── */
 document.addEventListener('click', (e) => {
   const modal = $('modal');
   if (modal && modal.classList.contains('on') && e.target === modal) closeModal();
 });
-
-/* ─── Escape closes modals, sheets, O.I. ─── */
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (OI.state.open) { OI.state.open = false; paintOI(true); return; }
     if ($('modal')?.classList.contains('on')) { closeModal(); return; }
   }
 });
-/* Ctrl/Cmd-K for O.I. */
 document.addEventListener('keydown', (e) => {
   if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
     e.preventDefault(); OI.state.open = !OI.state.open; paintOI(true); return;
   }
 });
-/* Enter sends the message in the composer */
 document.addEventListener('submit', (e) => {
   if (e.target.matches('[data-act="cm-send-form"]')) { e.preventDefault(); sendCommsMessage(); }
 });
-
-/* ─── Comms composer inline ─── */
 document.addEventListener('input', (e) => {
   if (e.target.dataset && e.target.dataset.role === 'cm-search') { S.query = e.target.value; const l = document.querySelector('.cm-list-scroll'); if (l) { const list = commsList(); l.innerHTML = list.length ? list.map(c => `<button class="cm-item${c.active ? ' on' : ''}${c.unread ? ' unread' : ''}" data-act="cm-open" data-type="${c.type}" data-id="${esc(c.id)}"><div class="cm-item-ava ${c.color === 'v4x' ? 'v4x' : ''}${c.online ? ' online' : ''}">${esc(c.initials)}</div><div class="cm-item-body"><div class="cm-item-top"><span class="cm-item-name">${esc(c.name)}</span><span class="cm-item-time">${c.time}</span></div><div class="cm-item-top"><span class="cm-item-prev">${esc(c.preview)}</span>${c.unread ? `<span class="cm-item-badge">${c.unread}</span>` : ''}</div></div></button>`).join('') : '<div class="emp">No matches.</div>'; } } }
 });
-
+</script>
+<script>
 /* ═══════════════════════════════════════════════════════════════════
-   BOOT — initialise every engine and open the app
+   VICE OS — boot sequence and closing
    ═══════════════════════════════════════════════════════════════════ */
+
 (function boot(){
-  /* Restore lab ledger */
   try { Lab.state.ledger = JSON.parse(localStorage.getItem('vice-lab') || '[]'); } catch(_) {}
-  /* Restore signatures */
   try { S.signatures = JSON.parse(localStorage.getItem('vice-signatures') || '[]'); } catch(_) {}
-  /* Restore IRU events and replay */
   try { S.iru.events = JSON.parse(localStorage.getItem('vice-iru-events') || '[]'); } catch(_) { S.iru.events = []; }
   S.iru.state = IruEngine.replay(S.iru.events, { fourEyes:isOwner() });
-  /* Seed a few documents so the interface is never bare on first boot */
+  try { S.modules.off = JSON.parse(localStorage.getItem('vice-modules-off') || '{}'); } catch(_) {}
+  try { S.desk.specs = JSON.parse(localStorage.getItem('vice-specs') || '{}'); } catch(_) {}
+
   if (!S.documents.length) {
     S.documents = [
       { id:'doc-1', name:'VICE Capital — Master Service Agreement.pdf', type:'PDF', createdAt:nowIso() },
@@ -5663,26 +5364,43 @@ document.addEventListener('input', (e) => {
       { id:'doc-3', name:'VICE4X Academy — Core Curriculum (Summary).md', type:'MD', createdAt:nowIso() },
     ];
   }
-  /* Restore data from IndexedDB */
+
   Store.all().then(list => {
-    if (!list || !list.length) {
-      /* If nothing saved, seed the practice series */
+    try {
+      if (!list || !list.length) {
+        addDataset({ symbol:PRACTICE, tf:'1h', source:'SIM', decimals:2, name:'Practice series',
+          bars:sampleSeries(2000, 20260921, 3600e3, Date.now() - 2000 * 3600e3) }, false);
+        S.ch.candles = S.sets['PRACTICE|1h'].bars;
+        computeATR();
+        S.res = Solace.run(S.ch.candles, S.engine);
+        S.sel.symbol = PRACTICE; S.sel.tf = '1h';
+      } else {
+        list.forEach(r => { try { addDataset(unpack(r), false); } catch(_) {} });
+        const first = Object.values(S.sets)[0];
+        if (first) {
+          S.sel.symbol = first.symbol; S.sel.tf = first.tf;
+          S.ch.candles = first.bars; computeATR();
+          S.res = Solace.run(S.ch.candles, S.engine);
+        }
+      }
+    } catch(e) { console.warn('Dataset restore issue:', e); }
+
+    sb.auth.getSession().then(({ data }) => {
+      if (data && data.session && data.session.user) onAuthenticated(data.session.user);
+      else showLogin();
+    }).catch(() => showLogin());
+  }).catch(() => {
+    try {
       addDataset({ symbol:PRACTICE, tf:'1h', source:'SIM', decimals:2, name:'Practice series',
         bars:sampleSeries(2000, 20260921, 3600e3, Date.now() - 2000 * 3600e3) }, false);
-      S.ch.candles = S.sets[`${PRACTICE}|1h`].bars;
+      S.ch.candles = S.sets['PRACTICE|1h'].bars;
       computeATR();
       S.res = Solace.run(S.ch.candles, S.engine);
       S.sel.symbol = PRACTICE; S.sel.tf = '1h';
-    } else {
-      list.forEach(r => { try { addDataset(unpack(r), false); } catch(_) {} });
-      /* Pick the most recent set as the default */
-      const first = Object.values(S.sets)[0];
-      if (first) { S.sel.symbol = first.symbol; S.sel.tf = first.tf; S.ch.candles = first.bars; computeATR(); S.res = Solace.run(S.ch.candles, S.engine); }
-    }
-    /* Supabase session */
+    } catch(_) {}
     sb.auth.getSession().then(({ data }) => {
       if (data && data.session && data.session.user) onAuthenticated(data.session.user);
-      else { showLogin(); }
+      else showLogin();
     }).catch(() => showLogin());
   });
 })();
@@ -5692,15 +5410,169 @@ function showLogin(){
   $('tb').style.display = 'none';
   $('bnr').style.display = 'none';
   $('sb').style.display = 'none';
-  document.querySelector('.mn').style.display = 'none';
-  $('cmTabs').classList.remove('on');
+  const mn = document.querySelector('.mn'); if (mn) mn.style.display = 'none';
+  $('cmTabs')?.classList.remove('on');
 }
-/* Auto-hide the splash after a short beat */
-setTimeout(() => { const s = $('splash'); if (s) { s.classList.add('out'); setTimeout(() => s.remove(), 800); } }, 1800);
-/* Comms indicator redraw on resize */
-window.addEventListener('resize', () => paintCmTabs());
-/* Auto-refresh live quote line in Markets every 3 s if open */
-setInterval(() => { if (S.tab === 'markets' && S.ch) drawAll(); }, 3000);
+
+setTimeout(() => {
+  const s = $('splash');
+  if (s) { s.classList.add('out'); setTimeout(() => s.remove(), 800); }
+}, 1800);
+
+window.addEventListener('resize', () => { paintCmTabs(); if (S.tab === 'markets') setTimeout(initCanvas, 40); });
+
+setInterval(() => {
+  if (S.tab === 'markets' && S.ch && S.ch.candles.length && typeof drawAll === 'function') drawAll();
+}, 3000);
+
+setInterval(() => {
+  if (!S.iru.state) return;
+  const cap = IruEngine.capacity(S.iru.state);
+  if (cap.current > cap.max) {
+    console.warn('Holder capacity exceeded — the IRU engine will reject further additions.');
+  }
+}, 60000);
+
+setInterval(() => {
+  try {
+    if (S.chart && S.chart.preset) {
+      const p = PRESETS[S.chart.preset];
+      if (p && !S.chart.colors) S.chart.colors = { ...p };
+    }
+  } catch(_) {}
+}, 30000);
+
+window.__VICE = {
+  S, IruEngine, ViceCore, Solace, Wallet, Lab, Link, Academy, Support, OI, ChainCheck,
+  VIEWS, go, renderMain, toast, esc, timeAgo, can, openModal, closeModal,
+  loadCandles, addDataset, parseBars, importText, sampleSeries, PRESETS, PRACTICE,
+  Money, fmtNum, fmtUsd, fmtK, fmtMoney, fmtD, nowIso, uuid, whenText, ageText,
+  signInWithGoogle, login, logout, openInviteHelp, openUserMenu, openModeSwitch, openMT5AddModal
+};
+
+console.log('%cVICE OS · build ' + BUILD.version + ' · ' + BUILD.date, 'color:#c9a84c;font-family:JetBrains Mono,monospace;font-size:11px;');
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && S.ch.live && S.ch.ws && S.ch.ws.readyState !== 1) {
+    try { loadCandles(); } catch(_) {}
+  }
+});
+
+window.addEventListener('online', () => { try { Link.start(); } catch(_) {} });
+window.addEventListener('offline', () => { try { toast('Offline — the app will keep working with cached data.','warn'); } catch(_) {} });
+
+document.addEventListener('wheel', (e) => {
+  if ($('modal')?.classList.contains('on')) {
+    const sc = $('modalContent');
+    if (sc && sc.contains(e.target)) return;
+  }
+}, { passive:true });
+
+document.addEventListener('touchstart', (e) => {
+  const t = e.target.closest('.cm-item, .crd, .row');
+  if (t) t.style.transition = 'background .15s';
+}, { passive:true });
+
+window.addEventListener('beforeunload', () => {
+  try {
+    if (S.iru.events && S.iru.events.length) localStorage.setItem('vice-iru-events', JSON.stringify(S.iru.events));
+    if (S.signatures && S.signatures.length) localStorage.setItem('vice-signatures', JSON.stringify(S.signatures.slice(-200)));
+    if (Lab.state.ledger && Lab.state.ledger.length) localStorage.setItem('vice-lab', JSON.stringify(Lab.state.ledger));
+  } catch(_) {}
+});
+
+try {
+  if (typeof Academy === 'object' && Academy.state && Academy.state.read) {
+    const coreCount = Academy.course ? Academy.course.filter(m => m.core).length : 0;
+    if (coreCount) {
+      const read = Object.keys(Academy.state.read || {}).length;
+      if (read > 0) {
+        console.log('%cVICE4X Academy progress: ' + read + ' chapters read across ' + coreCount + ' core modules.', 'color:#8b7aff;font-size:10px;');
+      }
+    }
+  }
+} catch(_) {}
+
+(function watchEngines(){
+  let lastRunning = S.engine2.running;
+  setInterval(() => {
+    if (S.engine2.running !== lastRunning) {
+      lastRunning = S.engine2.running;
+      const d = $('engDot'), l = $('engLabel');
+      if (d && l) { d.className = 'd ' + (S.engine2.running ? '' : 'w'); l.textContent = S.engine2.running ? 'RUNNING' : 'IDLE'; }
+    }
+  }, 1500);
+})();
+
+(function watchFeed(){
+  let lastFeed = '';
+  setInterval(() => {
+    const d = $('feedDot'), l = $('feedLabel');
+    if (!d || !l) return;
+    const src = parseSymbol(S.ch.pair).source;
+    const state = APP_MODE === 'SIM' ? 'SIM' : (S.ch.live ? (src === 'BINANCE' ? 'LIVE' : 'DELAYED') : 'OFFLINE');
+    if (state !== lastFeed) {
+      lastFeed = state;
+      d.className = 'd ' + (state === 'LIVE' ? '' : state === 'DELvAYED' ? 'w' : state === 'SIM' ? 'r' : 'r');
+      l.textContent = 'FEED ' + state;
+    }
+  }, 2000);
+})();
+
+(function watchWallet(){
+  let lastStatus = '';
+  setInterval(() => {
+    const s = Wallet.state.status;
+    if (s !== lastStatus) {
+      lastStatus = s;
+      if (s === 'ready' && Wallet.unlocked()) {
+        try { Wallet.refresh(); } catch(_) {}
+      }
+    }
+  }, 15000);
+})();
+
+(function watchLink(){
+  let lastStatus = '';
+  setInterval(() => {
+    const s = Link.state.status;
+    if (s !== lastStatus) {
+      lastStatus = s;
+      if (s === 'live' && S.tab === 'system') renderMain();
+    }
+  }, 3000);
+})();
+
+(function keepTabsAlive(){
+  setInterval(() => {
+    if (S.tab === 'comms') paintCmTabs();
+  }, 1000);
+})();
+
+(function finalSafetyNet(){
+  window.addEventListener('error', (e) => {
+    console.error('VICE OS runtime error:', e.message, 'at', e.filename + ':' + e.lineno + ':' + e.colno);
+    const splash = document.getElementById('splash');
+    if (splash) splash.remove();
+    if (!document.getElementById('_iceErr')) {
+      const box = document.createElement('div');
+      box.id = '_viceErr';
+      box.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#07080a;color:#ece8e1;padding:40px;font:14px/1.6 ui-monospace,monospace;overflow:auto';
+      const msg = String(e.message).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+      box.innerHTML = '<h2 style="color:#c9a84c;margin-bottom:14px">VICE OS runtime error</h2>'
+        + '<p style="color:#ff7a5c;margin-bottom:14px">' + msg + '</p>'
+        + '<p style="color:#a3968e">at ' + e.filename + ':' + e.lineno + ':' + e.colno + '</p>'
+        + '<p style="color:#a3968e;margin-top:20px">Open DevTools (F12) → Console for the full stack trace.</p>'
+        + '<button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;background:#c9a84c;color:#0a0a0b;border:0;border-radius:8px;font-weight:600;cursor:pointer">Reload</button>';
+      document.body.appendChild(box);
+    }
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    console.warn('VICE OS unhandled promise rejection:', e.reason);
+  });
+})();
+
+/* End of VICE OS */
 </script>
 </body>
 </html>
