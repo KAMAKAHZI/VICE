@@ -11,64 +11,149 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
-:root{--bg:#07080a;--bg2:#0a0b0d;--srf:#141518;--ln:rgba(201,168,76,.10);--ln2:rgba(201,168,76,.18);--ln3:rgba(201,168,76,.32);--tx:#f2ebe4;--tx2:#a3968e;--tx3:#6b5f59;--tx4:#3d3532;--gd:#c9a84c;--gdl:#ecd28a;--gr:#3ddc97;--rd:#d9465a;--wn:#f5a524;--vi:#8b7aff;--bl:#5b8def;--gg:linear-gradient(135deg,#ecd28a 0%,#c9a84c 45%,#9c7c33 100%);--sf:'Fraunces',Georgia,serif;--mn:'JetBrains Mono',ui-monospace,monospace;--nh:54px;--bh:22px;--sw:248px;--e:cubic-bezier(.22,1,.36,1)}
+:root{
+  --bg:#07080a;--bg2:#0a0b0d;--srf:#141518;
+  --ln:rgba(201,168,76,.10);--ln2:rgba(201,168,76,.18);--ln3:rgba(201,168,76,.32);
+  --tx:#f2ebe4;--tx2:#a3968e;--tx3:#6b5f59;--tx4:#3d3532;
+  --gd:#c9a84c;--gdl:#ecd28a;
+  --gr:#3ddc97;--rd:#d9465a;--wn:#f5a524;--vi:#8b7aff;--bl:#5b8def;
+  --gg:linear-gradient(135deg,#ecd28a 0%,#c9a84c 45%,#9c7c33 100%);
+  --sf:'Fraunces',Georgia,serif;
+  --mn:'JetBrains Mono',ui-monospace,monospace;
+  --nh:54px;--bh:22px;--sw:248px;
+  --e:cubic-bezier(.22,1,.36,1);
+}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--tx);font-family:'Inter',system-ui,sans-serif;font-size:13.5px;line-height:1.5;overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:13.5px;line-height:1.5;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
-input,select,textarea{font:inherit;color:inherit}ul{list-style:none}
+input,select,textarea{font:inherit;color:inherit}
+ul{list-style:none}
 ::selection{background:rgba(201,168,76,.3);color:#fff}
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:#1c1d20;border-radius:8px}
+
 h1,h2,h3,h4{font-weight:500;line-height:1.1;letter-spacing:-.02em}
 h1{font-size:1.3rem;font-weight:400}
 h1 em{font-family:var(--sf);font-style:italic;font-weight:300;color:var(--gdl)}
 p{color:var(--tx2)}
-.tb{position:fixed;top:0;left:0;right:0;height:var(--nh);z-index:100;background:rgba(7,8,10,.95);backdrop-filter:blur(22px);border-bottom:1px solid var(--ln);display:flex;align-items:center;padding:0 12px;gap:10px}
+
+/* ── Top bar ── */
+.tb{
+  position:fixed;top:0;left:0;right:0;height:var(--nh);z-index:100;
+  background:rgba(7,8,10,.95);backdrop-filter:blur(22px);
+  border-bottom:1px solid var(--ln);
+  display:flex;align-items:center;padding:0 12px;gap:10px;
+}
 .brand{display:flex;align-items:center;gap:8px;flex-shrink:0;cursor:pointer}
 .brand svg{width:22px;height:22px}
 .bn{font-family:var(--sf);font-size:.86rem}
 .bn em{font-style:italic;color:var(--gdl);font-weight:300}
 .bsub{font-family:var(--mn);font-size:.44rem;letter-spacing:.28em;text-transform:uppercase;color:var(--tx4);margin-top:1px}
 .tbc{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}
-.pill{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:3px;border:1px solid var(--ln2);background:rgba(0,0,0,.3);font-family:var(--mn);font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);cursor:pointer;transition:all .2s}
+.pill{
+  display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:3px;
+  border:1px solid var(--ln2);background:rgba(0,0,0,.3);
+  font-family:var(--mn);font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tx2);cursor:pointer;transition:all .2s;
+}
 .pill:hover{border-color:var(--ln3);color:var(--tx)}
 .pill .d{width:5px;height:5px;border-radius:50%;background:var(--gr);box-shadow:0 0 6px var(--gr)}
 .pill .d.w{background:var(--wn);box-shadow:0 0 6px var(--wn)}
 .pill .d.r{background:var(--rd);box-shadow:0 0 6px var(--rd)}
 .tbr{display:flex;align-items:center;gap:6px}
-.upill{display:flex;align-items:center;gap:6px;padding:3px 9px 3px 3px;border:1px solid var(--ln2);border-radius:99px;background:rgba(0,0,0,.3);cursor:pointer}
-.av{width:22px;height:22px;border-radius:50%;background:var(--gg);display:flex;align-items:center;justify-content:center;font-size:.54rem;font-weight:700;color:#1a0a0a}
+.upill{
+  display:flex;align-items:center;gap:6px;padding:3px 9px 3px 3px;
+  border:1px solid var(--ln2);border-radius:99px;background:rgba(0,0,0,.3);cursor:pointer;
+}
+.av{
+  width:22px;height:22px;border-radius:50%;background:var(--gg);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.54rem;font-weight:700;color:#1a0a0a;
+}
 .un{font-size:.68rem;color:var(--tx)}
 .ur{font-family:var(--mn);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tx4)}
-.mob{display:none;width:32px;height:32px;border-radius:4px;border:1px solid var(--ln2);align-items:center;justify-content:center;flex-direction:column;gap:4px;flex-shrink:0;cursor:pointer}
+.mob{
+  display:none;width:32px;height:32px;border-radius:4px;border:1px solid var(--ln2);
+  align-items:center;justify-content:center;flex-direction:column;gap:4px;
+  flex-shrink:0;cursor:pointer;
+}
 .mob span{display:block;width:13px;height:1.5px;background:var(--tx);border-radius:2px}
-.bnr{position:fixed;top:var(--nh);left:0;right:0;height:var(--bh);z-index:98;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(90deg,rgba(160,24,40,.16),rgba(201,168,76,.06),rgba(160,24,40,.16));border-bottom:1px solid rgba(201,168,76,.14);font-family:var(--mn);font-size:.48rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gdl)}
-.bnr.sim{background:linear-gradient(90deg,rgba(139,122,255,.22),rgba(201,168,76,.08),rgba(139,122,255,.22));color:var(--vi);border-bottom-color:rgba(139,122,255,.4)}
+
+/* ── Banner ── */
+.bnr{
+  position:fixed;top:var(--nh);left:0;right:0;height:var(--bh);z-index:98;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(90deg,rgba(160,24,40,.16),rgba(201,168,76,.06),rgba(160,24,40,.16));
+  border-bottom:1px solid rgba(201,168,76,.14);
+  font-family:var(--mn);font-size:.48rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gdl);
+}
+.bnr.sim{
+  background:linear-gradient(90deg,rgba(139,122,255,.22),rgba(201,168,76,.08),rgba(139,122,255,.22));
+  color:var(--vi);border-bottom-color:rgba(139,122,255,.4);
+}
 .bnr .d{width:4px;height:4px;border-radius:50%;background:var(--wn);box-shadow:0 0 5px var(--wn);animation:pulse 2s infinite}
 @keyframes pulse{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
-.sb{position:fixed;top:calc(var(--nh) + var(--bh));left:0;bottom:0;width:var(--sw);background:var(--bg2);border-right:1px solid var(--ln);padding:10px 0;overflow-y:auto;z-index:90;transition:transform .4s var(--e)}
+
+/* ── Sidebar ── */
+.sb{
+  position:fixed;top:calc(var(--nh) + var(--bh));left:0;bottom:0;width:var(--sw);
+  background:var(--bg2);border-right:1px solid var(--ln);
+  padding:10px 0;overflow-y:auto;z-index:90;
+  transition:transform .4s var(--e);
+}
 .sb.off{transform:translateX(-100%)}
 .ss{padding:0 10px;margin-bottom:10px}
-.ss h4{font-family:var(--mn);font-size:.46rem;letter-spacing:.22em;text-transform:uppercase;color:var(--tx4);margin-bottom:4px;padding-left:8px;font-weight:500}
-.slink{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:3px;font-size:.76rem;color:var(--tx2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .18s;font-family:'Inter',sans-serif}
+.ss h4{
+  font-family:var(--mn);font-size:.46rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--tx4);
+  margin-bottom:4px;padding-left:8px;font-weight:500;
+}
+.slink{
+  display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:3px;
+  font-size:.76rem;color:var(--tx2);cursor:pointer;border:none;background:none;
+  width:100%;text-align:left;transition:all .18s;font-family:'Inter',sans-serif;
+}
 .slink:hover{color:var(--tx);background:rgba(201,168,76,.05);padding-left:11px}
 .slink.on{color:var(--gd);background:rgba(201,168,76,.08);border-left:2px solid var(--gd);padding-left:6px}
 .slink svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;opacity:.7}
 .slink.on svg{opacity:1}
-.sbdg{margin-left:auto;font-family:var(--mn);font-size:.44rem;padding:1px 6px;border-radius:99px;background:rgba(201,168,76,.14);color:var(--gd);border:1px solid rgba(201,168,76,.28)}
+.sbdg{
+  margin-left:auto;font-family:var(--mn);font-size:.44rem;padding:1px 6px;border-radius:99px;
+  background:rgba(201,168,76,.14);color:var(--gd);border:1px solid rgba(201,168,76,.28);
+}
 .sbdg.lv{background:rgba(61,220,151,.12);color:var(--gr);border-color:rgba(61,220,151,.3)}
 .sbdg.rd{background:rgba(217,70,90,.12);color:var(--rd);border-color:rgba(217,70,90,.3)}
 .sbdg.vi{background:rgba(139,122,255,.12);color:var(--vi);border-color:rgba(139,122,255,.3)}
+
+/* ── Main ── */
 .mn{margin-left:var(--sw);padding-top:calc(var(--nh) + var(--bh));min-height:100vh;background:var(--bg);transition:margin-left .4s var(--e)}
 .mni{padding:18px 22px 60px;max-width:1800px;margin:0 auto}
+
 .ph{margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.ph .eb{font-family:var(--mn);font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gd);display:inline-flex;align-items:center;gap:8px;margin-bottom:5px}
+.ph .eb{
+  font-family:var(--mn);font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gd);display:inline-flex;align-items:center;gap:8px;margin-bottom:5px;
+}
 .ph .eb::before{content:'';width:16px;height:1px;background:linear-gradient(90deg,var(--rd),transparent)}
 .ph p{font-size:.76rem;color:var(--tx3);margin-top:4px;max-width:70ch}
 .ph-acts{display:flex;gap:6px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:.76rem;font-weight:500;padding:7px 13px;border-radius:3px;border:1px solid transparent;cursor:pointer;white-space:nowrap;transition:all .22s var(--e);font-family:'Inter',sans-serif}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:.76rem;font-weight:500;padding:7px 13px;border-radius:3px;
+  border:1px solid transparent;cursor:pointer;white-space:nowrap;
+  transition:all .22s var(--e);font-family:'Inter',sans-serif;
+}
 .btn:active{transform:scale(.97)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn-p{background:var(--gg);color:#0a0a0b;font-weight:600;border-color:rgba(236,210,138,.3);box-shadow:0 6px 20px -8px rgba(201,168,76,.7)}
@@ -83,6 +168,8 @@ p{color:var(--tx2)}
 .btn-v:hover:not(:disabled){background:rgba(139,122,255,.08);border-color:var(--vi)}
 .btn-sm{padding:4px 9px;font-size:.68rem}
 .btn-b{width:100%}
+
+/* ── Stats ── */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;margin-bottom:12px}
 .st{background:linear-gradient(165deg,var(--srf),var(--bg2));border:1px solid var(--ln);border-radius:3px;padding:12px 14px}
 .st .l{font-family:var(--mn);font-size:.46rem;letter-spacing:.2em;text-transform:uppercase;color:var(--tx3);display:block;margin-bottom:5px}
@@ -93,20 +180,34 @@ p{color:var(--tx2)}
 .st .v.vi{color:var(--vi)}
 .st .v.sm{font-family:var(--mn);font-size:.78rem;letter-spacing:.08em;color:var(--wn)}
 .st .n{font-family:var(--mn);font-size:.5rem;color:var(--tx4);margin-top:4px}
+
+/* ── Panels ── */
 .pnl{background:linear-gradient(165deg,var(--srf),var(--bg2));border:1px solid var(--ln);border-radius:3px;overflow:hidden;margin-bottom:10px}
 .pnl-h{padding:10px 14px;border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .pnl-h h3{font-size:.84rem;display:flex;align-items:center;gap:7px}
 .pnl-h .hint{font-family:var(--mn);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tx4)}
 .pnl-b{padding:12px}
 .pnl-b.fl{padding:0}
+
+/* ── Tables ── */
 table{width:100%;border-collapse:collapse;font-size:.74rem}
-th{font-family:var(--mn);font-size:.46rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tx4);text-align:left;padding:7px 10px;border-bottom:1px solid var(--ln);font-weight:500;background:rgba(0,0,0,.15)}
+th{
+  font-family:var(--mn);font-size:.46rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--tx4);text-align:left;padding:7px 10px;border-bottom:1px solid var(--ln);
+  font-weight:500;background:rgba(0,0,0,.15);
+}
 td{padding:7px 10px;border-bottom:1px solid var(--ln);color:var(--tx2);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:rgba(201,168,76,.02)}
 td.mn{font-family:var(--mn);color:var(--tx);font-size:.68rem}
 td.right{text-align:right}
-.bdg{display:inline-flex;align-items:center;gap:3px;font-family:var(--mn);font-size:.46rem;letter-spacing:.14em;text-transform:uppercase;padding:2px 6px;border-radius:2px;border:1px solid;white-space:nowrap}
+
+/* ── Badges ── */
+.bdg{
+  display:inline-flex;align-items:center;gap:3px;
+  font-family:var(--mn);font-size:.46rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:2px 6px;border-radius:2px;border:1px solid;white-space:nowrap;
+}
 .bdg.gr{color:var(--gr);border-color:rgba(61,220,151,.3);background:rgba(61,220,151,.06)}
 .bdg.rd{color:var(--rd);border-color:rgba(217,70,90,.3);background:rgba(217,70,90,.06)}
 .bdg.gd{color:var(--gd);border-color:rgba(201,168,76,.3);background:rgba(201,168,76,.06)}
@@ -114,22 +215,38 @@ td.right{text-align:right}
 .bdg.nt{color:var(--tx3);border-color:var(--ln2);background:rgba(0,0,0,.3)}
 .bdg.lv{color:var(--gr);border-color:rgba(61,220,151,.4);background:rgba(61,220,151,.08)}
 .bdg.vi{color:var(--vi);border-color:rgba(139,122,255,.3);background:rgba(139,122,255,.06)}
+
+/* ── Form ── */
 .ff{display:flex;flex-direction:column;gap:5px}
 .ff label{font-family:var(--mn);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tx3)}
-.ff input,.ff select,.ff textarea{background:rgba(0,0,0,.4);border:1px solid var(--ln2);border-radius:3px;padding:8px 10px;font-size:.8rem;color:var(--tx);transition:all .22s;font-family:'Inter',sans-serif;width:100%}
+.ff input,.ff select,.ff textarea{
+  background:rgba(0,0,0,.4);border:1px solid var(--ln2);border-radius:3px;
+  padding:8px 10px;font-size:.8rem;color:var(--tx);transition:all .22s;
+  font-family:'Inter',sans-serif;width:100%;
+}
 .ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;border-color:var(--gd);background:rgba(201,168,76,.04)}
 .ff input::placeholder,.ff textarea::placeholder{color:var(--tx4)}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fg .fc{grid-column:1/-1}
+
+/* ── Cards ── */
 .cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 .crd{background:linear-gradient(165deg,var(--srf),var(--bg2));border:1px solid var(--ln);border-radius:3px;padding:14px;transition:all .3s var(--e);cursor:pointer}
 .crd:hover{border-color:var(--ln3);transform:translateY(-2px)}
 .crd h4{font-size:.86rem;margin-bottom:5px;color:var(--tx)}
 .crd .d{font-size:.74rem;color:var(--tx3);line-height:1.55;margin-bottom:10px}
 .crd .m{font-family:var(--mn);font-size:.5rem;color:var(--tx4);display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--ln)}
+
+/* ── Modal ── */
 .mb{position:fixed;inset:0;background:rgba(3,4,6,.86);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:all .25s}
 .mb.on{opacity:1;visibility:visible}
-.mdl{width:100%;max-width:560px;max-height:90vh;overflow-y:auto;background:linear-gradient(165deg,var(--srf),var(--bg2));border:1px solid var(--ln2);border-radius:5px;box-shadow:0 40px 100px -30px rgba(0,0,0,.9);transform:translateY(8px);transition:transform .3s var(--e)}
+.mdl{
+  width:100%;max-width:560px;max-height:90vh;overflow-y:auto;
+  background:linear-gradient(165deg,var(--srf),var(--bg2));
+  border:1px solid var(--ln2);border-radius:5px;
+  box-shadow:0 40px 100px -30px rgba(0,0,0,.9);
+  transform:translateY(8px);transition:transform .3s var(--e);
+}
 .mb.on .mdl{transform:translateY(0)}
 .mh{padding:14px 18px;border-bottom:1px solid var(--ln);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--srf);z-index:5}
 .mh h3{font-size:.9rem;font-weight:500}
@@ -137,46 +254,93 @@ td.right{text-align:right}
 .mc:hover{color:var(--tx);border-color:var(--ln3)}
 .mbd{padding:16px}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--ln)}
+
+/* ── Toasts ── */
 .tsts{position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.tst{background:linear-gradient(165deg,var(--srf),var(--bg2));border:1px solid var(--ln2);border-radius:3px;padding:10px 14px;min-width:230px;max-width:340px;box-shadow:0 20px 60px -20px rgba(0,0,0,.9);border-left:2px solid var(--gd);animation:tin .3s var(--e);pointer-events:auto;font-size:.74rem;color:var(--tx)}
+.tst{
+  background:linear-gradient(165deg,var(--srf),var(--bg2));
+  border:1px solid var(--ln2);border-radius:3px;padding:10px 14px;
+  min-width:230px;max-width:340px;
+  box-shadow:0 20px 60px -20px rgba(0,0,0,.9);
+  border-left:2px solid var(--gd);
+  animation:tin .3s var(--e);pointer-events:auto;
+  font-size:.74rem;color:var(--tx);
+}
 .tst.ok{border-left-color:var(--gr)}
 .tst.err{border-left-color:var(--rd)}
 .tst.warn{border-left-color:var(--wn)}
 @keyframes tin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── Rows ── */
 .rw{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln);gap:11px;flex-wrap:wrap}
 .rw:last-child{border-bottom:none}
 .rw-l{font-size:.78rem;color:var(--tx2)}
 .rw-s{font-family:var(--mn);font-size:.5rem;color:var(--tx4);margin-top:2px}
 .rw-v{font-family:var(--mn);font-size:.78rem;color:var(--tx)}
+
 .sp2{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
 .emp{padding:32px 16px;text-align:center;color:var(--tx4);font-size:.74rem}
+
+/* ── Chart ── */
 .cwrap{position:relative;height:640px;background:#0a0b0d;border:1px solid var(--ln);border-radius:3px;overflow:hidden;touch-action:none}
 #cv{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none}
-.hud{position:absolute;top:9px;left:11px;font-family:var(--mn);font-size:.52rem;background:rgba(0,0,0,.82);padding:7px 10px;border-radius:3px;border:1px solid var(--ln);color:var(--tx2);line-height:1.55;pointer-events:none;max-width:280px;z-index:5}
+.hud{
+  position:absolute;top:9px;left:11px;font-family:var(--mn);font-size:.52rem;
+  background:rgba(0,0,0,.82);padding:7px 10px;border-radius:3px;
+  border:1px solid var(--ln);color:var(--tx2);line-height:1.55;
+  pointer-events:none;max-width:280px;z-index:5;
+}
 .hud .k{color:var(--tx4);margin-right:4px}
 .hud .v{color:var(--tx)}
 .hud .up{color:var(--gr)}
 .hud .dn{color:var(--rd)}
 .hud .w{color:var(--wn)}
 .hud .gd{color:var(--gdl)}
-.clg{position:absolute;top:9px;right:11px;font-family:var(--mn);font-size:.48rem;background:rgba(0,0,0,.78);padding:7px 9px;border-radius:3px;border:1px solid var(--ln);color:var(--tx3);line-height:1.7;pointer-events:none;z-index:5;max-width:200px}
+.clg{
+  position:absolute;top:9px;right:11px;font-family:var(--mn);font-size:.48rem;
+  background:rgba(0,0,0,.78);padding:7px 9px;border-radius:3px;
+  border:1px solid var(--ln);color:var(--tx3);line-height:1.7;
+  pointer-events:none;z-index:5;max-width:200px;
+}
 .clg .sw{display:inline-block;width:13px;height:2px;vertical-align:middle;margin-right:4px}
-.cstat{position:absolute;bottom:7px;left:11px;font-family:var(--mn);font-size:.48rem;background:rgba(0,0,0,.78);padding:4px 8px;border-radius:3px;border:1px solid var(--ln);color:var(--tx4);letter-spacing:.06em;pointer-events:none;z-index:5;display:flex;gap:10px;flex-wrap:wrap}
+.cstat{
+  position:absolute;bottom:7px;left:11px;font-family:var(--mn);font-size:.48rem;
+  background:rgba(0,0,0,.78);padding:4px 8px;border-radius:3px;
+  border:1px solid var(--ln);color:var(--tx4);letter-spacing:.06em;
+  pointer-events:none;z-index:5;display:flex;gap:10px;flex-wrap:wrap;
+}
 .cstat .f0{color:var(--tx)}
 .cstat .f100{color:var(--gd)}
 .cstat .in{color:#5f5a37}
 .cstat .ch{color:var(--vi)}
-.ctb{display:flex;gap:5px;padding:7px 9px;background:linear-gradient(165deg,var(--srf),var(--bg2));border:1px solid var(--ln);border-radius:3px;margin-bottom:9px;flex-wrap:wrap;align-items:center}
+
+/* ── Chart Toolbar ── */
+.ctb{
+  display:flex;gap:5px;padding:7px 9px;
+  background:linear-gradient(165deg,var(--srf),var(--bg2));
+  border:1px solid var(--ln);border-radius:3px;margin-bottom:9px;
+  flex-wrap:wrap;align-items:center;
+}
 .ctg{display:flex;gap:1px;padding:2px;background:rgba(0,0,0,.3);border:1px solid var(--ln);border-radius:3px}
-.ctb-btn{padding:4px 8px;font-family:var(--mn);font-size:.52rem;letter-spacing:.05em;text-transform:uppercase;color:var(--tx3);background:none;border:none;border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.ctb-btn{
+  padding:4px 8px;font-family:var(--mn);font-size:.52rem;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--tx3);background:none;border:none;
+  border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap;
+}
 .ctb-btn:hover{color:var(--tx);background:rgba(201,168,76,.06)}
 .ctb-btn.on{color:var(--gdl);background:rgba(201,168,76,.14)}
-.ctb-sel{background:rgba(0,0,0,.4);border:1px solid var(--ln2);color:var(--gdl);font-family:var(--mn);font-size:.6rem;padding:5px 8px;border-radius:3px;cursor:pointer;transition:all .2s}
+.ctb-sel{
+  background:rgba(0,0,0,.4);border:1px solid var(--ln2);color:var(--gdl);
+  font-family:var(--mn);font-size:.6rem;padding:5px 8px;border-radius:3px;
+  cursor:pointer;transition:all .2s;
+}
 .ctb-sel:hover{border-color:var(--gd);background:rgba(201,168,76,.06)}
 .pres{display:flex;gap:2px;padding:2px 4px;background:rgba(0,0,0,.3);border:1px solid var(--ln);border-radius:3px;cursor:pointer}
 .pres.on{border-color:var(--gd)}
 .pres .chip{width:9px;height:9px;border-radius:2px}
 .ctb-sep{width:1px;height:16px;background:var(--ln);margin:0 2px}
+
+/* ── Baskets ── */
 .bsk{padding:10px 12px;border-radius:3px;border:1px solid var(--ln2);background:rgba(0,0,0,.15);margin-bottom:9px}
 .bsk.macro{border-left:3px solid var(--gd)}
 .bsk.internal{border-left:3px solid var(--vi)}
@@ -194,6 +358,8 @@ td.right{text-align:right}
 .ebar .seg.filled{background:var(--gd)}
 .ebar .seg.closed{background:var(--gr)}
 .ebar .seg.runner{background:var(--vi)}
+
+/* ── Log ── */
 .log{max-height:280px;overflow-y:auto;font-family:var(--mn);font-size:.58rem;color:var(--tx2);padding:9px 12px;line-height:1.7}
 .log .t{color:var(--tx4);margin-right:6px}
 .log .ok{color:var(--gr)}
@@ -201,17 +367,34 @@ td.right{text-align:right}
 .log .w{color:var(--wn)}
 .log .gd{color:var(--gdl)}
 .log .vi{color:var(--vi)}
+
+/* ── Position tables ── */
 .pos-tbl td{font-size:.68rem;padding:5px 8px}
 .pos-tbl tr.hedge{background:rgba(139,122,255,.04)}
 .pos-tbl tr.hedge td:first-child{border-left:2px solid var(--vi)}
 .pos-tbl tr.macro td:first-child{border-left:2px solid var(--gd)}
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse 70% 90% at 50% 10%,rgba(160,24,40,.18),transparent 60%),var(--bg)}
-.login-card{position:relative;z-index:2;width:100%;max-width:400px;background:linear-gradient(165deg,var(--srf),var(--bg2));border:1px solid var(--ln2);border-radius:5px;padding:34px 26px 28px;box-shadow:0 40px 100px -40px rgba(0,0,0,.9)}
+
+/* ── Login ── */
+.login-wrap{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:radial-gradient(ellipse 70% 90% at 50% 10%,rgba(160,24,40,.18),transparent 60%),var(--bg);
+}
+.login-card{
+  position:relative;z-index:2;width:100%;max-width:400px;
+  background:linear-gradient(165deg,var(--srf),var(--bg2));
+  border:1px solid var(--ln2);border-radius:5px;
+  padding:34px 26px 28px;box-shadow:0 40px 100px -40px rgba(0,0,0,.9);
+}
 .login-logo{display:flex;justify-content:center;margin-bottom:18px}
 .login-logo svg{width:44px;height:44px}
 .login-title{font-size:1.2rem;text-align:center;margin-bottom:5px;font-family:var(--sf)}
 .login-sub{text-align:center;color:var(--tx3);margin-bottom:22px;font-family:var(--mn);letter-spacing:.14em;text-transform:uppercase;font-size:.52rem}
-.google-btn{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;padding:12px;background:linear-gradient(135deg,var(--srf) 0%,var(--bg2) 100%);color:var(--gdl);border:1px solid var(--gd);border-radius:3px;font-size:.84rem;font-weight:500;transition:all .25s var(--e)}
+.google-btn{
+  display:flex;align-items:center;justify-content:center;gap:11px;width:100%;
+  padding:12px;background:linear-gradient(135deg,var(--srf) 0%,var(--bg2) 100%);
+  color:var(--gdl);border:1px solid var(--gd);border-radius:3px;
+  font-size:.84rem;font-weight:500;transition:all .25s var(--e);
+}
 .google-btn:hover{border-color:var(--gdl);transform:translateY(-1px);box-shadow:0 10px 30px -12px rgba(201,168,76,.85)}
 .google-btn:disabled{opacity:.55;cursor:not-allowed}
 .google-btn svg{width:19px;height:19px;flex-shrink:0}
@@ -221,6 +404,8 @@ td.right{text-align:right}
 .login-links{display:flex;gap:14px;justify-content:center;margin-top:12px}
 .login-link{font-family:var(--mn);font-size:.54rem;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;transition:color .2s}
 .login-link:hover{color:var(--gdl)}
+
+/* ── Comms ── */
 .cm-wrap{display:grid;grid-template-columns:230px 1fr 220px;gap:10px;min-height:620px}
 .cm-side{background:linear-gradient(165deg,var(--srf),var(--bg2));border:1px solid var(--ln);border-radius:3px;padding:10px;overflow-y:auto;max-height:620px}
 .cm-side h4{font-family:var(--mn);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--tx4);margin-bottom:8px;font-weight:500;display:flex;justify-content:space-between;align-items:center}
@@ -258,6 +443,13 @@ td.right{text-align:right}
 .cm-peer .dot{width:7px;height:7px;border-radius:50%;background:var(--tx4);flex-shrink:0}
 .cm-peer .dot.on{background:var(--gr);box-shadow:0 0 6px var(--gr)}
 .cm-peer .name{flex:1;color:var(--tx2)}
+
+/* ── Local preview ── */
+#_localPrev{position:fixed;bottom:80px;right:16px;z-index:9998;width:220px;border:1px solid var(--gd);border-radius:4px;overflow:hidden;background:#000}
+#_localPrev video{width:100%;display:block}
+#_localPrev button{position:absolute;top:4px;right:4px;background:var(--rd);color:#fff;width:22px;height:22px;border-radius:50%;font-size:.7rem;line-height:1}
+
+/* ── Responsive ── */
 @media (max-width:1400px){.sp2{grid-template-columns:1fr}}
 @media (max-width:1100px){.cm-wrap{grid-template-columns:220px 1fr}.cm-side:last-child{display:none}}
 @media (max-width:900px){
@@ -272,10 +464,16 @@ td.right{text-align:right}
   .cm-wrap{grid-template-columns:1fr}
   .cm-side{display:none}
 }
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+/* Final SOLACE/admin polish */
+.fractal-note{font-family:var(--mn);font-size:.55rem;color:var(--tx3);letter-spacing:.08em}
+@media(max-width:700px){.mni{padding:14px 12px 48px}.ctb{overflow-x:auto;flex-wrap:nowrap}.ctg{flex-shrink:0}.ctb-btn{flex-shrink:0}.pnl-b{overflow-x:auto}.stats{grid-template-columns:repeat(auto-fit,minmax(135px,1fr))}}
+
 </style>
 </head>
 <body>
-
 <svg width="0" height="0" style="position:absolute"><defs>
   <linearGradient id="vmg" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#ecd28a"/>
@@ -303,13 +501,8 @@ td.right{text-align:right}
   </div>
 </header>
 
-<div class="bnr" id="bnr" style="display:none">
-  <span class="d"></span>
-  <span id="bnrText">Institutional Record</span>
-</div>
-
+<div class="bnr" id="bnr" style="display:none"><span class="d"></span><span id="bnrText">Institutional Record</span></div>
 <aside class="sb" id="sb" style="display:none"></aside>
-
 <main class="mn" id="mn" style="display:none"><div class="mni" id="view"></div></main>
 
 <section id="login" class="login-wrap">
@@ -325,31 +518,22 @@ td.right{text-align:right}
     </button>
     <div class="divider">OR</div>
     <form id="loginForm" autocomplete="on">
-      <div class="ff" style="margin-bottom:10px">
-        <label for="lIdentifier">Email or Username</label>
-        <input id="lIdentifier" type="text" placeholder="kahzi or you@example.com" autocomplete="username" required>
-      </div>
-      <div class="ff" style="margin-bottom:14px">
-        <label for="lPass">Password</label>
-        <input id="lPass" type="password" placeholder="••••••••" autocomplete="current-password" required>
-      </div>
+      <div class="ff" style="margin-bottom:10px"><label>Email or Username</label><input id="lIdentifier" type="text" placeholder="kahzi or you@example.com" required></div>
+      <div class="ff" style="margin-bottom:14px"><label>Password</label><input id="lPass" type="password" placeholder="••••••••" required></div>
       <button type="submit" id="loginBtn" class="btn btn-p btn-b" style="padding:11px">Log In</button>
     </form>
     <div class="login-links">
       <button class="login-link" onclick="forgotPassword()">Forgot Password</button>
       <button class="login-link" onclick="openInviteHelp()">Have an Invite?</button>
     </div>
-    <div class="login-legal">Invite-only. Google or email + password. All actions audited.</div>
+    <div class="login-legal">Invite-only. All actions audited.</div>
   </div>
 </section>
 
 <div class="mb" id="modal" onclick="if(event.target.id==='modal')closeModal()"><div class="mdl" id="modalContent"></div></div>
 <div class="tsts" id="toasts"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script>
-'use strict';
-
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
@@ -357,6 +541,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'vice-os-auth', detectSessionInUrl: true }
 });
 
+/* ─── Utils ─── */
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtNum = n => Number(n||0).toLocaleString('en-US');
@@ -364,7 +549,7 @@ const fmtUsd = n => '$' + Number(n||0).toLocaleString('en-US',{minimumFractionDi
 const fmtK = n => { n=Number(n||0); if(Math.abs(n)>=1e9) return '$'+(n/1e9).toFixed(2)+'B'; if(Math.abs(n)>=1e6) return '$'+(n/1e6).toFixed(2)+'M'; if(Math.abs(n)>=1e3) return '$'+(n/1e3).toFixed(1)+'K'; return '$'+n.toFixed(2); };
 const fmtD = d => d ? new Date(d).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
 const nowIso = () => new Date().toISOString();
-const uuid = () => (crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(36).slice(2,10));
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(36).slice(2,10));
 const timeAgo = t => { const s=(Date.now()-t)/1000; if(s<60) return 'now'; if(s<3600) return Math.floor(s/60)+'m'; if(s<86400) return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; };
 
 function toast(msg, type='info'){
@@ -374,10 +559,11 @@ function toast(msg, type='info'){
     el.className = 'tst ' + (type==='success'?'ok':type==='error'?'err':type==='warn'?'warn':'');
     el.textContent = msg;
     host.appendChild(el);
-    setTimeout(()=>{el.style.opacity='0';el.style.transition='all .3s';setTimeout(()=>el.remove(),300);},3400);
+    setTimeout(()=>{ el.style.opacity='0'; el.style.transition='all .3s'; setTimeout(()=>el.remove(),300); }, 3400);
   }catch(_){}
 }
 
+/* ─── Symbol canonicalization ─── */
 const PRETTY_ALIASES = {'^GSPC':'SPX','^NDX':'NDX','^DJI':'DJI','^RUT':'RUT','^FTSE':'FTSE','^N225':'N225','^HSI':'HSI','^GDAXI':'DAX','^FCHI':'CAC','^STOXX50E':'SX5E','^VIX':'VIX','GC=F':'GC','SI=F':'SI','CL=F':'CL','NG=F':'NG','HG=F':'HG','ES=F':'ES','NQ=F':'NQ','YM=F':'YM','RTY=F':'RTY'};
 const YAHOO_INVERSE = {'SPX':'^GSPC','NDX':'^NDX','DJI':'^DJI','RUT':'^RUT','FTSE':'^FTSE','N225':'^N225','HSI':'^HSI','DAX':'^GDAXI','CAC':'^FCHI','SX5E':'^STOXX50E','VIX':'^VIX','GC':'GC=F','SI':'SI=F','CL':'CL=F','NG':'NG=F','HG':'HG=F','ES':'ES=F','NQ':'NQ=F','YM':'YM=F','RTY':'RTY=F'};
 const CCY = ['USD','EUR','GBP','JPY','CHF','AUD','NZD','CAD','CNY','HKD','SEK','NOK','MXN','SGD','TRY','ZAR','INR','BRL','PLN','DKK','CZK','HUF','ILS','KRW','THB','PHP','IDR','MYR','RUB','SAR','AED'];
@@ -403,6 +589,7 @@ function prettyTicker(source, ticker){
 }
 function prettySymbol(pair){ const { source, ticker } = parseSymbol(pair); return prettyTicker(source, ticker); }
 
+/* ─── Global state ─── */
 const S = {
   user:null, view:'personal',
   profile:{ name:'', username:'', email:'', role:'HOLDER', title:'', phone:'', jurisdiction:'CH', timezone:'UTC', avatarInitials:'NA', vipAccess:false },
@@ -451,6 +638,38 @@ const S = {
   },
 };
 
+const CS = {
+  typing:{}, reads:{}, reactions:{},
+  search:'', _broadcast:null, _typingTimer:null, _callCh:null,
+  _pc:null, _localStream:null, _remoteStream:null,
+};
+
+const ROLE_PERMS = {
+  SUPER_ADMIN:['*'],
+  EXECUTIVE:['view','create','edit','submit','review','approve','export','download','share','exec','chat','dm','vip'],
+  COMPLIANCE_OFFICER:['view','create','edit','submit','review','approve','export','download','chat','dm'],
+  FINANCE_OFFICER:['view','create','edit','submit','review','approve','export','download','chat','dm'],
+  TREASURY_OPERATOR:['view','create','submit','review','export','download','chat','dm'],
+  LEGAL_OFFICER:['view','create','edit','review','approve','export','download','chat','dm'],
+  AUDITOR:['view','export','download','chat','dm'],
+  HOLDER:['view','chat','dm','vip'],
+};
+const ROLE_LABELS = {
+  SUPER_ADMIN:'Super Administrator', EXECUTIVE:'Executive',
+  COMPLIANCE_OFFICER:'Compliance Officer', FINANCE_OFFICER:'Finance Officer',
+  TREASURY_OPERATOR:'Treasury Operator', LEGAL_OFFICER:'Legal Officer',
+  AUDITOR:'Auditor', HOLDER:'Holder',
+};
+function can(p){
+  if(!S.user) return false;
+  if(p==='vip' && (S.profile.vipAccess || S.profile.role==='SUPER_ADMIN')) return true;
+  const perms = ROLE_PERMS[S.profile.role] || [];
+  return perms.includes('*') || perms.includes(p);
+}
+function isOwner(){ return S.profile?.role === 'SUPER_ADMIN'; }
+function canExecuteBot(){ if(!S.user) return false; return can('exec') || isOwner(); }
+
+/* ─── App mode ─── */
 const MODE_KEY = 'vice-os-mode';
 let APP_MODE = (localStorage.getItem(MODE_KEY) || 'LIVE').toUpperCase();
 
@@ -568,9 +787,10 @@ function showApp(){
   go('personal');
 }
 
+/* ─── Chart state ─── */
 const CH = {
   pair:'BINANCE:BTCUSDT', tf:'1h', preset:'vice-gold',
-  toggles:{poles:true, internal:true, choch:true, trades:true, fvg:true, vol:true, zones:true},
+  toggles:{poles:true, internal:true, choch:true, trades:true, zones:true, vol:true},
   candles:[], ltfCandles:[], ltfTf:null, ws:null, live:false, atr:0, zoomBars:200,
   mx:null, my:null,
 };
@@ -578,7 +798,7 @@ const CH = {
 const EN = {
   running:false, killSwitch:false,
   MAX_TOTAL: 18, MAX_MACRO: 9, MAX_INTERNAL: 9,
-  macro: { positions: [], basketId: null, side:null, target:null, stop:null, avgEntry:0 },
+  macro: { positions: [], basketId: null, side:null, target:null, stop:null },
   internal: { positions: [], basketId: null, side:null, target:null, stop:null, hedgeOf:null },
   events: [],
   costsPerLotBps: 2.0,
@@ -605,14 +825,13 @@ const SOL = {
     sellZone: { top:null, bot:null },
   },
   choch: {
-    macro:    { dir:0, level:null, ts:0, refPrice:null },
-    internal: { dir:0, level:null, ts:0, refPrice:null },
+    macro:    { dir:0, level:null, ts:0 },
+    internal: { dir:0, level:null, ts:0 },
   },
   trade: {
     macro:    { side:null, entry:null, stop:null, target:null, rr:0 },
     internal: { side:null, entry:null, stop:null, target:null, rr:0 },
   },
-  fvg: { bull:null, bear:null },
   settings: {
     ZONE_PCT: 0.05,
     STOP_ATR: 0.50,
@@ -625,62 +844,91 @@ const SOL = {
 
 function solIsNA(v){ return v === null || v === undefined || !isFinite(v); }
 
-function solComputeMacroPoles(cs){
-  if(cs.length < 60) return;
-  const lookback = Math.min(1000, cs.length);
-  let hh=-Infinity, ll=Infinity, hb=0, lb=0;
-  for(let k=0; k<lookback; k++){
-    const idx = cs.length-1-k;
-    if(cs[idx].h > hh){ hh=cs[idx].h; hb=k; }
-    if(cs[idx].l < ll){ ll=cs[idx].l; lb=k; }
+function solFindFractalPole(candles, side, lookback=1000){
+  // Confirmed 5-bar fractal: two completed bars on each side; current unconfirmed edge is excluded.
+  if(!Array.isArray(candles) || candles.length < 5) return null;
+  const first = Math.max(2, candles.length - Math.max(5, lookback));
+  const last = candles.length - 3;
+  let best = null;
+  for(let i=first; i<=last; i++){
+    const price = side === 'HIGH' ? candles[i].h : candles[i].l;
+    let isFractal = true;
+    for(let d=1; d<=2; d++){
+      const a = side === 'HIGH' ? candles[i-d].h : candles[i-d].l;
+      const b = side === 'HIGH' ? candles[i+d].h : candles[i+d].l;
+      if(side === 'HIGH' ? (price < a || price < b) : (price > a || price > b)) { isFractal=false; break; }
+    }
+    if(!isFractal) continue;
+    if(!best || (side === 'HIGH' ? price > best.price : price < best.price)){
+      best = { price, index:i, time:candles[i].t };
+    }
   }
-  const bi = cs.length-1;
-  SOL.macro.F100.price = hh;
-  SOL.macro.F100.originIdx = bi - hb;
-  SOL.macro.F100.originTime = cs[cs.length-1-hb].t;
-  SOL.macro.F0.price = ll;
-  SOL.macro.F0.originIdx = bi - lb;
-  SOL.macro.F0.originTime = cs[cs.length-1-lb].t;
-  SOL.macro.range = hh - ll;
-  const zw = SOL.macro.range * SOL.settings.ZONE_PCT;
-  SOL.macro.buyZone.bot  = ll;
-  SOL.macro.buyZone.top  = ll + zw;
-  SOL.macro.sellZone.top = hh;
-  SOL.macro.sellZone.bot = hh - zw;
-  SOL.macro.F100.bar = solLastRejection(cs, hh, true,  bi - SOL.macro.F100.originIdx);
-  SOL.macro.F0.bar   = solLastRejection(cs, ll, false, bi - SOL.macro.F0.originIdx);
+  return best;
+}
+
+function solClearMacroPoles(){
+  for(const p of [SOL.macro.F0,SOL.macro.F100]){
+    p.price=null; p.originIdx=-1; p.originTime=0; p.fracState=0; p.bar=0;
+  }
+  SOL.macro.range=0;
+  SOL.macro.buyZone={top:null,bot:null};
+  SOL.macro.sellZone={top:null,bot:null};
+}
+
+function solComputeMacroPoles(cs){
+  if(!Array.isArray(cs) || cs.length < 60) { solClearMacroPoles(); return; }
+  const hi = solFindFractalPole(cs,'HIGH',1000);
+  const lo = solFindFractalPole(cs,'LOW',1000);
+  if(!hi || !lo || hi.price <= lo.price){ solClearMacroPoles(); return; }
+  SOL.macro.F100.price = hi.price;
+  SOL.macro.F100.originIdx = hi.index;
+  SOL.macro.F100.originTime = hi.time;
+  SOL.macro.F100.fracState = 2;
+  SOL.macro.F0.price = lo.price;
+  SOL.macro.F0.originIdx = lo.index;
+  SOL.macro.F0.originTime = lo.time;
+  SOL.macro.F0.fracState = 2;
+  SOL.macro.range = hi.price - lo.price;
+  const zw = SOL.macro.range * Math.min(0.05, Math.max(0, SOL.settings.ZONE_PCT));
+  SOL.macro.buyZone.bot=lo.price;
+  SOL.macro.buyZone.top=lo.price+zw;
+  SOL.macro.sellZone.top=hi.price;
+  SOL.macro.sellZone.bot=hi.price-zw;
+  SOL.macro.F100.bar=solLastRejection(cs,hi.price,true,cs.length-1-hi.index);
+  SOL.macro.F0.bar=solLastRejection(cs,lo.price,false,cs.length-1-lo.index);
+}
+
+function solClearInternalPoles(){
+  SOL.internal.F0.price=null; SOL.internal.F0.originTime=0; SOL.internal.F0.armed=false;
+  SOL.internal.F100.price=null; SOL.internal.F100.originTime=0; SOL.internal.F100.armed=false;
+  SOL.internal.buyZone={top:null,bot:null}; SOL.internal.sellZone={top:null,bot:null};
+  SOL.internal.range=0; SOL.internal.source=CH.ltfTf ? CH.ltfTf.toUpperCase() : null;
 }
 
 function solComputeInternalPoles(cs){
-  const ltf = CH.ltfCandles;
-  if(!ltf || ltf.length < 60){
-    SOL.internal.F0.price = null; SOL.internal.F100.price = null;
-    SOL.internal.buyZone.top = SOL.internal.buyZone.bot = null;
-    SOL.internal.sellZone.top = SOL.internal.sellZone.bot = null;
-    SOL.internal.range = 0;
-    return;
-  }
-  const lookback = Math.min(1000, ltf.length);
-  let hh=-Infinity, ll=Infinity, hb=0, lb=0;
-  for(let k=0; k<lookback; k++){
-    const idx = ltf.length-1-k;
-    if(ltf[idx].h > hh){ hh=ltf[idx].h; hb=k; }
-    if(ltf[idx].l < ll){ ll=ltf[idx].l; lb=k; }
-  }
-  SOL.internal.F100.price = hh;
-  SOL.internal.F100.originTime = ltf[ltf.length-1-hb].t;
-  SOL.internal.F0.price = ll;
-  SOL.internal.F0.originTime = ltf[ltf.length-1-lb].t;
-  SOL.internal.range = hh - ll;
-  SOL.internal.source = CH.ltfTf ? CH.ltfTf.toUpperCase() : null;
-  const zw = SOL.internal.range * SOL.settings.ZONE_PCT;
-  SOL.internal.buyZone.bot  = ll;
-  SOL.internal.buyZone.top  = ll + zw;
-  SOL.internal.sellZone.top = hh;
-  SOL.internal.sellZone.bot = hh - zw;
-  const last = cs[cs.length-1];
-  SOL.internal.F0.armed = last.c > ll + 0.5 * (CH.atr||0);
-  SOL.internal.F100.armed = last.c < hh - 0.5 * (CH.atr||0);
+  const ltf=CH.ltfCandles;
+  SOL.internal.source=CH.ltfTf ? CH.ltfTf.toUpperCase() : null;
+  if(!ltf || ltf.length<60){ solClearInternalPoles(); return; }
+  const hi=solFindFractalPole(ltf,'HIGH',1000);
+  const lo=solFindFractalPole(ltf,'LOW',1000);
+  if(!hi || !lo || hi.price<=lo.price){ solClearInternalPoles(); return; }
+  SOL.internal.F100.price=hi.price;
+  SOL.internal.F100.originTime=hi.time;
+  SOL.internal.F100.armed=true;
+  SOL.internal.F0.price=lo.price;
+  SOL.internal.F0.originTime=lo.time;
+  SOL.internal.F0.armed=true;
+  SOL.internal.range=hi.price-lo.price;
+  const zw=SOL.internal.range*Math.min(0.05,Math.max(0,SOL.settings.ZONE_PCT));
+  SOL.internal.buyZone.bot=lo.price;
+  SOL.internal.buyZone.top=lo.price+zw;
+  SOL.internal.sellZone.top=hi.price;
+  SOL.internal.sellZone.bot=hi.price-zw;
+  const last=cs?.[cs.length-1];
+  const atr=CH.atr||0;
+  // Armed means the confirmed fractal has been left by at least half an ATR; it is not a trade signal.
+  SOL.internal.F0.armed=!!last && last.c>lo.price+0.5*atr;
+  SOL.internal.F100.armed=!!last && last.c<hi.price-0.5*atr;
 }
 
 function solLastRejection(cs, level, isHigh, fallback){
@@ -766,13 +1014,13 @@ function solResolve(cs){
 
   const mBull = solDetectCHoCH(cs, SOL.macro.buyZone, 1);
   const mBear = solDetectCHoCH(cs, SOL.macro.sellZone, -1);
-  if(mBull){ SOL.choch.macro = { dir:1, level:mBull.level, ts:mBull.ts, refPrice:SOL.macro.F0.price }; }
-  else if(mBear){ SOL.choch.macro = { dir:-1, level:mBear.level, ts:mBear.ts, refPrice:SOL.macro.F100.price }; }
+  if(mBull){ SOL.choch.macro = { dir:1, level:mBull.level, ts:mBull.ts }; }
+  else if(mBear){ SOL.choch.macro = { dir:-1, level:mBear.level, ts:mBear.ts }; }
 
   const iBull = solDetectCHoCH(cs, SOL.internal.buyZone, 1);
   const iBear = solDetectCHoCH(cs, SOL.internal.sellZone, -1);
-  if(iBull){ SOL.choch.internal = { dir:1, level:iBull.level, ts:iBull.ts, refPrice:SOL.internal.F0.price }; }
-  else if(iBear){ SOL.choch.internal = { dir:-1, level:iBear.level, ts:iBear.ts, refPrice:SOL.internal.F100.price }; }
+  if(iBull){ SOL.choch.internal = { dir:1, level:iBull.level, ts:iBull.ts }; }
+  else if(iBear){ SOL.choch.internal = { dir:-1, level:iBear.level, ts:iBear.ts }; }
 
   const atr = CH.atr || 0.00001;
 
@@ -800,11 +1048,9 @@ function solResolve(cs){
   } else {
     SOL.trade.internal = { side:null, entry:null, stop:null, target:null, rr:0 };
   }
-
-  SOL.fvg.bull = null;
-  SOL.fvg.bear = null;
 }
 
+/* ─── Data adapters ─── */
 const BINANCE_TF  = { '1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'4h','1d':'1d' };
 const YAHOO_TF    = { '1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'1h','1d':'1d','1wk':'1wk' };
 const YAHOO_RANGE = { '1m':'5d','5m':'1mo','15m':'1mo','1h':'3mo','4h':'1y','1d':'2y','1wk':'5y' };
@@ -952,6 +1198,7 @@ function updateFeedDot(){
   l.textContent = source === 'BINANCE' ? 'FEED LIVE' : 'FEED DELAYED';
 }
 
+/* ─── VICEBOT 2030 ─── */
 function totalOpen(){
   return EN.macro.positions.filter(p=>p.status==='OPEN').length +
          EN.internal.positions.filter(p=>p.status==='OPEN').length;
@@ -1113,6 +1360,7 @@ function toggleEngine(){
   renderMain();
 }
 
+/* ─── Audit ─── */
 async function audit(eventType, action, objectType, objectId, outcome='SUCCESS'){
   try{
     const entry = { id:uuid(), event_type:eventType, action, object_type:objectType, object_id:String(objectId||''),
@@ -1123,7 +1371,9 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
   }catch(_){}
 }
 
+/* ─── Auth ─── */
 let authBusy = false;
+
 async function signInWithGoogle(){
   try{
     const urlInvite = new URLSearchParams(location.search).get('invite');
@@ -1131,12 +1381,17 @@ async function signInWithGoogle(){
     const btn = $('googleBtn');
     if(btn){ btn.disabled = true; btn.querySelector('span').textContent = 'Redirecting…'; }
     const { error } = await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin, queryParams:{ prompt:'select_account' }}});
-    if(error){ toast('Google: ' + error.message, 'error'); if(btn){ btn.disabled=false; btn.querySelector('span').textContent='Continue with Google'; } }
+    if(error){
+      toast('Google: ' + error.message, 'error');
+      if(btn){ btn.disabled=false; btn.querySelector('span').textContent='Continue with Google'; }
+    }
   }catch(e){
     toast('Google: ' + e.message, 'error');
-    const btn = $('googleBtn'); if(btn){ btn.disabled=false; btn.querySelector('span').textContent='Continue with Google'; }
+    const btn = $('googleBtn');
+    if(btn){ btn.disabled=false; btn.querySelector('span').textContent='Continue with Google'; }
   }
 }
+
 async function login(){
   if(authBusy) return; authBusy = true;
   try{
@@ -1152,7 +1407,12 @@ async function login(){
     const btn = $('loginBtn');
     if(btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
-    if(error){ toast('Login failed: ' + error.message,'error'); if(btn){ btn.disabled=false; btn.textContent='Log In'; } authBusy=false; return; }
+    if(error){
+      toast('Login failed: ' + error.message,'error');
+      if(btn){ btn.disabled=false; btn.textContent='Log In'; }
+      authBusy=false;
+      return;
+    }
     await onAuthenticated(data.user);
   }catch(e){
     toast('Login failed: ' + e.message,'error');
@@ -1160,6 +1420,7 @@ async function login(){
   }
   authBusy = false;
 }
+
 async function forgotPassword(){
   const email = prompt('Account email:');
   if(!email) return;
@@ -1169,6 +1430,7 @@ async function forgotPassword(){
     toast('Reset link sent','success');
   }catch(e){ toast('Reset failed: ' + e.message,'error'); }
 }
+
 async function signUpWithEmailFromInvite(){
   const email = $('invEmail')?.value.trim();
   const pw = $('invPass')?.value;
@@ -1181,12 +1443,16 @@ async function signUpWithEmailFromInvite(){
   try{
     const { data: invite } = await sb.from('invites').select('*').eq('code', inviteCode).eq('used', false).maybeSingle();
     if(!invite){ toast('Invite invalid','error'); return; }
-    const { data, error } = await sb.auth.signUp({ email, password: pw, options:{ data:{ invite_code: inviteCode, name: invite.for_user || email.split('@')[0], role: invite.role || 'HOLDER' }}});
+    const { data, error } = await sb.auth.signUp({
+      email, password: pw,
+      options:{ data:{ invite_code: inviteCode, name: invite.for_user || email.split('@')[0], role: invite.role || 'HOLDER' }}
+    });
     if(error){ toast('Signup failed: ' + error.message,'error'); return; }
     if(data.session && data.user){ closeModal(); await onAuthenticated(data.user); }
     else { closeModal(); toast('Check your email to confirm','success'); }
   }catch(e){ toast('Signup failed: ' + e.message,'error'); }
 }
+
 async function onAuthenticated(user){
   try{
     const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
@@ -1228,6 +1494,7 @@ async function onAuthenticated(user){
     toast('Signed in but data load failed: ' + e.message, 'error');
   }
 }
+
 async function hydrateData(){
   const tables = {
     holders:'holders', ouvVersions:'ouv_versions', proposals:'proposals', distributions:'distributions',
@@ -1241,43 +1508,38 @@ async function hydrateData(){
     }catch(_){}
   }
 }
+
 function denorm(row){
   const out = {};
   for(const [k,v] of Object.entries(row)) out[k.replace(/_([a-z])/g,(_,c)=>c.toUpperCase())] = v;
   return out;
 }
+
 async function logout(){
   if(APP_MODE === 'SIM'){ exitSimMode(); return; }
   if(!confirm('Sign out?')) return;
   try{ if(window._vipSub) await sb.removeChannel(window._vipSub); }catch(_){}
+  try{ if(CS._broadcast) await sb.removeChannel(CS._broadcast); }catch(_){}
+  try{ if(CS._callCh) await sb.removeChannel(CS._callCh); }catch(_){}
   await sb.auth.signOut();
   disconnectWS();
+  endCall();
   S.user = null;
   ['tb','bnr','sb','mn'].forEach(id=>{ const el=$(id); if(el) el.style.display='none'; });
   $('login').style.display = 'flex';
   toast('Signed out','info');
 }
+
 function toggleSidebar(){ $('sb')?.classList.toggle('open'); }
 
+/* ─── Value calcs ─── */
 function defiUsd(){ return S.defiWallet.chains.reduce((s,c)=>s+(c.balance*c.usdRate),0); }
 function mt5Usd(){ return S.mt5.reduce((s,a)=>s+Number(a.equity||0),0); }
 function externalUsd(){ const fx={USD:1,SGD:0.74,EUR:1.08,CHF:1.11,GBP:1.27}; return S.externalAccounts.reduce((s,a)=>s+(Number(a.balance||0)*(fx[a.currency]||1)),0); }
 function iruUsd(){ const v=S.iruClasses.find(c=>c.class==='VICE')?.ouv||2, x=S.iruClasses.find(c=>c.class==='V4X')?.ouv||320; return (S.personalHoldings.viceUnits*v) + (S.personalHoldings.v4xUnits*x); }
 function totalPersonalUsd(){ return iruUsd() + defiUsd() + mt5Usd() + externalUsd(); }
 
-const ROLE_PERMS = {
-  SUPER_ADMIN:['*'], EXECUTIVE:['view','create','edit','submit','review','approve','export','download','share','exec','chat','dm','vip'],
-  COMPLIANCE_OFFICER:['view','create','edit','submit','review','approve','export','download','chat','dm'],
-  FINANCE_OFFICER:['view','create','edit','submit','review','approve','export','download','chat','dm'],
-  TREASURY_OPERATOR:['view','create','submit','review','export','download','chat','dm'],
-  LEGAL_OFFICER:['view','create','edit','review','approve','export','download','chat','dm'],
-  AUDITOR:['view','export','download','chat','dm'], HOLDER:['view','chat','dm','vip'],
-};
-const ROLE_LABELS = { SUPER_ADMIN:'Super Administrator', EXECUTIVE:'Executive', COMPLIANCE_OFFICER:'Compliance Officer', FINANCE_OFFICER:'Finance Officer', TREASURY_OPERATOR:'Treasury Operator', LEGAL_OFFICER:'Legal Officer', AUDITOR:'Auditor', HOLDER:'Holder' };
-function can(p){ if(!S.user) return false; if(p==='vip' && (S.profile.vipAccess || S.profile.role==='SUPER_ADMIN')) return true; const perms=ROLE_PERMS[S.profile.role]||[]; return perms.includes('*')||perms.includes(p); }
-function isOwner(){ return S.profile?.role === 'SUPER_ADMIN'; }
-function canExecuteBot(){ if(!S.user) return false; return can('exec') || isOwner(); }
-
+/* ─── Presets ─── */
 const PRESETS = {
   'vice-gold': {name:'VICE Gold',bg:'#0a0b0d',grid:'rgba(201,168,76,.05)',gridMajor:'rgba(201,168,76,.12)',text:'#a3968e',bull:'#c9a84c',bullB:'#ecd28a',bullW:'#9c7c33',bear:'#f2ebe4',bearB:'#3d3532',bearW:'#6b5f59',macroHi:'#f2ebe4',macroLo:'#3ddc97',armedBuy:'#3ddc97',armedSell:'#d9465a',vol:'rgba(201,168,76,.22)'},
   'midnight':  {name:'Midnight',bg:'#000',grid:'rgba(255,255,255,.04)',gridMajor:'rgba(255,255,255,.09)',text:'#b0b0b0',bull:'#fff',bullB:'#fff',bullW:'#8a8a8a',bear:'#555',bearB:'#888',bearW:'#555',macroHi:'#fff',macroLo:'#888',armedBuy:'#fff',armedSell:'#888',vol:'rgba(255,255,255,.15)'},
@@ -1285,10 +1547,17 @@ const PRESETS = {
   'paper':     {name:'Paper',bg:'#f5f1e8',grid:'rgba(60,50,40,.05)',gridMajor:'rgba(60,50,40,.14)',text:'#5a5248',bull:'#3d7a4d',bullB:'#2d5c3a',bullW:'#2d5c3a',bear:'#b8443d',bearB:'#8a2f2a',bearW:'#8a2f2a',macroHi:'#5a5248',macroLo:'#3d7a4d',armedBuy:'#3d7a4d',armedSell:'#b8443d',vol:'rgba(60,50,40,.15)'}
 };
 
+/* ─── Canvas / SOLACE chart ─── */
 let cv=null, ctx=null, DPR=1, W=0, H=0;
 const PAD = {t:22, r:68, b:42, l:10};
 
-function initCanvas(){ cv = $('cv'); if(!cv) return; ctx = cv.getContext('2d'); resizeCanvas(); drawAll(); installChartControls(); }
+function initCanvas(){
+  cv = $('cv'); if(!cv) return;
+  ctx = cv.getContext('2d');
+  resizeCanvas(); drawAll();
+  installChartControls();
+}
+
 function resizeCanvas(){
   if(!cv) return;
   const r = cv.parentElement.getBoundingClientRect();
@@ -1298,8 +1567,14 @@ function resizeCanvas(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   W = r.width; H = r.height;
 }
+
 let _lastDraw = 0;
-function scheduleDraw(){ const now=Date.now(); if(now-_lastDraw<80) return; _lastDraw=now; drawAll(); }
+function scheduleDraw(){
+  const now = Date.now();
+  if(now - _lastDraw < 80) return;
+  _lastDraw = now;
+  drawAll();
+}
 
 function installChartControls(){
   if(!cv || cv._wired) return;
@@ -1318,7 +1593,7 @@ function drawSolace(){
   if(!cv || !ctx) return;
   const P = PRESETS[CH.preset];
   const cs = CH.candles;
-  ctx.fillStyle = P.bg; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H);
   if(cs.length < 20) return;
 
   const cw = W-PAD.l-PAD.r, ch = H-PAD.t-PAD.b;
@@ -1326,8 +1601,11 @@ function drawSolace(){
   const visCount = Math.min(zoomBars, cs.length);
   const start = cs.length - visCount;
 
-  let vmin=Infinity, vmax=-Infinity;
-  for(let i=start;i<cs.length;i++){ if(cs[i].l<vmin) vmin=cs[i].l; if(cs[i].h>vmax) vmax=cs[i].h; }
+  let vmin = Infinity, vmax = -Infinity;
+  for(let i = start; i < cs.length; i++){
+    if(cs[i].l < vmin) vmin = cs[i].l;
+    if(cs[i].h > vmax) vmax = cs[i].h;
+  }
   const levels = [
     SOL.macro.F0.price, SOL.macro.F100.price,
     SOL.internal.F0.price, SOL.internal.F100.price,
@@ -1336,31 +1614,46 @@ function drawSolace(){
     SOL.trade.macro.entry, SOL.trade.macro.stop, SOL.trade.macro.target,
     SOL.trade.internal.entry, SOL.trade.internal.stop, SOL.trade.internal.target,
   ];
-  for(const v of levels) if(!solIsNA(v)){ vmin=Math.min(vmin,v); vmax=Math.max(vmax,v); }
-  const rng = vmax-vmin || 1;
-  vmin -= rng*0.06;
-  vmax += rng*0.06;
+  for(const v of levels) if(!solIsNA(v)){ vmin = Math.min(vmin, v); vmax = Math.max(vmax, v); }
+  const rng = vmax - vmin || 1;
+  vmin -= rng * 0.06;
+  vmax += rng * 0.06;
 
-  const xAt = i => PAD.l + (i-start)/(visCount-1)*cw;
-  const yAt = v => PAD.t + (1-(v-vmin)/(vmax-vmin))*ch;
+  const xAt = i => PAD.l + (i - start)/(visCount-1) * cw;
+  const yAt = v => PAD.t + (1 - (v - vmin)/(vmax - vmin)) * ch;
+  const drawFractal = (x,y,color,size=4) => {
+    if(!Number.isFinite(x)||!Number.isFinite(y)) return;
+    ctx.save(); ctx.fillStyle=color; ctx.strokeStyle=color; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,y-size); ctx.lineTo(x+size,y); ctx.lineTo(x,y+size); ctx.lineTo(x-size,y); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  };
+  const drawTimeFractal = (time,price,color) => {
+    if(!time || solIsNA(price) || !cs[start] || time<(cs[start].t||0) || time>(cs[cs.length-1].t||0)) return;
+    let best=-1,dist=Infinity;
+    for(let j=start;j<cs.length;j++){ const d=Math.abs((cs[j].t||0)-time); if(d<dist){dist=d;best=j;} }
+    if(best>=0 && best<cs.length) drawFractal(xAt(best),yAt(price),color,4.5);
+  };
 
   ctx.strokeStyle = P.grid; ctx.lineWidth = 1;
-  for(let i=0;i<=5;i++){ const y = PAD.t+(i/5)*ch; ctx.beginPath(); ctx.moveTo(PAD.l,y); ctx.lineTo(W-PAD.r,y); ctx.stroke(); }
+  for(let i = 0; i <= 5; i++){
+    const y = PAD.t + (i/5)*ch;
+    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W-PAD.r, y); ctx.stroke();
+  }
   ctx.strokeStyle = P.gridMajor;
-  for(let i=0;i<=10;i++){ const x = PAD.l+(i/10)*cw; ctx.beginPath(); ctx.moveTo(x,PAD.t); ctx.lineTo(x,H-PAD.b); ctx.stroke(); }
+  for(let i = 0; i <= 10; i++){
+    const x = PAD.l + (i/10)*cw;
+    ctx.beginPath(); ctx.moveTo(x, PAD.t); ctx.lineTo(x, H-PAD.b); ctx.stroke();
+  }
 
-  // Zone shading
   if(CH.toggles.zones){
-    // Macro buy zone
     if(!solIsNA(SOL.macro.buyZone.top) && !solIsNA(SOL.macro.buyZone.bot)){
       const y1 = yAt(SOL.macro.buyZone.top), y2 = yAt(SOL.macro.buyZone.bot);
       ctx.fillStyle = 'rgba(61,220,151,.06)';
       ctx.fillRect(PAD.l, Math.min(y1,y2), cw, Math.abs(y2-y1));
-      ctx.strokeStyle = 'rgba(61,220,151,.3)'; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+      ctx.strokeStyle = 'rgba(61,220,151,.3)'; ctx.setLineDash([3,3]); ctx.lineWidth = 1;
       ctx.strokeRect(PAD.l, Math.min(y1,y2), cw, Math.abs(y2-y1));
       ctx.setLineDash([]);
     }
-    // Macro sell zone
     if(!solIsNA(SOL.macro.sellZone.top) && !solIsNA(SOL.macro.sellZone.bot)){
       const y1 = yAt(SOL.macro.sellZone.top), y2 = yAt(SOL.macro.sellZone.bot);
       ctx.fillStyle = 'rgba(217,70,90,.06)';
@@ -1369,13 +1662,11 @@ function drawSolace(){
       ctx.strokeRect(PAD.l, Math.min(y1,y2), cw, Math.abs(y2-y1));
       ctx.setLineDash([]);
     }
-    // Internal buy zone (dimmer)
     if(!solIsNA(SOL.internal.buyZone.top) && !solIsNA(SOL.internal.buyZone.bot)){
       const y1 = yAt(SOL.internal.buyZone.top), y2 = yAt(SOL.internal.buyZone.bot);
       ctx.fillStyle = 'rgba(139,122,255,.05)';
       ctx.fillRect(PAD.l, Math.min(y1,y2), cw*0.55, Math.abs(y2-y1));
     }
-    // Internal sell zone
     if(!solIsNA(SOL.internal.sellZone.top) && !solIsNA(SOL.internal.sellZone.bot)){
       const y1 = yAt(SOL.internal.sellZone.top), y2 = yAt(SOL.internal.sellZone.bot);
       ctx.fillStyle = 'rgba(139,122,255,.05)';
@@ -1383,29 +1674,43 @@ function drawSolace(){
     }
   }
 
-  const cw2 = Math.max(1.5, cw/visCount-1);
-  for(let i=start;i<cs.length;i++){
+  const cw2 = Math.max(1.5, cw/visCount - 1);
+  for(let i = start; i < cs.length; i++){
     const c = cs[i], x = xAt(i), up = c.c >= c.o;
-    const bC = up?P.bull:P.bear, bB = up?P.bullB:P.bearB, bW = up?P.bullW:P.bearW;
+    const bC = up ? P.bull : P.bear;
+    const bB = up ? P.bullB : P.bearB;
+    const bW = up ? P.bullW : P.bearW;
     ctx.strokeStyle = bW; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x, yAt(c.h)); ctx.lineTo(x, yAt(c.l)); ctx.stroke();
     const yO = yAt(c.o), yC = yAt(c.c);
-    const top = Math.min(yO,yC), bh = Math.max(1, Math.abs(yC-yO));
-    ctx.fillStyle = bC; ctx.fillRect(x-cw2/2, top, cw2, bh);
-    ctx.strokeStyle = bB; ctx.strokeRect(x-cw2/2+0.5, top+0.5, cw2-1, Math.max(1,bh-1));
+    const top = Math.min(yO, yC), bh = Math.max(1, Math.abs(yC - yO));
+    ctx.fillStyle = bC; ctx.fillRect(x - cw2/2, top, cw2, bh);
+    ctx.strokeStyle = bB; ctx.strokeRect(x - cw2/2 + 0.5, top + 0.5, cw2 - 1, Math.max(1, bh - 1));
   }
 
   if(CH.toggles.vol){
     let vMax = 0;
-    for(let i=start;i<cs.length;i++) if(cs[i].v > vMax) vMax = cs[i].v;
+    for(let i = start; i < cs.length; i++) if(cs[i].v > vMax) vMax = cs[i].v;
     if(vMax > 0){
-      const vh = PAD.b*0.6, v0 = H-PAD.b;
+      const vh = PAD.b * 0.6, v0 = H-PAD.b;
       ctx.fillStyle = P.vol;
-      for(let i=start;i<cs.length;i++){ const bh = (cs[i].v/vMax)*vh; ctx.fillRect(xAt(i)-cw2/2, v0-bh, cw2, bh); }
+      for(let i = start; i < cs.length; i++){
+        const bh = (cs[i].v/vMax) * vh;
+        ctx.fillRect(xAt(i) - cw2/2, v0 - bh, cw2, bh);
+      }
     }
   }
 
-  // MACRO F100 (top pole)
+  // Confirmed macro/internal fractal peaks are drawn over candles, not as nested micro F0/F100 markers.
+  if(CH.toggles.poles){
+    if(SOL.macro.F100.originIdx>=start && !solIsNA(SOL.macro.F100.price)) drawFractal(xAt(SOL.macro.F100.originIdx),yAt(SOL.macro.F100.price),P.macroHi,5);
+    if(SOL.macro.F0.originIdx>=start && !solIsNA(SOL.macro.F0.price)) drawFractal(xAt(SOL.macro.F0.originIdx),yAt(SOL.macro.F0.price),P.macroLo,5);
+  }
+  if(CH.toggles.internal){
+    drawTimeFractal(SOL.internal.F100.originTime,SOL.internal.F100.price,'rgba(139,122,255,.95)');
+    drawTimeFractal(SOL.internal.F0.originTime,SOL.internal.F0.price,'rgba(139,122,255,.95)');
+  }
+
   if(CH.toggles.poles && !solIsNA(SOL.macro.F100.price)){
     const y = yAt(SOL.macro.F100.price);
     ctx.strokeStyle = P.macroHi; ctx.lineWidth = 1.5;
@@ -1416,7 +1721,6 @@ function drawSolace(){
     ctx.font = '10px "JetBrains Mono", monospace'; ctx.textAlign='left';
     ctx.fillText(`F100  ${SOL.macro.F100.price.toFixed(2)}`, W-PAD.r+4, y-4);
   }
-  // MACRO F0 (bottom pole)
   if(CH.toggles.poles && !solIsNA(SOL.macro.F0.price)){
     const y = yAt(SOL.macro.F0.price);
     ctx.strokeStyle = P.macroLo; ctx.lineWidth = 1.5;
@@ -1428,7 +1732,6 @@ function drawSolace(){
     ctx.fillText(`F0    ${SOL.macro.F0.price.toFixed(2)}`, W-PAD.r+4, y+12);
   }
 
-  // INTERNAL poles (dotted, purple)
   if(CH.toggles.internal){
     if(!solIsNA(SOL.internal.F100.price)){
       const y = yAt(SOL.internal.F100.price);
@@ -1449,11 +1752,10 @@ function drawSolace(){
       ctx.setLineDash([]);
       ctx.fillStyle = 'rgba(139,122,255,.9)';
       ctx.font = '9px "JetBrains Mono", monospace'; ctx.textAlign='left';
-      ctx.fillText(`INT-L  ${SOL.internal.F0.price.toFixed(2)}`, W-PAD.r+4, y+12);
+      ctx.fillText(`INT PEAK L  ${SOL.internal.F0.price.toFixed(2)}`, W-PAD.r+4, y+12);
     }
   }
 
-  // MACRO CHoCH neckline
   if(CH.toggles.choch && SOL.choch.macro.dir !== 0 && !solIsNA(SOL.choch.macro.level)){
     const y = yAt(SOL.choch.macro.level);
     const c = SOL.choch.macro.dir === 1 ? 'rgba(61,220,151,.9)' : 'rgba(217,70,90,.9)';
@@ -1466,7 +1768,6 @@ function drawSolace(){
     ctx.fillText(`MACRO CHoCH ${SOL.choch.macro.dir===1?'BULL':'BEAR'}  ${SOL.choch.macro.level.toFixed(2)}`, PAD.l+4, y-4);
   }
 
-  // INTERNAL CHoCH neckline (dashed)
   if(CH.toggles.choch && SOL.choch.internal.dir !== 0 && !solIsNA(SOL.choch.internal.level)){
     const y = yAt(SOL.choch.internal.level);
     const c = SOL.choch.internal.dir === 1 ? 'rgba(139,122,255,.9)' : 'rgba(255,140,80,.9)';
@@ -1479,7 +1780,6 @@ function drawSolace(){
     ctx.fillText(`INT CHoCH ${SOL.choch.internal.dir===1?'BULL':'BEAR'}  ${SOL.choch.internal.level.toFixed(2)}`, PAD.l+4, y-4);
   }
 
-  // MACRO trade geometry
   if(CH.toggles.trades && SOL.trade.macro.side && SOL.trade.macro.rr >= 9.5){
     const te = SOL.trade.macro.entry, ts = SOL.trade.macro.stop, tt = SOL.trade.macro.target;
     if(!solIsNA(te)){ ctx.strokeStyle='rgba(255,140,0,.95)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(PAD.l,yAt(te)); ctx.lineTo(W-PAD.r,yAt(te)); ctx.stroke(); }
@@ -1489,7 +1789,6 @@ function drawSolace(){
     ctx.fillText(`MACRO ${SOL.trade.macro.side} entry ${te.toFixed(2)} stop ${ts.toFixed(2)} → ${tt.toFixed(2)} 1:${SOL.trade.macro.rr.toFixed(1)}`, PAD.l+6, yAt(ts)+14);
   }
 
-  // INTERNAL trade geometry
   if(CH.toggles.trades && SOL.trade.internal.side && SOL.trade.internal.rr >= 5){
     const te = SOL.trade.internal.entry, ts = SOL.trade.internal.stop, tt = SOL.trade.internal.target;
     if(!solIsNA(te)){ ctx.strokeStyle='rgba(139,122,255,.9)'; ctx.lineWidth=2; ctx.setLineDash([3,2]); ctx.beginPath(); ctx.moveTo(PAD.l,yAt(te)); ctx.lineTo(W-PAD.r,yAt(te)); ctx.stroke(); ctx.setLineDash([]); }
@@ -1498,18 +1797,19 @@ function drawSolace(){
     ctx.fillText(`INTERNAL ${SOL.trade.internal.side} hedge → BE ${tt.toFixed(2)} 1:${SOL.trade.internal.rr.toFixed(1)}`, PAD.l+6, yAt(te)+14);
   }
 
-  // Price axis
   ctx.font = '9px "JetBrains Mono", monospace'; ctx.fillStyle = P.text; ctx.textBaseline = 'middle';
-  for(let i=0;i<=5;i++){ const v = vmax-(i/5)*(vmax-vmin), y = PAD.t+(i/5)*ch; ctx.fillText(v.toFixed(v>100?2:4), W-PAD.r+5, y); }
+  for(let i = 0; i <= 5; i++){
+    const v = vmax - (i/5)*(vmax-vmin), y = PAD.t + (i/5)*ch;
+    ctx.fillText(v.toFixed(v > 100 ? 2 : 4), W-PAD.r+5, y);
+  }
   const last = cs[cs.length-1], yLast = yAt(last.c);
-  const tag = last.c.toFixed(last.c>100?2:4);
+  const tag = last.c.toFixed(last.c > 100 ? 2 : 4);
   const tw = ctx.measureText(tag).width + 10;
   ctx.fillStyle = last.c >= last.o ? P.bullB : P.bearB;
   ctx.fillRect(W-PAD.r+2, yLast-8, tw, 16);
   ctx.fillStyle = '#07080a'; ctx.textAlign='left';
   ctx.fillText(tag, W-PAD.r+7, yLast);
 
-  // Crosshair
   if(cv._mx != null && cv._my != null){
     ctx.strokeStyle = 'rgba(201,168,76,0.4)'; ctx.lineWidth = 1;
     ctx.setLineDash([3,3]);
@@ -1530,15 +1830,16 @@ function drawSolace(){
 function updateChartHUD(){
   const cs = CH.candles; if(!cs.length) return;
   const last = cs[cs.length-1];
-  const chg = ((last.c - last.o)/last.o*100);
+  const chg = ((last.c - last.o)/last.o * 100);
   const el = $('hud'); if(!el) return;
   el.innerHTML =
     `<div><span class="k">${esc(prettySymbol(CH.pair))}</span><span class="v">${CH.tf.toUpperCase()}</span></div>` +
     `<div><span class="k">Last</span><span class="${chg>=0?'up':'dn'}">${last.c.toFixed(last.c>100?2:4)}</span> <span class="${chg>=0?'up':'dn'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span></div>` +
     `<div><span class="k">ATR</span><span class="v">${CH.atr.toFixed(CH.atr>1?2:5)}</span></div>` +
-    `<div><span class="k">Macro</span><span class="${SOL.choch.macro.dir===1?'up':SOL.choch.macro.dir===-1?'dn':'w'}">${SOL.choch.macro.dir===1?'BULL CHoCH':SOL.choch.macro.dir===-1?'BEAR CHoCH':'—'}</span></div>` +
-    `<div><span class="k">Internal</span><span class="${SOL.choch.internal.dir===1?'up':SOL.choch.internal.dir===-1?'dn':'w'}">${SOL.choch.internal.dir===1?'BULL CHoCH':SOL.choch.internal.dir===-1?'BEAR CHoCH':'—'}</span></div>`;
+    `<div><span class="k">Macro</span><span class="${SOL.choch.macro.dir===1?'up':SOL.choch.macro.dir===-1?'dn':'w'}">${SOL.choch.macro.dir===1?'BULL':SOL.choch.macro.dir===-1?'BEAR':'—'}</span></div>` +
+    `<div><span class="k">Internal</span><span class="${SOL.choch.internal.dir===1?'up':SOL.choch.internal.dir===-1?'dn':'w'}">${SOL.choch.internal.dir===1?'BULL':SOL.choch.internal.dir===-1?'BEAR':'—'}</span></div>`;
 }
+
 function updateChartLegend(){
   const el = $('clg'); if(!el) return;
   el.innerHTML = `
@@ -1550,17 +1851,19 @@ function updateChartLegend(){
     <div><span class="sw" style="background:#ff8c00"></span>MACRO TRADE</div>
     <div><span class="sw" style="background:#8b7aff"></span>HEDGE</div>`;
 }
+
 function updateChartStatus(){
   const el = $('cstat'); if(!el) return;
   el.innerHTML = `
     <span class="f100">F100 ${!solIsNA(SOL.macro.F100.price)?SOL.macro.F100.price.toFixed(2):'—'}</span>
     <span class="f0">F0 ${!solIsNA(SOL.macro.F0.price)?SOL.macro.F0.price.toFixed(2):'—'}</span>
-    <span class="in">INT-H ${!solIsNA(SOL.internal.F100.price)?SOL.internal.F100.price.toFixed(2):'—'}</span>
-    <span class="in">INT-L ${!solIsNA(SOL.internal.F0.price)?SOL.internal.F0.price.toFixed(2):'—'}</span>
+    <span class="in">INT PEAK H ${!solIsNA(SOL.internal.F100.price)?SOL.internal.F100.price.toFixed(2):'—'}</span>
+    <span class="in">INT PEAK L ${!solIsNA(SOL.internal.F0.price)?SOL.internal.F0.price.toFixed(2):'—'}</span>
     <span class="ch">MT ${EN.macro.positions.filter(p=>p.status==='OPEN').length}/9</span>
     <span class="ch">IT ${EN.internal.positions.filter(p=>p.status==='OPEN').length}/9</span>`;
 }
 
+/* ─── Symbol search ─── */
 let _binanceSymbols = null;
 let _searchDebounce = null;
 
@@ -1593,6 +1896,7 @@ async function openSymbolSearch(){
     ];
   }
 }
+
 async function runSymbolSearch(rawQuery){
   const q = String(rawQuery||'').trim();
   const host = $('symResults');
@@ -1629,6 +1933,7 @@ async function runSymbolSearch(rawQuery){
     </button>`;
   }).join('');
 }
+
 function pickSymbol(full){
   CH.pair = full;
   closeModal();
@@ -1638,6 +1943,7 @@ function pickSymbol(full){
   if(lbl) lbl.textContent = '🔍 ' + prettySymbol(full);
 }
 
+/* ─── Comms realtime ─── */
 function initCommsRealtime(){
   if(window._vipSub || APP_MODE === 'SIM') return;
   window._vipSub = sb.channel('vip-stream', { config:{ presence:{ key: S.user.id }}})
@@ -1662,6 +1968,170 @@ function initCommsRealtime(){
     });
 }
 
+/* ─── Comms live: typing / reads / reactions ─── */
+function ensureBroadcast(){
+  if(CS._broadcast || APP_MODE !== 'LIVE') return;
+  try{
+    CS._broadcast = sb.channel('comms-live', { config: { broadcast: { self: false } } })
+      .on('broadcast', { event:'typing' }, ({ payload }) => {
+        if(payload.user === S.user.id) return;
+        CS.typing[payload.channel] = CS.typing[payload.channel] || {};
+        CS.typing[payload.channel][payload.user] = { name: payload.name, at: Date.now() };
+        if(S.view === 'vip') renderMain();
+      })
+      .on('broadcast', { event:'read' }, ({ payload }) => {
+        CS.reads[payload.channel] = CS.reads[payload.channel] || {};
+        CS.reads[payload.channel][payload.user] = { name: payload.name, at: payload.at };
+        if(S.view === 'vip') renderMain();
+      })
+      .on('broadcast', { event:'reaction' }, ({ payload }) => {
+        const { messageId, emoji, userId, name, action } = payload;
+        const arr = CS.reactions[messageId] || (CS.reactions[messageId] = []);
+        if(action === 'add'){
+          if(!arr.some(r => r.emoji === emoji && r.userId === userId)) arr.push({ emoji, userId, name });
+        } else {
+          CS.reactions[messageId] = arr.filter(r => !(r.emoji === emoji && r.userId === userId));
+        }
+        if(S.view === 'vip') renderMain();
+      })
+      .subscribe();
+  }catch(e){ console.warn('broadcast failed', e); }
+}
+
+function bcTyping(){ if(CS._broadcast) CS._broadcast.send({ type:'broadcast', event:'typing', payload: { channel:S.comms.activeChannel, user:S.user.id, name:S.profile.name, at:Date.now() } }); }
+function bcRead(){ if(CS._broadcast) CS._broadcast.send({ type:'broadcast', event:'read', payload: { channel:S.comms.activeChannel, user:S.user.id, name:S.profile.name, at:Date.now() } }); }
+function bcReact(mid, emoji, action){ if(CS._broadcast) CS._broadcast.send({ type:'broadcast', event:'reaction', payload: { messageId:mid, emoji, action, userId:S.user.id, name:S.profile.name } }); }
+
+setInterval(() => {
+  const now = Date.now(); let dirty = false;
+  for(const ch in CS.typing){
+    for(const u in CS.typing[ch]){
+      if(now - CS.typing[ch][u].at > 4000){ delete CS.typing[ch][u]; dirty = true; }
+    }
+  }
+  if(dirty && S.view === 'vip') renderMain();
+}, 2000);
+
+/* ─── WebRTC calls ─── */
+function ensureCallChannel(){
+  if(CS._callCh || APP_MODE !== 'LIVE') return;
+  try{
+    CS._callCh = sb.channel('vice-calls', { config: { broadcast: { self: false } } })
+      .on('broadcast', { event:'offer' }, async ({ payload }) => {
+        if(payload.to !== S.user.id) return;
+        await handleOffer(payload);
+      })
+      .on('broadcast', { event:'answer' }, async ({ payload }) => {
+        if(payload.to !== S.user.id) return;
+        if(CS._pc) try{ await CS._pc.setRemoteDescription(new RTCSessionDescription(payload.sdp)); }catch(_){}
+      })
+      .on('broadcast', { event:'ice' }, async ({ payload }) => {
+        if(payload.to !== S.user.id) return;
+        if(CS._pc && payload.candidate){ try{ await CS._pc.addIceCandidate(payload.candidate); }catch(_){} }
+      })
+      .on('broadcast', { event:'end' }, ({ payload }) => {
+        if(payload.to !== S.user.id) return;
+        endCall();
+      })
+      .subscribe();
+  }catch(e){ console.warn('call channel failed', e); }
+}
+
+async function createPc(peerId, video){
+  const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+  pc.onicecandidate = e => {
+    if(e.candidate && CS._callCh){
+      CS._callCh.send({ type:'broadcast', event:'ice', payload: { to:peerId, candidate:e.candidate, from:S.user.id }});
+    }
+  };
+  pc.ontrack = e => { CS._remoteStream = e.streams[0]; remotePreview(CS._remoteStream); };
+  if(CS._localStream) CS._localStream.getTracks().forEach(t => pc.addTrack(t, CS._localStream));
+  return pc;
+}
+
+async function handleOffer(payload){
+  try{
+    ensureCallChannel();
+    CS._localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:!!payload.video });
+    localPreview(CS._localStream);
+    CS._pc = await createPc(payload.from, payload.video);
+    await CS._pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+    const answer = await CS._pc.createAnswer();
+    await CS._pc.setLocalDescription(answer);
+    CS._callCh.send({ type:'broadcast', event:'answer', payload: { to:payload.from, sdp:answer, from:S.user.id }});
+    toast('Call connected','success');
+  }catch(e){ toast('Call failed: '+e.message, 'error'); }
+}
+
+async function startCall(video){
+  const peerId = S.comms.activeDm;
+  if(!peerId){ toast('Open a DM to call','info'); return; }
+  if(!navigator.mediaDevices){ toast('Media not supported','error'); return; }
+  ensureCallChannel();
+  try{
+    CS._localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:!!video });
+    localPreview(CS._localStream);
+    CS._pc = await createPc(peerId, video);
+    const offer = await CS._pc.createOffer();
+    await CS._pc.setLocalDescription(offer);
+    CS._callCh.send({ type:'broadcast', event:'offer', payload: { to:peerId, sdp:offer, video:!!video, from:S.user.id }});
+    toast(`${video?'Video':'Voice'} call ringing…`, 'info');
+  }catch(e){ toast('Call failed: '+e.message, 'error'); }
+}
+
+async function startScreenShare(){
+  if(!navigator.mediaDevices?.getDisplayMedia){ toast('Screen share not supported','error'); return; }
+  const peerId = S.comms.activeDm;
+  try{
+    ensureCallChannel();
+    const s = await navigator.mediaDevices.getDisplayMedia({ video:true, audio:false });
+    CS._localStream = s;
+    localPreview(s);
+    if(peerId){
+      if(!CS._pc) CS._pc = await createPc(peerId, true);
+      s.getTracks().forEach(t => CS._pc.addTrack(t, s));
+      const offer = await CS._pc.createOffer();
+      await CS._pc.setLocalDescription(offer);
+      CS._callCh.send({ type:'broadcast', event:'offer', payload: { to:peerId, sdp:offer, video:true, from:S.user.id }});
+    }
+    toast('Screen sharing','success');
+  }catch(e){ toast('Screen share failed: '+e.message, 'error'); }
+}
+
+function endCall(){
+  try{ CS._localStream?.getTracks().forEach(t => t.stop()); }catch(_){}
+  try{ CS._pc?.close(); }catch(_){}
+  const lp = $('_localPrev'); if(lp) lp.remove();
+  const rp = $('_remotePrev'); if(rp) rp.remove();
+  CS._localStream = null; CS._remoteStream = null; CS._pc = null;
+}
+
+function localPreview(stream){
+  let host = $('_localPrev');
+  if(!host){
+    host = document.createElement('div');
+    host.id = '_localPrev';
+    host.style.cssText = 'position:fixed;bottom:80px;right:16px;z-index:9998;width:220px;border:1px solid var(--gd);border-radius:4px;overflow:hidden;background:#000';
+    host.innerHTML = '<video autoplay playsinline muted style="width:100%;display:block"></video><button style="position:absolute;top:4px;right:4px;background:var(--rd);color:#fff;width:22px;height:22px;border-radius:50%;font-size:.7rem;cursor:pointer">×</button>';
+    host.querySelector('button').onclick = () => endCall();
+    document.body.appendChild(host);
+  }
+  host.querySelector('video').srcObject = stream;
+}
+
+function remotePreview(stream){
+  let host = $('_remotePrev');
+  if(!host){
+    host = document.createElement('div');
+    host.id = '_remotePrev';
+    host.style.cssText = 'position:fixed;bottom:80px;left:16px;z-index:9998;width:280px;border:1px solid var(--gd);border-radius:4px;overflow:hidden;background:#000';
+    host.innerHTML = '<video autoplay playsinline style="width:100%;display:block"></video>';
+    document.body.appendChild(host);
+  }
+  host.querySelector('video').srcObject = stream;
+}
+
+/* ─── NAV ─── */
 const ICONS = {
   user:'<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   idcard:'<rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M14 9h6M14 13h6M14 17h4"/>',
@@ -1749,6 +2219,7 @@ function renderNav(){
   sbEl.innerHTML = html;
 }
 
+/* ─── Router ─── */
 const VIEWS = {
   personal:renderPersonal, profile:renderProfile, solace:renderSolace, vicebot:renderVicebot,
   portfolio:renderPortfolio, ouv:renderOUV, holders:renderHolders, iru:renderIRU,
@@ -1773,6 +2244,8 @@ function renderMain(){
   v.innerHTML = '';
   try{ fn(v); }catch(e){ v.innerHTML = `<div class="emp">Error: ${esc(e.message)}</div>`; console.error(e); }
 }
+
+/* ─── Views ─── */
 
 function renderPersonal(el){
   const total = totalPersonalUsd();
@@ -1863,15 +2336,26 @@ async function renderProfile(el){
       </div>
     </div>`;
 }
+
 async function saveProfile(){
   const name = $('pName').value.trim();
   const username = $('pUser').value.trim().toLowerCase();
   const title = $('pTitle').value.trim();
   const jurisdiction = $('pJur').value.trim();
   if(username && !/^[a-z0-9_]{3,24}$/.test(username)){ toast('Username 3-24 lowercase alphanum + _','error'); return; }
-  if(APP_MODE === 'SIM'){ Object.assign(S.profile,{name,username,title,jurisdiction,avatarInitials:(name||'NA').slice(0,2).toUpperCase()}); $('userName').textContent=S.profile.name; $('userAvatar').textContent=S.profile.avatarInitials; toast('Saved (SIM)','success'); renderMain(); return; }
+  if(APP_MODE === 'SIM'){
+    Object.assign(S.profile,{name,username,title,jurisdiction,avatarInitials:(name||'NA').slice(0,2).toUpperCase()});
+    $('userName').textContent=S.profile.name;
+    $('userAvatar').textContent=S.profile.avatarInitials;
+    toast('Saved (SIM)','success');
+    renderMain();
+    return;
+  }
   try{
-    const { error } = await sb.from('profiles').update({ name, username:username||null, title, jurisdiction, avatar_initials:(name||'NA').slice(0,2).toUpperCase() }).eq('id', S.user.id);
+    const { error } = await sb.from('profiles').update({
+      name, username:username||null, title, jurisdiction,
+      avatar_initials:(name||'NA').slice(0,2).toUpperCase()
+    }).eq('id', S.user.id);
     if(error){ toast('Failed: '+error.message,'error'); return; }
     Object.assign(S.profile,{name,username,title,jurisdiction,avatarInitials:(name||'NA').slice(0,2).toUpperCase()});
     $('userName').textContent = S.profile.name;
@@ -1879,6 +2363,7 @@ async function saveProfile(){
     toast('Saved','success');
   }catch(e){ toast(e.message,'error'); }
 }
+
 async function setPassword(){
   const pw = $('spNew').value, cf = $('spConf').value;
   if(!pw || pw.length < 8){ toast('Password 8+ chars','error'); return; }
@@ -1938,13 +2423,12 @@ function renderVicebot(el){
     </div>
     <div class="stats">
       <div class="st"><span class="l">Engine</span><div class="v ${EN.running?'gr':'rd'}">${EN.running?'RUNNING':'STOPPED'}</div><div class="n">${APP_MODE}</div></div>
-      <div class="st"><span class="l">Macro Open</span><div class="v gd">${macroOpen.length}/${EN.MAX_MACRO}</div><div class="n">${EN.macro.side||'—'}</div></div>
-      <div class="st"><span class="l">Internal Open</span><div class="v vi">${internalOpen.length}/${EN.MAX_INTERNAL}</div><div class="n">hedge</div></div>
+      <div class="st"><span class="l">Macro</span><div class="v gd">${macroOpen.length}/${EN.MAX_MACRO}</div><div class="n">${EN.macro.side||'—'}</div></div>
+      <div class="st"><span class="l">Internal</span><div class="v vi">${internalOpen.length}/${EN.MAX_INTERNAL}</div><div class="n">hedge</div></div>
       <div class="st"><span class="l">Total</span><div class="v ${totalOpen()>=EN.MAX_TOTAL?'rd':''}">${totalOpen()}/${EN.MAX_TOTAL}</div><div class="n">cap</div></div>
       <div class="st"><span class="l">Macro BE</span><div class="v sm">${be!=null?be.toFixed(2):'—'}</div><div class="n">hedge target</div></div>
       <div class="st"><span class="l">Macro TP</span><div class="v sm">${EN.macro.target?EN.macro.target.toFixed(2):'—'}</div><div class="n">opposite pole</div></div>
     </div>
-
     <div class="pnl">
       <div class="pnl-h"><h3>MACRO ENGINE · ${EN.macro.side||'IDLE'}</h3><span class="hint">CHoCH in 5% macro zone → opposite pole</span></div>
       <div class="pnl-b fl">
@@ -1956,13 +2440,12 @@ function renderVicebot(el){
           <td class="mn">${p.lots.toFixed(3)}</td>
           <td class="mn">${p.stop.toFixed(2)}</td>
           <td class="mn">${p.target.toFixed(2)}</td>
-          <td class="mn ${p.pnl>=0?'':'rd'}" style="color:${p.pnl>=0?'var(--gr)':'var(--rd)'}">${p.pnl>=0?'+':''}${p.pnl.toFixed(2)}</td>
+          <td class="mn" style="color:${p.pnl>=0?'var(--gr)':'var(--rd)'}">${p.pnl>=0?'+':''}${p.pnl.toFixed(2)}</td>
           <td class="mn">${((p.progress||0)*100).toFixed(0)}%</td>
         </tr>`).join('') : '<tr><td colspan="8" class="emp">No macro positions.</td></tr>'}
         </tbody></table>
       </div>
     </div>
-
     <div class="pnl">
       <div class="pnl-h"><h3>INTERNAL ENGINE · ${EN.internal.side||'IDLE'}</h3><span class="hint">Hedge of ${EN.internal.hedgeOf?esc(EN.internal.hedgeOf.slice(0,8)):'—'} → macro BE</span></div>
       <div class="pnl-b fl">
@@ -1980,7 +2463,6 @@ function renderVicebot(el){
         </tbody></table>
       </div>
     </div>
-
     <div class="pnl">
       <div class="pnl-h"><h3>Engine Log</h3><span class="hint">${EN.events.length} entries</span></div>
       <div class="pnl-b fl"><div class="log">
@@ -2040,7 +2522,8 @@ async function submitOUV(){
     const { error } = await sb.from('ouv_versions').insert(row);
     if(error){ toast(error.message,'error'); return; }
   }
-  S.iruClasses[0].ouv = vice; S.iruClasses[1].ouv = v4x;
+  S.iruClasses[0].ouv = vice;
+  S.iruClasses[1].ouv = v4x;
   S.ouvVersions.unshift({ ...row, createdAt:nowIso() });
   toast('Published','success'); closeModal(); renderMain();
 }
@@ -2062,7 +2545,7 @@ function renderHolders(el){
           <td class="mn">${fmtNum(h.viceUnits||h.vice_units||0)}</td>
           <td class="mn">${fmtNum(h.v4xUnits||h.v4x_units||0)}</td>
           <td><span class="bdg ${(h.status||'ACTIVE')==='ACTIVE'?'gr':'wn'}">${esc(h.status||'ACTIVE')}</span></td>
-          ${isOwner()?`<td><button class="btn btn-r btn-sm" onclick="deleteHolder('${h.id}')">Delete</button></td>`:''}
+          ${isOwner()?`<td style="white-space:nowrap"><button class="btn btn-g btn-sm" onclick="openHolderEdit('${h.id}')">Edit</button> <button class="btn btn-r btn-sm" onclick="deleteHolder('${h.id}')">Delete</button></td>`:''}
         </tr>`).join('') : '<tr><td colspan="7" class="emp">No holders.</td></tr>'}
         </tbody></table>
       </div>
@@ -2082,18 +2565,56 @@ function openHolderAdd(){
   `);
 }
 async function submitHolderAdd(){
-  const row = { name:$('hdName').value.trim(), email:$('hdEmail').value.trim(), jurisdiction:$('hdJur').value.trim(), status:$('hdStat').value, vice_units:parseFloat($('hdV').value)||0, v4x_units:parseFloat($('hdX').value)||0 };
+  const row = {
+    name:$('hdName').value.trim(), email:$('hdEmail').value.trim(),
+    jurisdiction:$('hdJur').value.trim(), status:$('hdStat').value,
+    vice_units:parseFloat($('hdV').value)||0, v4x_units:parseFloat($('hdX').value)||0
+  };
   if(!row.name){ toast('Name required','error'); return; }
   if(APP_MODE === 'LIVE'){
     const { data, error } = await sb.from('holders').insert(row).select().single();
     if(error){ toast(error.message,'error'); return; }
     S.holders.unshift(denorm(data));
-  } else S.holders.unshift({ ...row, id:uuid(), createdAt:nowIso() });
+  } else {
+    S.holders.unshift({ ...row, id:uuid(), createdAt:nowIso() });
+  }
   toast('Added','success'); closeModal(); renderMain();
+}
+function openHolderEdit(id){
+  if(!isOwner()){ toast('Administrator access required','error'); return; }
+  const h=S.holders.find(x=>String(x.id)===String(id)); if(!h){ toast('Holder not found','error'); return; }
+  openModal('Edit Holder', `
+    <div class="fg">
+      <div class="ff fc"><label>Name</label><input id="heName" value="${esc(h.name||'')}"></div>
+      <div class="ff fc"><label>Email</label><input id="heEmail" type="email" value="${esc(h.email||'')}"></div>
+      <div class="ff"><label>Jurisdiction</label><input id="heJur" value="${esc(h.jurisdiction||'CH')}"></div>
+      <div class="ff"><label>Status</label><select id="heStat"><option ${String(h.status||'ACTIVE')==='ACTIVE'?'selected':''}>ACTIVE</option><option ${String(h.status||'')==='PENDING'?'selected':''}>PENDING</option><option ${String(h.status||'')==='SUSPENDED'?'selected':''}>SUSPENDED</option></select></div>
+      <div class="ff"><label>VICE Units</label><input id="heV" type="number" min="0" step="1" value="${Number(h.viceUnits??h.vice_units??0)}"></div>
+      <div class="ff"><label>V4X Units</label><input id="heX" type="number" min="0" step="1" value="${Number(h.v4xUnits??h.v4x_units??0)}"></div>
+    </div>
+    <div class="mact"><button class="btn btn-g" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="submitHolderEdit('${String(h.id).replace(/[^a-zA-Z0-9_-]/g,'')}')">Save Changes</button></div>
+  `);
+}
+async function submitHolderEdit(id){
+  if(!isOwner()){ toast('Administrator access required','error'); return; }
+  const row={name:$('heName').value.trim(),email:$('heEmail').value.trim(),jurisdiction:$('heJur').value.trim(),status:$('heStat').value,vice_units:Number($('heV').value),v4x_units:Number($('heX').value)};
+  if(!row.name||!row.email||!Number.isFinite(row.vice_units)||!Number.isFinite(row.v4x_units)||row.vice_units<0||row.v4x_units<0){toast('Enter valid holder details and non-negative unit balances.','error');return;}
+  if(APP_MODE==='LIVE'){
+    const {data,error}=await sb.from('holders').update(row).eq('id',id).select().single();
+    if(error){toast(error.message,'error');return;}
+    const ix=S.holders.findIndex(x=>String(x.id)===String(id)); if(ix>=0) S.holders[ix]=denorm(data);
+  }else{
+    const ix=S.holders.findIndex(x=>String(x.id)===String(id)); if(ix>=0) S.holders[ix]={...S.holders[ix],...row,viceUnits:row.vice_units,v4xUnits:row.v4x_units};
+  }
+  await audit('HOLDER_UPDATED','Holder record and allocations updated','SUCCESS');
+  toast('Holder updated','success');closeModal();renderMain();
 }
 async function deleteHolder(id){
   if(!confirm('Delete?')) return;
-  if(APP_MODE === 'LIVE'){ const { error } = await sb.from('holders').delete().eq('id', id); if(error){ toast(error.message,'error'); return; } }
+  if(APP_MODE === 'LIVE'){
+    const { error } = await sb.from('holders').delete().eq('id', id);
+    if(error){ toast(error.message,'error'); return; }
+  }
   S.holders = S.holders.filter(h=>h.id!==id);
   toast('Deleted','success'); renderMain();
 }
@@ -2137,7 +2658,7 @@ function renderDistributions(el){
         <td class="mn">${fmtUsd(d.total||0)}</td>
         <td class="mn">${fmtUsd(d.perUnit||d.per_unit||0)}</td>
         <td><span class="bdg ${d.status==='PAID'?'gr':'wn'}">${esc(d.status||'DRAFT')}</span></td>
-        ${isOwner()?`<td><button class="btn btn-r btn-sm" onclick="deleteDist('${d.id}')">Delete</button></td>`:''}
+        ${isOwner()?`<td style="white-space:nowrap"><button class="btn btn-g btn-sm" onclick="toggleDistStatus('${d.id}')">${d.status==='PAID'?'Reopen':'Mark Paid'}</button> <button class="btn btn-r btn-sm" onclick="deleteDist('${d.id}')">Delete</button></td>`:''}
       </tr>`).join('') : '<tr><td colspan="5" class="emp">None.</td></tr>'}
       </tbody></table></div></div>`;
 }
@@ -2153,20 +2674,41 @@ function openDistAdd(){
   `);
 }
 async function submitDistAdd(){
-  const row = { period:$('dPer').value.trim(), status:$('dStat').value, total:parseFloat($('dTot').value)||0, per_unit:parseFloat($('dPU').value)||0 };
+  const row = {
+    period:$('dPer').value.trim(), status:$('dStat').value,
+    total:parseFloat($('dTot').value)||0, per_unit:parseFloat($('dPU').value)||0
+  };
   if(!row.period){ toast('Period required','error'); return; }
   if(APP_MODE === 'LIVE'){
     const { data, error } = await sb.from('distributions').insert(row).select().single();
     if(error){ toast(error.message,'error'); return; }
     S.distributions.unshift(denorm(data));
-  } else S.distributions.unshift({ ...row, id:uuid(), createdAt:nowIso() });
+  } else {
+    S.distributions.unshift({ ...row, id:uuid(), createdAt:nowIso() });
+  }
   toast('Added','success'); closeModal(); renderMain();
 }
 async function deleteDist(id){
   if(!confirm('Delete?')) return;
-  if(APP_MODE === 'LIVE'){ const { error } = await sb.from('distributions').delete().eq('id', id); if(error){ toast(error.message,'error'); return; } }
+  if(APP_MODE === 'LIVE'){
+    const { error } = await sb.from('distributions').delete().eq('id', id);
+    if(error){ toast(error.message,'error'); return; }
+  }
   S.distributions = S.distributions.filter(d=>d.id!==id);
   toast('Deleted','success'); renderMain();
+}
+async function toggleDistStatus(id){
+  if(!isOwner()){toast('Administrator access required','error');return;}
+  const d=S.distributions.find(x=>String(x.id)===String(id)); if(!d){toast('Distribution not found','error');return;}
+  const next=(d.status==='PAID')?'DRAFT':'PAID';
+  if(next==='PAID'&&!confirm('Mark this distribution PAID? Confirm that the payment has actually been completed.')) return;
+  if(APP_MODE==='LIVE'){
+    const {data,error}=await sb.from('distributions').update({status:next}).eq('id',id).select().single();
+    if(error){toast(error.message,'error');return;}
+    const ix=S.distributions.findIndex(x=>String(x.id)===String(id)); if(ix>=0) S.distributions[ix]=denorm(data);
+  }else d.status=next;
+  await audit('DISTRIBUTION_STATUS_CHANGED',`Distribution ${d.period||id} status set to ${next}`,'SUCCESS');
+  toast(`Distribution marked ${next}`,'success');renderMain();
 }
 
 function renderDocuments(el){
@@ -2255,6 +2797,7 @@ function shownMode(acct){
   if(override === 'DEMO') return 'DEMO';
   return (acct.mode || 'DEMO').toUpperCase();
 }
+
 function renderMT5(el){
   const admin = isOwner();
   const anyMasked = S.mt5.some(a => (a.displayMode || a.display_mode) !== 'AUTO');
@@ -2315,7 +2858,12 @@ function openMT5Add(){
   `);
 }
 async function submitMT5Add(){
-  const row = { broker:$('mBroker').value.trim(), login:$('mLogin').value.trim(), server:$('mServer').value.trim(), balance:parseFloat($('mBal').value)||0, equity:parseFloat($('mEq').value)||0, status:'CONNECTED', mode:$('mMode').value, display_mode:'AUTO' };
+  const row = {
+    broker:$('mBroker').value.trim(), login:$('mLogin').value.trim(),
+    server:$('mServer').value.trim(),
+    balance:parseFloat($('mBal').value)||0, equity:parseFloat($('mEq').value)||0,
+    status:'CONNECTED', mode:$('mMode').value, display_mode:'AUTO'
+  };
   if(!row.broker || !row.login){ toast('Broker and login required','error'); return; }
   if(APP_MODE === 'LIVE'){
     const { data, error } = await sb.from('mt5_accounts').insert({ ...row, owner_id:S.user.id }).select().single();
@@ -2360,41 +2908,58 @@ function renderExternal(el){
       </tbody></table></div></div>`;
 }
 
+/* ═══ ELITE COMMS VIEW ═══ */
 function renderComms(el){
   if(!can('vip')){ el.innerHTML = '<div class="emp">Access restricted.</div>'; return; }
+  ensureBroadcast();
+
   const ch = S.comms.activeChannel;
   const isDm = !!S.comms.activeDm;
   const dmPeer = S.comms.activeDm;
-  const msgs = isDm ? (S.comms.dms[dmPeer] || []) : (S.comms.messages[ch] || []);
-  const channel = S.comms.channels.find(c=>c.id===ch) || S.comms.channels[0];
+  let msgs = isDm ? (S.comms.dms[dmPeer] || []) : (S.comms.messages[ch] || []);
+  const channel = S.comms.channels.find(c => c.id === ch) || S.comms.channels[0];
+
+  if(CS.search){
+    const q = CS.search.toLowerCase();
+    msgs = msgs.filter(m => String(m.text||'').toLowerCase().includes(q));
+  }
+
+  const typingHere = CS.typing[ch] || {};
+  const typingNames = Object.values(typingHere).map(t => t.name).filter(Boolean);
+  const readers = Object.values(CS.reads[ch] || {});
 
   el.innerHTML = `
     <div class="ph">
-      <div><div class="eb">Communications</div><h1>Comms <em>Elite</em></h1><p>Channels, DMs, presence, pins.</p></div>
+      <div><div class="eb">Communications</div><h1>Comms <em>Elite</em></h1>
+        <p>Channels · DMs · presence · typing · reads · reactions · calls · screen share</p></div>
+      <div class="ph-acts">
+        <input id="cmSearchInput" placeholder="Search messages…" value="${esc(CS.search)}"
+          style="background:rgba(0,0,0,.4);border:1px solid var(--ln2);border-radius:3px;padding:7px 11px;font-size:.8rem;color:var(--tx);min-width:220px"
+          oninput="CS_SEARCH(this.value)">
+      </div>
     </div>
     <div class="cm-wrap">
       <div class="cm-side">
-        <h4>Channels <button onclick="openChannelCreate()">+</button></h4>
+        <h4>Channels <button onclick="CS_NEW_CHANNEL()">+</button></h4>
         ${S.comms.channels.map(c => `
-          <div class="cm-ch${!isDm && ch===c.id?' on':''}" onclick="S.comms.activeChannel='${c.id}';S.comms.activeDm=null;renderMain()">
+          <div class="cm-ch${!isDm && ch===c.id?' on':''}" onclick="CS_PICK_CH('${c.id}')">
             <span style="font-family:var(--mn);color:var(--tx4)">${c.icon||'#'}</span>
             <span style="flex:1">${esc(c.name)}</span>
             ${S.comms.unread[c.id] ? `<span class="badge">${S.comms.unread[c.id]}</span>` : ''}
           </div>
         `).join('')}
-        <h4 style="margin-top:14px">DMs</h4>
-        ${S.comms.peers.map(p => `
-          <div class="cm-ch${isDm && dmPeer===p.id?' on':''}" onclick="S.comms.activeDm='${p.id}';renderMain()">
-            <span class="dot ${S.comms.online.has(p.name)?'on':''}" style="width:6px;height:6px;border-radius:50%;background:${S.comms.online.has(p.name)?'var(--gr)':'var(--tx4)'}"></span>
+        <h4 style="margin-top:14px">Direct Messages</h4>
+        ${S.comms.peers.filter(p => p.name !== S.profile.name).map(p => `
+          <div class="cm-ch${isDm && dmPeer===p.id?' on':''}" onclick="CS_PICK_DM('${p.id}')">
+            <span style="width:6px;height:6px;border-radius:50%;background:${S.comms.online.has(p.name)?'var(--gr)':'var(--tx4)'}"></span>
             <span style="flex:1">${esc(p.name)}</span>
           </div>
         `).join('')}
         <h4 style="margin-top:14px">Online <span style="color:var(--gr);font-size:.5rem">${S.comms.online.size}</span></h4>
-        ${[...S.comms.online].slice(0,8).map(name => `
+        ${[...S.comms.online].slice(0,10).map(name => `
           <div class="cm-peer"><span class="dot on"></span><span class="name">${esc(name)}</span></div>
         `).join('')}
       </div>
-
       <div class="cm-main">
         <div class="cm-head">
           <h3><span class="pre">${isDm?'@':'#'}</span>${isDm ? esc(dmPeer) : esc(channel?.name||'general')}</h3>
@@ -2407,37 +2972,64 @@ function renderComms(el){
         </div>
         ${!isDm && channel?.pinned ? `<div class="cm-pin"><b>📌 Pinned:</b> ${esc(channel.pinned)}</div>` : ''}
         <div class="cm-msgs" id="cmMsgs">
-          ${msgs.length ? msgs.map(m => `
-            <div class="cm-msg${m.self?' self':''}">
-              <div class="ava">${esc((m.from||'?').slice(0,2).toUpperCase())}</div>
-              <div class="body-wrap">
-                <div class="meta"><b>${esc(m.from||'—')}</b> · ${timeAgo(m.at)}</div>
-                <div class="body">${esc(m.text)}</div>
-              </div>
-            </div>
-          `).join('') : '<div class="emp" style="margin-top:40px">No messages yet.</div>'}
+          ${msgs.length ? msgs.map(m => msgHtml(m)).join('') : '<div class="emp" style="margin-top:40px">No messages yet.</div>'}
+          ${typingNames.length ? `<div style="padding:6px 14px;color:var(--tx3);font-style:italic;font-size:.72rem">${esc(typingNames.join(', '))} ${typingNames.length===1?'is':'are'} typing…</div>` : ''}
         </div>
         <div class="cm-input">
-          <input id="cmInput" placeholder="Message ${isDm?'@'+esc(dmPeer):'#'+esc(channel?.name||'')}" onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendCommsMessage(event)">
+          <input id="cmInput" placeholder="Message ${isDm?'@'+esc(dmPeer):'#'+esc(channel?.name||'')}"
+            oninput="CS_TYPING()"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendCommsMessage(event)">
           <button onclick="sendCommsMessage(event)">➤</button>
         </div>
       </div>
-
       <div class="cm-side">
         <h4>Channel Info</h4>
         ${!isDm ? `
           <div class="rw" style="padding:8px 4px"><span class="rw-l">Topic</span><span class="rw-v" style="font-family:Inter;color:var(--tx3);font-size:.72rem">${esc(channel?.topic||'—')}</span></div>
           <div class="rw" style="padding:8px 4px"><span class="rw-l">Members</span><span class="rw-v">${S.comms.online.size}</span></div>
           <div class="rw" style="padding:8px 4px"><span class="rw-l">Access</span><span class="rw-v">${channel?.adminOnly?'ADMIN':'ALL'}</span></div>
+          ${isOwner() ? `<button class="btn btn-gd btn-sm" style="margin-top:8px;width:100%" onclick="CS_EDIT_CHANNEL()">Edit Channel</button>` : ''}
         ` : `<div class="rw" style="padding:8px 4px"><span class="rw-l">Status</span><span class="rw-v" style="color:${S.comms.online.has(dmPeer)?'var(--gr)':'var(--tx3)'}">${S.comms.online.has(dmPeer)?'ONLINE':'OFFLINE'}</span></div>`}
+        <h4 style="margin-top:16px">Read by</h4>
+        <div style="font-size:.72rem;color:var(--tx3);line-height:1.7">
+          ${readers.length ? readers.map(r => `<div>${esc(r.name)}</div>`).join('') : '<em style="color:var(--tx4)">No reads yet</em>'}
+        </div>
         <h4 style="margin-top:16px">Pinned</h4>
         <div style="font-size:.72rem;color:var(--tx3);line-height:1.5">${channel?.pinned?esc(channel.pinned):'<em style="color:var(--tx4)">No pinned messages</em>'}</div>
       </div>
     </div>
   `;
   const box = $('cmMsgs');
-  if(box) setTimeout(()=>box.scrollTop = box.scrollHeight, 30);
+  if(box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 30);
+  bcRead();
 }
+
+function msgHtml(m){
+  const rx = CS.reactions[m.id] || [];
+  const grouped = {};
+  rx.forEach(r => { grouped[r.emoji] = (grouped[r.emoji]||0) + 1; });
+  const rxHtml = Object.keys(grouped).length
+    ? `<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">${Object.entries(grouped)
+        .map(([e,c]) => `<button style="background:rgba(201,168,76,.08);border:1px solid var(--ln2);border-radius:99px;padding:1px 7px;font-size:.68rem;color:var(--gdl);cursor:pointer"
+          onclick="CS_REACT('${m.id}','${e}')">${e} ${c}</button>`).join('')}</div>`
+    : '';
+  return `
+    <div class="cm-msg${m.self?' self':''}" style="position:relative">
+      <div class="ava">${esc((m.from||'?').slice(0,2).toUpperCase())}</div>
+      <div class="body-wrap">
+        <div class="meta"><b>${esc(m.from||'—')}</b> · ${timeAgo(m.at)}</div>
+        <div class="body">${esc(m.text)}</div>
+        ${rxHtml}
+      </div>
+      <div class="cm-acts">
+        <button title="Like" onclick="CS_REACT('${m.id}','👍')">👍</button>
+        <button title="Reply" onclick="CS_REPLY('${esc(m.from||'')}')">↩</button>
+        <button title="Copy" onclick="CS_COPY('${m.id}')">⎘</button>
+      </div>
+    </div>
+  `;
+}
+
 async function sendCommsMessage(e){
   if(e) e.preventDefault();
   const inp = $('cmInput'); if(!inp) return;
@@ -2467,6 +3059,7 @@ async function sendCommsMessage(e){
   }
   renderMain();
 }
+
 function pinActiveMessage(){
   const ch = S.comms.activeChannel;
   const msgs = S.comms.messages[ch] || [];
@@ -2477,6 +3070,7 @@ function pinActiveMessage(){
   toast('Pinned','success');
   renderMain();
 }
+
 function openChannelCreate(){
   openModal('New Channel', `
     <div class="ff" style="margin-bottom:10px"><label>Name</label><input id="chName" placeholder="announcements"></div>
@@ -2491,35 +3085,60 @@ function createChannel(){
   S.comms.channels.push({ id:name, name, topic, icon:'#', adminOnly:false, pinned:null });
   toast('Channel created','success'); closeModal(); renderMain();
 }
-async function startCall(video){
-  if(!navigator.mediaDevices){ toast('Media not supported','error'); return; }
-  try{
-    const stream = await navigator.mediaDevices.getUserMedia({ audio:true, video:!!video });
-    toast(`${video?'Video':'Voice'} call started (local preview)`, 'success');
-    showLocalPreview(stream);
-  }catch(e){ toast('Call failed: '+e.message,'error'); }
-}
-async function startScreenShare(){
-  if(!navigator.mediaDevices?.getDisplayMedia){ toast('Screen share not supported','error'); return; }
-  try{
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video:true, audio:false });
-    toast('Screen sharing started','success');
-    showLocalPreview(stream);
-  }catch(e){ toast('Screen share failed: '+e.message,'error'); }
-}
-function showLocalPreview(stream){
-  let host = $('_localPrev');
-  if(!host){
-    host = document.createElement('div');
-    host.id = '_localPrev';
-    host.style.cssText = 'position:fixed;bottom:80px;right:16px;z-index:9998;width:220px;border:1px solid var(--gd);border-radius:4px;overflow:hidden;background:#000';
-    host.innerHTML = '<video autoplay playsinline muted style="width:100%;display:block"></video><button style="position:absolute;top:4px;right:4px;background:var(--rd);color:#fff;width:22px;height:22px;border-radius:50%;font-size:.7rem">×</button>';
-    host.querySelector('button').onclick = () => { stream.getTracks().forEach(t=>t.stop()); host.remove(); };
-    document.body.appendChild(host);
-  }
-  host.querySelector('video').srcObject = stream;
-}
 
+/* ─── Comms control exports ─── */
+window.CS_PICK_CH = id => { S.comms.activeChannel = id; S.comms.activeDm = null; renderMain(); };
+window.CS_PICK_DM = id => { S.comms.activeDm = id; renderMain(); };
+window.CS_SEARCH = v => {
+  CS.search = v;
+  renderMain();
+  setTimeout(() => {
+    const el = $('cmSearchInput');
+    if(el){ el.focus(); el.selectionStart = el.selectionEnd = v.length; }
+  }, 10);
+};
+window.CS_TYPING = () => {
+  clearTimeout(CS._typingTimer);
+  CS._typingTimer = setTimeout(() => bcTyping(), 100);
+};
+window.CS_REACT = (mid, emoji) => {
+  const arr = CS.reactions[mid] || (CS.reactions[mid] = []);
+  const mine = arr.some(r => r.emoji === emoji && r.userId === S.user.id);
+  if(mine){
+    CS.reactions[mid] = arr.filter(r => !(r.emoji === emoji && r.userId === S.user.id));
+    bcReact(mid, emoji, 'remove');
+  } else {
+    arr.push({ emoji, userId: S.user.id, name: S.profile.name });
+    bcReact(mid, emoji, 'add');
+  }
+  renderMain();
+};
+window.CS_REPLY = (name) => {
+  const inp = $('cmInput');
+  if(inp){ inp.value = `@${name} `; inp.focus(); }
+};
+window.CS_COPY = (mid) => {
+  const ch = S.comms.activeChannel;
+  const msgs = S.comms.dms[S.comms.activeDm] || S.comms.messages[ch] || [];
+  const m = msgs.find(x => x.id === mid);
+  if(m && navigator.clipboard){
+    navigator.clipboard.writeText(m.text).then(() => toast('Copied','success'));
+  }
+};
+window.CS_PIN_ACTIVE = () => pinActiveMessage();
+window.CS_NEW_CHANNEL = () => openChannelCreate();
+window.CS_EDIT_CHANNEL = () => {
+  const ch = S.comms.activeChannel;
+  const channel = S.comms.channels.find(c => c.id === ch);
+  if(!channel) return;
+  const newTitle = prompt('Channel title:', channel.topic || '');
+  if(newTitle === null) return;
+  channel.topic = newTitle;
+  toast('Channel updated','success');
+  renderMain();
+};
+
+/* ─── Security / Marketplace / OI / Invites / Admin / Audit ─── */
 function renderSecurity(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Operations</div><h1>Security <em>Center</em></h1></div></div>
@@ -2541,9 +3160,28 @@ function renderMarketplace(el){
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Services</div><h1>Member <em>Marketplace</em></h1></div></div>
     <div class="cg">${S.marketplace.map(s=>`
-      <div class="crd"><h4>${esc(s.name)}</h4><div class="d">${esc(s.description)}</div>
+      <div class="crd" ondblclick="openFullscreen('${esc(s.name)}','${esc(s.description)}')">
+        <h4>${esc(s.name)}</h4><div class="d">${esc(s.description)}</div>
         <div class="m"><span>${esc(s.vendor)}</span><span class="bdg ${s.status==='ACTIVE'?'gr':'wn'}">${esc(s.status)}</span></div>
       </div>`).join('')}</div>`;
+}
+
+function openFullscreen(title, desc){
+  openModal(title, `
+    <div style="min-height:60vh;display:flex;flex-direction:column;gap:14px">
+      <p style="color:var(--tx2);line-height:1.6">${esc(desc)}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-p">Connect</button>
+        <button class="btn btn-g">Configure</button>
+        <button class="btn btn-gd">Docs</button>
+      </div>
+      <div style="background:rgba(0,0,0,.3);border:1px solid var(--ln);border-radius:3px;padding:14px;font-family:var(--mn);font-size:.66rem;color:var(--tx3);line-height:1.7">
+        <div style="color:var(--gdl);margin-bottom:6px">INTEGRATION</div>
+        <div>Status: Ready to configure</div>
+        <div>Auth: Handled by Supabase</div>
+      </div>
+    </div>
+  `);
 }
 
 function renderOI(el){
@@ -2588,7 +3226,10 @@ async function createInvite(){
   const forUser = prompt('Label:') || 'New Member';
   const role = prompt('Role:','HOLDER') || 'HOLDER';
   const row = { code, for_user:forUser, role, used:false, vip_access:role==='SUPER_ADMIN' };
-  if(APP_MODE === 'LIVE'){ const { error } = await sb.from('invites').insert(row); if(error){ toast(error.message,'error'); return; } }
+  if(APP_MODE === 'LIVE'){
+    const { error } = await sb.from('invites').insert(row);
+    if(error){ toast(error.message,'error'); return; }
+  }
   S.invites.unshift({ ...row, forUser, createdAt:nowIso() });
   toast('Created','success'); renderMain();
 }
@@ -2608,6 +3249,11 @@ function renderAdmin(el){
         <div class="crd" style="padding:14px;${APP_MODE==='SIM'?'border-color:var(--vi)':''}" onclick="setAppMode('SIM')"><h4>SIM</h4><div class="d" style="margin-top:6px">Mock dataset.</div></div>
       </div>
     </div></div>
+    <div class="stats" style="margin-top:12px">
+      <div class="st"><span class="l">Holder records</span><div class="v gd">${fmtNum(S.holders.length)}</div><div class="n">Registry control</div><button class="btn btn-gd btn-sm" style="margin-top:10px" onclick="go('holders')">Manage Holders</button></div>
+      <div class="st"><span class="l">Distribution records</span><div class="v gd">${fmtNum(S.distributions.length)}</div><div class="n">Draft and paid states</div><button class="btn btn-gd btn-sm" style="margin-top:10px" onclick="go('distributions')">Manage Distributions</button></div>
+      <div class="st"><span class="l">Paid distributions</span><div class="v gr">${fmtNum(S.distributions.filter(d=>d.status==='PAID').length)}</div><div class="n">Recorded as paid</div></div>
+    </div>
     <div class="pnl"><div class="pnl-h"><h3>Session</h3></div><div class="pnl-b fl">
       <div class="rw" style="padding:10px 15px"><span class="rw-l">Email</span><span class="rw-v">${esc(S.profile.email)}</span></div>
       <div class="rw" style="padding:10px 15px"><span class="rw-l">Role</span><span class="rw-v">${esc(S.profile.role)}</span></div>
@@ -2640,6 +3286,7 @@ function renderReconciliation(el){
     </div></div>`;
 }
 
+/* ─── Modal / Menu ─── */
 function openModal(title, html){
   const mc = $('modalContent'); if(!mc) return;
   mc.innerHTML = `<div class="mh"><h3>${esc(title)}</h3><button class="mc" onclick="closeModal()">×</button></div><div class="mbd">${html}</div>`;
@@ -2688,11 +3335,14 @@ function applyInviteCode(){
   setTimeout(openInviteHelp, 200);
 }
 
+/* ─── Boot ─── */
 document.addEventListener('DOMContentLoaded', () => {
   applyModeUI();
+
   if('serviceWorker' in navigator){
     navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(()=>{});
   }
+
   const params = new URLSearchParams(location.search);
   const inviteParam = params.get('invite');
   if(inviteParam) sessionStorage.setItem('pending_invite', inviteParam);
@@ -2700,16 +3350,445 @@ document.addEventListener('DOMContentLoaded', () => {
     history.replaceState({}, '', location.pathname + (inviteParam ? '?invite=' + inviteParam : ''));
   }
   if(APP_MODE === 'SIM' && !S.user){ APP_MODE = 'LIVE'; localStorage.setItem(MODE_KEY, 'LIVE'); }
+
   const lf = $('loginForm');
   if(lf) lf.addEventListener('submit', e => { e.preventDefault(); login(); });
+
   sb.auth.getSession().then(({data})=>{
     if(data?.session?.user) onAuthenticated(data.session.user);
   }).catch(()=>{});
+
   sb.auth.onAuthStateChange((event, session)=>{
     if(event === 'SIGNED_IN' && session?.user && !S.user) onAuthenticated(session.user);
     if(event === 'SIGNED_OUT'){ S.user = null; }
   });
 });
+window.VICE_APP = { S, VIEWS, renderMain, toast, esc, timeAgo, can, pinActiveMessage, openChannelCreate, audit, openModal, closeModal };
+
+</script>
+<script>
+/*
+   VICE OS — Elite Comms Layer
+   Read receipts · Typing · Reactions · Message actions · Search
+   WebRTC 1:1 voice/video/screen share · Full-screen integrations
+   ═══════════════════════════════════════════════════════════ */
+
+(function(){
+  'use strict';
+
+  const V = window.VICE_APP || {};
+  const { S, VIEWS, renderMain, toast, esc, timeAgo, can, pinActiveMessage } = V;
+  if(!S || !VIEWS){ console.warn('VICE_APP not exposed — check app.js tail'); return; }
+
+  /* ─── Elite comms state ─── */
+  const CS = {
+    typing:{}, reads:{}, reactions:{},
+    search:'', _broadcast:null, _typingTimer:null, _callCh:null,
+  };
+
+  /* ─── Realtime broadcast for typing / reads / reactions ─── */
+  function ensureBroadcast(){
+    if(CS._broadcast || APP_MODE !== 'LIVE') return;
+    try{
+      CS._broadcast = sb.channel('comms-live', { config: { broadcast: { self: false } } })
+        .on('broadcast', { event:'typing' }, ({ payload }) => {
+          if(payload.user === S.user.id) return;
+          CS.typing[payload.channel] = CS.typing[payload.channel] || {};
+          CS.typing[payload.channel][payload.user] = { name: payload.name, at: Date.now() };
+          if(S.view === 'vip') renderMain();
+        })
+        .on('broadcast', { event:'read' }, ({ payload }) => {
+          CS.reads[payload.channel] = CS.reads[payload.channel] || {};
+          CS.reads[payload.channel][payload.user] = { name: payload.name, at: payload.at };
+          if(S.view === 'vip') renderMain();
+        })
+        .on('broadcast', { event:'reaction' }, ({ payload }) => {
+          const { messageId, emoji, userId, name, action } = payload;
+          const arr = CS.reactions[messageId] || (CS.reactions[messageId] = []);
+          if(action === 'add'){
+            if(!arr.some(r => r.emoji === emoji && r.userId === userId)) arr.push({ emoji, userId, name });
+          } else {
+            CS.reactions[messageId] = arr.filter(r => !(r.emoji === emoji && r.userId === userId));
+          }
+          if(S.view === 'vip') renderMain();
+        })
+        .subscribe();
+    }catch(e){ console.warn('broadcast failed', e); }
+  }
+
+  function send(channel, event, payload){
+    try{ CS._broadcast?.send({ type:'broadcast', event, payload }); }catch(_){}
+  }
+
+  function bcTyping(){ if(CS._broadcast) send(null, 'typing', { channel:S.comms.activeChannel, user:S.user.id, name:S.profile.name, at:Date.now() }); }
+  function bcRead(){ if(CS._broadcast) send(null, 'read', { channel:S.comms.activeChannel, user:S.user.id, name:S.profile.name, at:Date.now() }); }
+  function bcReact(mid, emoji, action){ if(CS._broadcast) send(null, 'reaction', { messageId:mid, emoji, action, userId:S.user.id, name:S.profile.name }); }
+
+  /* Purge stale typing */
+  setInterval(() => {
+    const now = Date.now(); let dirty = false;
+    for(const ch in CS.typing){
+      for(const u in CS.typing[ch]){
+        if(now - CS.typing[ch][u].at > 4000){ delete CS.typing[ch][u]; dirty = true; }
+      }
+    }
+    if(dirty && S.view === 'vip') renderMain();
+  }, 2000);
+
+  /* ─── Elite comms renderer (overrides default) ─── */
+  function renderElite(el){
+    if(!can('vip')){ el.innerHTML = '<div class="emp">Access restricted.</div>'; return; }
+    ensureBroadcast();
+
+    const ch = S.comms.activeChannel;
+    const isDm = !!S.comms.activeDm;
+    const dmPeer = S.comms.activeDm;
+    let msgs = isDm ? (S.comms.dms[dmPeer] || []) : (S.comms.messages[ch] || []);
+    const channel = S.comms.channels.find(c => c.id === ch) || S.comms.channels[0];
+
+    if(CS.search){
+      const q = CS.search.toLowerCase();
+      msgs = msgs.filter(m => String(m.text||'').toLowerCase().includes(q));
+    }
+
+    const typingHere = CS.typing[ch] || {};
+    const typingNames = Object.values(typingHere).map(t => t.name).filter(Boolean);
+    const readers = Object.values(CS.reads[ch] || {});
+
+    el.innerHTML = `
+      <div class="ph">
+        <div><div class="eb">Communications</div><h1>Comms <em>Elite</em></h1>
+          <p>Channels · DMs · presence · typing · reads · reactions · calls · screen share</p></div>
+        <div class="ph-acts">
+          <input id="cmSearchInput" placeholder="Search messages…" value="${esc(CS.search)}"
+            style="background:rgba(0,0,0,.4);border:1px solid var(--ln2);border-radius:3px;padding:7px 11px;font-size:.8rem;color:var(--tx);min-width:220px"
+            oninput="CS_SEARCH(this.value)">
+        </div>
+      </div>
+      <div class="cm-wrap">
+        <div class="cm-side">
+          <h4>Channels <button onclick="CS_NEW_CHANNEL()">+</button></h4>
+          ${S.comms.channels.map(c => `
+            <div class="cm-ch${!isDm && ch===c.id?' on':''}" onclick="CS_PICK_CH('${c.id}')">
+              <span style="font-family:var(--mn);color:var(--tx4)">${c.icon||'#'}</span>
+              <span style="flex:1">${esc(c.name)}</span>
+              ${S.comms.unread[c.id] ? `<span class="badge">${S.comms.unread[c.id]}</span>` : ''}
+            </div>
+          `).join('')}
+          <h4 style="margin-top:14px">Direct Messages</h4>
+          ${S.comms.peers.filter(p => p.name !== S.profile.name).map(p => `
+            <div class="cm-ch${isDm && dmPeer===p.id?' on':''}" onclick="CS_PICK_DM('${p.id}')">
+              <span style="width:6px;height:6px;border-radius:50%;background:${S.comms.online.has(p.name)?'var(--gr)':'var(--tx4)'}"></span>
+              <span style="flex:1">${esc(p.name)}</span>
+            </div>
+          `).join('')}
+          <h4 style="margin-top:14px">Online <span style="color:var(--gr);font-size:.5rem">${S.comms.online.size}</span></h4>
+          ${[...S.comms.online].slice(0,10).map(name => `
+            <div class="cm-peer"><span class="dot on"></span><span class="name">${esc(name)}</span></div>
+          `).join('')}
+        </div>
+        <div class="cm-main">
+          <div class="cm-head">
+            <h3><span class="pre">${isDm?'@':'#'}</span>${isDm ? esc(dmPeer) : esc(channel?.name||'general')}</h3>
+            <div class="acts">
+              <button title="Voice" onclick="CS_CALL(false)">📞</button>
+              <button title="Video" onclick="CS_CALL(true)">🎥</button>
+              <button title="Screen" onclick="CS_SCREEN()">🖥</button>
+              <button title="Pin" onclick="CS_PIN_ACTIVE()">📌</button>
+            </div>
+          </div>
+          ${!isDm && channel?.pinned ? `<div class="cm-pin"><b>📌 Pinned:</b> ${esc(channel.pinned)}</div>` : ''}
+          <div class="cm-msgs" id="cmMsgs">
+            ${msgs.length ? msgs.map(m => msgHtml(m)).join('') : '<div class="emp" style="margin-top:40px">No messages yet.</div>'}
+            ${typingNames.length ? `<div style="padding:6px 14px;color:var(--tx3);font-style:italic;font-size:.72rem">${esc(typingNames.join(', '))} ${typingNames.length===1?'is':'are'} typing…</div>` : ''}
+          </div>
+          <div class="cm-input">
+            <input id="cmInput" placeholder="Message ${isDm?'@'+esc(dmPeer):'#'+esc(channel?.name||'')}"
+              oninput="CS_TYPING()"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendCommsMessage(event)">
+            <button onclick="sendCommsMessage(event)">➤</button>
+          </div>
+        </div>
+        <div class="cm-side">
+          <h4>Channel Info</h4>
+          ${!isDm ? `
+            <div class="rw" style="padding:8px 4px"><span class="rw-l">Topic</span><span class="rw-v" style="font-family:Inter;color:var(--tx3);font-size:.72rem">${esc(channel?.topic||'—')}</span></div>
+            <div class="rw" style="padding:8px 4px"><span class="rw-l">Members</span><span class="rw-v">${S.comms.online.size}</span></div>
+            <div class="rw" style="padding:8px 4px"><span class="rw-l">Access</span><span class="rw-v">${channel?.adminOnly?'ADMIN':'ALL'}</span></div>
+            ${isOwner() ? `<button class="btn btn-gd btn-sm" style="margin-top:8px;width:100%" onclick="CS_EDIT_CHANNEL()">Edit Channel</button>` : ''}
+          ` : `<div class="rw" style="padding:8px 4px"><span class="rw-l">Status</span><span class="rw-v" style="color:${S.comms.online.has(dmPeer)?'var(--gr)':'var(--tx3)'}">${S.comms.online.has(dmPeer)?'ONLINE':'OFFLINE'}</span></div>`}
+          <h4 style="margin-top:16px">Read by</h4>
+          <div style="font-size:.72rem;color:var(--tx3);line-height:1.7">
+            ${readers.length ? readers.map(r => `<div>${esc(r.name)}</div>`).join('') : '<em style="color:var(--tx4)">No reads yet</em>'}
+          </div>
+          <h4 style="margin-top:16px">Pinned</h4>
+          <div style="font-size:.72rem;color:var(--tx3);line-height:1.5">${channel?.pinned?esc(channel.pinned):'<em style="color:var(--tx4)">No pinned messages</em>'}</div>
+        </div>
+      </div>
+    `;
+    const box = document.getElementById('cmMsgs');
+    if(box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 30);
+    bcRead();
+  }
+
+  function msgHtml(m){
+    const rx = CS.reactions[m.id] || [];
+    const grouped = {};
+    rx.forEach(r => { grouped[r.emoji] = (grouped[r.emoji]||0) + 1; });
+    const rxHtml = Object.keys(grouped).length
+      ? `<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">${Object.entries(grouped)
+          .map(([e,c]) => `<button style="background:rgba(201,168,76,.08);border:1px solid var(--ln2);border-radius:99px;padding:1px 7px;font-size:.68rem;color:var(--gdl);cursor:pointer"
+            onclick="CS_REACT('${m.id}','${e}')">${e} ${c}</button>`).join('')}</div>`
+      : '';
+    return `
+      <div class="cm-msg${m.self?' self':''}" style="position:relative">
+        <div class="ava">${esc((m.from||'?').slice(0,2).toUpperCase())}</div>
+        <div class="body-wrap">
+          <div class="meta"><b>${esc(m.from||'—')}</b> · ${timeAgo(m.at)}</div>
+          <div class="body">${esc(m.text)}</div>
+          ${rxHtml}
+        </div>
+        <div class="cm-acts">
+          <button title="Like" onclick="CS_REACT('${m.id}','👍')">👍</button>
+          <button title="Reply" onclick="CS_REPLY('${esc(m.from||'')}')">↩</button>
+          <button title="Copy" onclick="CS_COPY('${m.id}')">⎘</button>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ─── handlers (called from HTML) ─── */
+  window.CS_PICK_CH = id => { S.comms.activeChannel = id; S.comms.activeDm = null; renderMain(); };
+  window.CS_PICK_DM = id => { S.comms.activeDm = id; renderMain(); };
+
+  window.CS_SEARCH = v => {
+    CS.search = v;
+    renderMain();
+    setTimeout(() => {
+      const el = document.getElementById('cmSearchInput');
+      if(el){ el.focus(); el.selectionStart = el.selectionEnd = v.length; }
+    }, 10);
+  };
+
+  window.CS_TYPING = () => {
+    clearTimeout(CS._typingTimer);
+    CS._typingTimer = setTimeout(() => bcTyping(), 100);
+  };
+
+  window.CS_REACT = (mid, emoji) => {
+    const arr = CS.reactions[mid] || (CS.reactions[mid] = []);
+    const mine = arr.some(r => r.emoji === emoji && r.userId === S.user.id);
+    if(mine){
+      CS.reactions[mid] = arr.filter(r => !(r.emoji === emoji && r.userId === S.user.id));
+      bcReact(mid, emoji, 'remove');
+    } else {
+      arr.push({ emoji, userId: S.user.id, name: S.profile.name });
+      bcReact(mid, emoji, 'add');
+    }
+    renderMain();
+  };
+
+  window.CS_REPLY = (name) => {
+    const inp = document.getElementById('cmInput');
+    if(inp){ inp.value = `@${name} `; inp.focus(); }
+  };
+
+  window.CS_COPY = (mid) => {
+    const ch = S.comms.activeChannel;
+    const msgs = S.comms.dms[S.comms.activeDm] || S.comms.messages[ch] || [];
+    const m = msgs.find(x => x.id === mid);
+    if(m && navigator.clipboard){
+      navigator.clipboard.writeText(m.text).then(() => toast('Copied','success'));
+    }
+  };
+
+  window.CS_PIN_ACTIVE = () => {
+    if(typeof pinActiveMessage === 'function') pinActiveMessage();
+  };
+
+  window.CS_NEW_CHANNEL = () => {
+    if(typeof openChannelCreate === 'function') openChannelCreate();
+  };
+
+  window.CS_EDIT_CHANNEL = () => {
+    const ch = S.comms.activeChannel;
+    const channel = S.comms.channels.find(c => c.id === ch);
+    if(!channel) return;
+    const newTitle = prompt('Channel title:', channel.topic || '');
+    if(newTitle === null) return;
+    channel.topic = newTitle;
+    toast('Channel updated','success');
+    renderMain();
+  };
+
+  /* ─── WebRTC 1:1 calls + screen share ─── */
+  let _pc = null, _localStream = null, _remoteStream = null;
+
+  function ensureCallChannel(){
+    if(CS._callCh || APP_MODE !== 'LIVE') return;
+    try{
+      CS._callCh = sb.channel('vice-calls', { config: { broadcast: { self: false } } })
+        .on('broadcast', { event:'offer' }, async ({ payload }) => {
+          if(payload.to !== S.user.id) return;
+          await handleOffer(payload);
+        })
+        .on('broadcast', { event:'answer' }, async ({ payload }) => {
+          if(payload.to !== S.user.id) return;
+          if(_pc) try{ await _pc.setRemoteDescription(new RTCSessionDescription(payload.sdp)); }catch(_){}
+        })
+        .on('broadcast', { event:'ice' }, async ({ payload }) => {
+          if(payload.to !== S.user.id) return;
+          if(_pc && payload.candidate){ try{ await _pc.addIceCandidate(payload.candidate); }catch(_){} }
+        })
+        .on('broadcast', { event:'end' }, ({ payload }) => {
+          if(payload.to !== S.user.id) return;
+          endCall();
+        })
+        .subscribe();
+    }catch(e){ console.warn('call channel failed', e); }
+  }
+
+  async function createPc(peerId, video){
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    pc.onicecandidate = e => {
+      if(e.candidate && CS._callCh){
+        CS._callCh.send({ type:'broadcast', event:'ice', payload: { to:peerId, candidate:e.candidate, from:S.user.id }});
+      }
+    };
+    pc.ontrack = e => { _remoteStream = e.streams[0]; remotePreview(_remoteStream); };
+    if(_localStream) _localStream.getTracks().forEach(t => pc.addTrack(t, _localStream));
+    return pc;
+  }
+
+  async function handleOffer(payload){
+    try{
+      ensureCallChannel();
+      _localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:!!payload.video });
+      localPreview(_localStream);
+      _pc = await createPc(payload.from, payload.video);
+      await _pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      const answer = await _pc.createAnswer();
+      await _pc.setLocalDescription(answer);
+      CS._callCh.send({ type:'broadcast', event:'answer', payload: { to:payload.from, sdp:answer, from:S.user.id }});
+      toast('Call connected','success');
+    }catch(e){ toast('Call failed: '+e.message, 'error'); }
+  }
+
+  window.CS_CALL = async (video) => {
+    const peerId = S.comms.activeDm;
+    if(!peerId){ toast('Open a DM to call','info'); return; }
+    if(!navigator.mediaDevices){ toast('Media not supported','error'); return; }
+    ensureCallChannel();
+    try{
+      _localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:!!video });
+      localPreview(_localStream);
+      _pc = await createPc(peerId, video);
+      const offer = await _pc.createOffer();
+      await _pc.setLocalDescription(offer);
+      CS._callCh.send({ type:'broadcast', event:'offer', payload: { to:peerId, sdp:offer, video:!!video, from:S.user.id }});
+      toast(`${video?'Video':'Voice'} call ringing…`, 'info');
+    }catch(e){ toast('Call failed: '+e.message, 'error'); }
+  };
+
+  window.CS_SCREEN = async () => {
+    if(!navigator.mediaDevices?.getDisplayMedia){ toast('Screen share not supported','error'); return; }
+    const peerId = S.comms.activeDm;
+    try{
+      ensureCallChannel();
+      const s = await navigator.mediaDevices.getDisplayMedia({ video:true, audio:false });
+      _localStream = s;
+      localPreview(s);
+      if(peerId){
+        if(!_pc) _pc = await createPc(peerId, true);
+        s.getTracks().forEach(t => _pc.addTrack(t, s));
+        const offer = await _pc.createOffer();
+        await _pc.setLocalDescription(offer);
+        CS._callCh.send({ type:'broadcast', event:'offer', payload: { to:peerId, sdp:offer, video:true, from:S.user.id }});
+      }
+      toast('Screen sharing','success');
+    }catch(e){ toast('Screen share failed: '+e.message, 'error'); }
+  };
+
+  function endCall(){
+    try{ _localStream?.getTracks().forEach(t => t.stop()); }catch(_){}
+    try{ _pc?.close(); }catch(_){}
+    const lp = document.getElementById('_localPrev'); if(lp) lp.remove();
+    const rp = document.getElementById('_remotePrev'); if(rp) rp.remove();
+    _localStream = null; _remoteStream = null; _pc = null;
+  }
+  window.CS_END_CALL = endCall;
+
+  function localPreview(stream){
+    let host = document.getElementById('_localPrev');
+    if(!host){
+      host = document.createElement('div');
+      host.id = '_localPrev';
+      host.style.cssText = 'position:fixed;bottom:80px;right:16px;z-index:9998;width:220px;border:1px solid var(--gd);border-radius:4px;overflow:hidden;background:#000';
+      host.innerHTML = '<video autoplay playsinline muted style="width:100%;display:block"></video><button style="position:absolute;top:4px;right:4px;background:var(--rd);color:#fff;width:22px;height:22px;border-radius:50%;font-size:.7rem;cursor:pointer">×</button>';
+      host.querySelector('button').onclick = () => endCall();
+      document.body.appendChild(host);
+    }
+    host.querySelector('video').srcObject = stream;
+  }
+
+  function remotePreview(stream){
+    let host = document.getElementById('_remotePrev');
+    if(!host){
+      host = document.createElement('div');
+      host.id = '_remotePrev';
+      host.style.cssText = 'position:fixed;bottom:80px;left:16px;z-index:9998;width:280px;border:1px solid var(--gd);border-radius:4px;overflow:hidden;background:#000';
+      host.innerHTML = '<video autoplay playsinline style="width:100%;display:block"></video>';
+      document.body.appendChild(host);
+    }
+    host.querySelector('video').srcObject = stream;
+  }
+
+  /* ─── Full-screen integration panels on double-click ─── */
+  document.addEventListener('dblclick', (e) => {
+    const crd = e.target.closest('.crd');
+    if(!crd) return;
+    const h4 = crd.querySelector('h4');
+    const d = crd.querySelector('.d');
+    if(!h4) return;
+    e.preventDefault();
+    openFullscreen(h4.textContent.trim(), d?.textContent.trim() || '');
+  });
+
+  function openFullscreen(title, desc){
+    const mc = document.getElementById('modalContent');
+    if(!mc) return;
+    mc.innerHTML = `
+      <div class="mh"><h3>${esc(title)}</h3><button class="mc" onclick="closeModal()">×</button></div>
+      <div class="mbd" style="min-height:60vh">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <p style="color:var(--tx2);line-height:1.6">${esc(desc)}</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-p">Connect</button>
+            <button class="btn btn-g">Configure</button>
+            <button class="btn btn-gd">Docs</button>
+          </div>
+          <div style="background:rgba(0,0,0,.3);border:1px solid var(--ln);border-radius:3px;padding:14px;font-family:var(--mn);font-size:.66rem;color:var(--tx3);line-height:1.7">
+            <div style="color:var(--gdl);margin-bottom:6px">INTEGRATION</div>
+            <div>Status: Ready to configure</div>
+            <div>Auth: Handled by Supabase</div>
+            <div>Endpoint: /.netlify/functions/${title.toLowerCase().replace(/[^a-z0-9]/g,'-')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    const modal = document.getElementById('modal');
+    if(modal) modal.classList.add('on');
+  }
+
+  /* ─── Hook elite renderer over default ─── */
+  VIEWS.vip = renderElite;
+  if(S.view === 'vip') renderMain();
+
+  // Also override the default screen share / call buttons inside comms header
+  window.startCall = window.CS_CALL;
+  window.startScreenShare = window.CS_SCREEN;
+
+})();
 </script>
 </body>
 </html>
