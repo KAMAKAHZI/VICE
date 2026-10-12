@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.0.1" data-pwa="1">
+<html lang="en" data-build="1.3.4-LIVE-BACKEND-SYNC" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1192,9 +1192,12 @@ p{color:var(--tx-2);margin:0}
       import('https://esm.sh/@scure/bip39@1.3.0'),
       import('https://esm.sh/@scure/bip32@1.4.0'),
       import('https://esm.sh/@noble/secp256k1@2.1.0'),
-      import('https://esm.sh/@noble/hashes@1.4.0'),
+      import('https://esm.sh/@noble/hashes@1.4.0/sha3'),
     ]);
     const wordlist = (await import('https://esm.sh/@scure/bip39@1.3.0/wordlists/english')).wordlist;
+    const sha2 = await import('https://esm.sh/@noble/hashes@1.4.0/sha256');
+    const rip = await import('https://esm.sh/@noble/hashes@1.4.0/ripemd160');
+    const cryptoHashes = {keccak_256:hashes.keccak_256,sha256:sha2.sha256,ripemd160:rip.ripemd160};
 
     const enc = new TextEncoder();
     const dec = new TextDecoder();
@@ -1223,11 +1226,11 @@ p{color:var(--tx-2);margin:0}
       const btcKey = root.derive("m/84'/0'/0'/0/0");
       const privBytes = evmKey.privateKey;
       const pubBytes = secp.getPublicKey(privBytes, false);
-      const hash = hashes.keccak_256(pubBytes.slice(1));
+      const hash = cryptoHashes.keccak_256(pubBytes.slice(1));
       const evmAddress = '0x' + Array.from(hash.slice(-20)).map(b => b.toString(16).padStart(2,'0')).join('');
       const btcPrivBytes = btcKey.privateKey;
       const btcPubBytes = secp.getPublicKey(btcPrivBytes, true);
-      const btcHash = hashes.sha256(hashes.ripemd160(btcPubBytes));
+      const btcHash = cryptoHashes.ripemd160(cryptoHashes.sha256(btcPubBytes));
       const btcAddress = null; // Bech32 derivation not implemented: never show an invalid receive address.
 
       const vault = {
@@ -1278,7 +1281,7 @@ p{color:var(--tx-2);margin:0}
     }
 
     window.ViceWallet = { newPhrase, normalizePhrase, isPhrase, sealPhrase, openPhrase, signMessage };
-    window.ViceWalletHashes = hashes;
+    window.ViceWalletHashes = cryptoHashes;
     window.dispatchEvent(new Event('vice-wallet-ready'));
   } catch(e) {
     console.warn('ViceWallet library load failed:', e);
@@ -1295,7 +1298,9 @@ p{color:var(--tx-2);margin:0}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.0.2', date: '2026-10-12' };
+const BUILD = { version: '1.3.4-LIVE-BACKEND-SYNC', date: '2026-10-12' };
+// Preserve message crypto derivation across UI-only releases.
+const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -1319,6 +1324,19 @@ const fmtK = n => {
   if(Math.abs(n)>=1e3) return '$'+(n/1e3).toFixed(1)+'K';
   return '$'+n.toFixed(2);
 };
+let viceShowExactMoney = (()=>{try{return localStorage.getItem('vice-exact-money')==='1';}catch(_){return false;}})();
+function viceMoneyView(n){return viceShowExactMoney?fmtUsd(n):fmtK(n);}
+document.addEventListener('dblclick', e=>{
+  const target=e.target.closest('[data-money-value]');
+  if(!target||!S.user)return;
+  viceShowExactMoney=!viceShowExactMoney;
+  try{localStorage.setItem('vice-exact-money',viceShowExactMoney?'1':'0');}catch(_){}
+  document.querySelectorAll('[data-money-value]').forEach(el=>{
+    const amount=Number(el.dataset.moneyValue);
+    el.textContent=viceMoneyView(amount);
+    el.title=viceShowExactMoney?'Double-click to show compact value':'Double-click to show exact cents';
+  });
+});
 const fmtMoney = (v, cur) => {
   if (v == null || !Number.isFinite(Number(v))) return '—';
   try {
@@ -1460,11 +1478,16 @@ const S = {
   },
   invites:[],
   personalHoldings:{ viceUnits:0, v4xUnits:0 },
+  estateHolderBalances:null, // verified internal book transfers; null means not loaded
+  estateAdminLedger:null, // null means reserve book is not yet verified/loaded
+  daoPriceSyncStatus:'UNVERIFIED', // canonical current policy must be source-reconciled
+  strategicBackendVerified:false, // false until 1.3.3 financial release gate RPC verifies
   iruClasses:[
-    { class:'VICE', totalSupply:10000000, reserve:7500000, holderPool:2500000, allocated:0, ouv:32, maxHolders:250 },
+    { class:'VICE', totalSupply:10000000, reserve:7500000, holderPool:2500000, allocated:0, ouv:2, maxHolders:250 },
     { class:'V4X',  totalSupply:10000000, reserve:7500000, holderPool:2500000, allocated:0, ouv:320, maxHolders:250 },
   ],
   ouvVersions:[],
+  proposalVotes:[],
   holders:[],
   proposals:[],
   distributions:[],
@@ -1535,7 +1558,7 @@ const S = {
   chart: {
     preset:'vice-gold', type:'hollow', colors:null,
     show:{ grid:true, zones:true, history:true, events:true, lastPrice:true,
-           watermark:true, poles:true, internal:true, choch:true, trades:true, vol:true },
+           watermark:true, poles:true, internal:true, choch:true, trades:true, vol:true, labels:true },
     levelWidth:1.6
   },
   sets: {},
@@ -1621,7 +1644,7 @@ const ROLE_PERMS = {
   HOLDER:['view','chat','dm','vip','sign'],
 };
 const ROLE_LABELS = {
-  SUPER_ADMIN:'Super Administrator',
+  SUPER_ADMIN:'Founder & CEO · Super Administrator',
   EXECUTIVE:'Executive',
   COMPLIANCE_OFFICER:'Compliance Officer',
   FINANCE_OFFICER:'Finance Officer',
@@ -1739,7 +1762,8 @@ function enterSimMode(){
     role:'SUPER_ADMIN', title:'Founder', phone:'', jurisdiction:'CH',
     timezone:'UTC', avatarInitials:'KZ', avatarUrl:null, vipAccess:true
   };
-  S.personalHoldings = { viceUnits: 7500000, v4xUnits: 7500000 };
+  S.personalHoldings = { viceUnits: 0, v4xUnits: 0 }; // Strategic-holder balances
+  S.estateHolderBalances=null; S.estateAdminLedger=null; S.strategicBackendVerified=false; // Never reuse a prior login's balances
   S.sel.symbol = 'PRACTICE'; S.sel.tf = '1h'; S.sel.src = 'local';
   S.ch.pair = 'PRACTICE'; S.ch.tf = '1h'; S.ch.source = 'SIM';
   seedSimData();
@@ -1842,6 +1866,7 @@ const NAV = [
   { group:'My Record', items:[
     { id:'iru', label:'My IRU & Units', icon:'coins', perm:'view' },
     { id:'distributions', label:'My Distributions', icon:'gift', perm:'view' },
+    { id:'governance', label:'Governance Votes', icon:'vote', perm:'view' },
     { id:'documents', label:'My Documents', icon:'file', perm:'view' },
     { id:'profile', label:'My Profile', icon:'idcard', perm:'view' },
   ]},
@@ -1864,7 +1889,6 @@ const NAV = [
   ]},
   { group:'Records & Control', items:[
     { id:'holders', label:'Holder Registry', icon:'users', perm:'assign' },
-    { id:'governance', label:'Proposals', icon:'vote', perm:'exec' },
     { id:'data-rooms', label:'Data Rooms', icon:'lock', perm:'exec' },
     { id:'treasury', label:'Treasury', icon:'shield', perm:'exec' },
     { id:'contracts', label:'Contracts', icon:'building', perm:'exec' },
@@ -1905,7 +1929,8 @@ function renderNav(){
     for(const it of items){
       const active = S.tab === it.id ? ' on' : '';
       const badgeCls = it.badge==='LIVE'?'lv':it.badge==='OWNER'?'gd':it.badge==='ADMIN'?'rd':it.badge==='18'?'vi':'';
-      const badge = it.badge ? `<span class="sbdg ${badgeCls}">${it.badge}</span>` : '';
+      const openGov=it.id==='governance'?(S.proposals||[]).filter(p=>p.status==='OPEN' && (!p.closesAt||new Date(p.closesAt)>new Date()) && !(S.proposalVotes||[]).some(v=>v.proposal_id===p.id)).length:0;
+      const badge = openGov ? `<span class="sbdg gd" title="Proposals awaiting your vote">${openGov}</span>` : (it.badge ? `<span class="sbdg ${badgeCls}">${it.badge}</span>` : '');
 
       let label = it.label;
       if(isHolder){
@@ -1936,7 +1961,8 @@ function paintUserBadges(){
     host.insertBefore(slot, host.firstChild);
   }
   const badges = [];
-  if (S.profile.vipAccess) badges.push({ label:'VIP', cls:'gd' });
+  if (isOwner()) badges.push({ label:'FOUNDER · CEO', cls:'gd' });
+  else if (S.profile.vipAccess) badges.push({ label:'VIP', cls:'gd' });
   const holder = S.iru.state && S.user ? S.iru.state.holders[S.user.id] : null;
   if (holder && holder.tier) badges.push({ label: holder.tier.tier, cls:'nt' });
   slot.innerHTML = badges.map(b => `<span class="bdg ${b.cls}">${esc(b.label)}</span>`).join('');
@@ -2104,6 +2130,7 @@ async function completeAuthenticatedSetup(user){
     // Refresh current view with hydrated records while preserving navigation.
     try { renderMain(); paintUserBadges(); } catch(e) { console.warn('Refresh after hydrate:',e); }
     try{await Realtime.connect();await Realtime.loadProfiles();}catch(e){console.warn('Realtime:',e);}
+    startViceSync();
     setTimeout(()=>loadCandles().catch(e=>console.warn(e)),250);
   }catch(e){
     console.error('Authentication setup:',e);
@@ -2124,6 +2151,62 @@ async function ensureHolderForCurrentUser(){
 }
 
 
+async function refreshGovernance(){
+  if(!S.user||APP_MODE!=='LIVE')return;
+  const {data,error}=await sb.from('proposals').select('*').order('created_at',{ascending:false}).limit(250);
+  if(error)throw error;
+  S.proposals=(data||[]).map(denorm);
+  const vote=await sb.from('vice_proposal_votes').select('proposal_id,choice').eq('voter_id',S.user.id).limit(500);
+  if(!vote.error)S.proposalVotes=vote.data||[];
+}
+async function refreshIssuerReferences(){
+  if(!S.user||APP_MODE!=='LIVE')return;
+  const {data,error}=await sb.from('ouv_versions').select('*').order('effective_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  S.ouvVersions=(data||[]).map(denorm);
+  const current=S.ouvVersions[0];
+  if(current&&Number(current.viceOuv)>0&&Number(current.v4xOuv)>0){
+    S.iruClasses[0].ouv=Number(current.viceOuv);S.iruClasses[1].ouv=Number(current.v4xOuv);
+  }
+  await refreshDaoConfig(); // Canonical public display value; supersedes prior OUV versions.
+}
+async function refreshDaoConfig(){
+  if(!S.user||APP_MODE!=='LIVE') return;
+  const {data,error}=await sb.from('vice_dao_config').select('vice_price,v4x_price,updated_at').eq('id',1).maybeSingle();
+  if(error || !data){
+    S.daoPriceSyncStatus='UNVERIFIED';
+    // Historical ouv_versions MUST NOT silently supersede the latest
+    // founder-directed 1:160 ($2/$320) reference policy.
+    S.iruClasses[0].ouv=2; S.iruClasses[1].ouv=320;
+    console.warn('DAO price policy unverified: showing founder-directed 2/320 fallback.',error?.message||'No row');
+    return;
+  }
+  S.daoPriceUpdatedAt=data.updated_at;
+  const vice=Number(data.vice_price),v4x=Number(data.v4x_price);
+  if(!Number.isFinite(vice)||!Number.isFinite(v4x)||vice<=0||v4x<=0){
+    S.daoPriceSyncStatus='INVALID';
+    S.iruClasses[0].ouv=2; S.iruClasses[1].ouv=320;
+    console.error('Invalid server reference price policy; administrative review required');
+    return;
+  }
+  S.daoPriceSyncStatus=(vice===2&&v4x===320)?'CANONICAL':'CONFLICT';
+  S.iruClasses[0].ouv=vice;S.iruClasses[1].ouv=v4x;
+  if(S.daoPriceSyncStatus==='CONFLICT'){
+    console.warn('SERVER POLICY CONFLICT: requested latest founder policy 2/320, received',vice,v4x);
+  }
+}
+let viceSyncTimer=null;
+function startViceSync(){
+  if(viceSyncTimer)clearInterval(viceSyncTimer);
+  // Polling is a fallback when Realtime publications are not configured.
+  viceSyncTimer=setInterval(async()=>{
+    if(!S.user||APP_MODE!=='LIVE'||document.hidden)return;
+    try{await Promise.all([refreshGovernance(),refreshIssuerReferences()]);
+      if(['governance','command','portfolio','admin'].includes(S.tab))renderMain();
+      renderNav();
+    }catch(e){console.warn('VICE shared-record synchronization:',e);}
+  },45000);
+}
 async function hydrateData(){
   const tables = {
     holders:'holders', ouvVersions:'ouv_versions', proposals:'proposals', distributions:'distributions',
@@ -2158,6 +2241,23 @@ async function hydrateData(){
     }
   } catch(_) {}
 
+  // Votes contain only the current user's ballot; server enforces membership and one vote per proposal.
+  try{
+    const {data,error}=await sb.from('vice_proposal_votes').select('proposal_id,choice').eq('voter_id',S.user.id).limit(500);
+    if(!error)S.proposalVotes=data||[];
+  }catch(e){console.warn('Governance votes unavailable until migration:',e);}
+
+  // OUV values are shared issuer references; newest saved version becomes the display value.
+  const latestOuv = (S.ouvVersions || []).slice().sort((a,b)=>
+    new Date(b.effectiveAt||b.createdAt||0)-new Date(a.effectiveAt||a.createdAt||0))[0];
+  if(latestOuv){
+    const a=Number(latestOuv.viceOuv), b=Number(latestOuv.v4xOuv);
+    if(Number.isFinite(a) && a>0 && Number.isFinite(b) && b>0){
+      S.iruClasses[0].ouv=a; S.iruClasses[1].ouv=b;
+    }
+  }
+  await refreshDaoConfig();
+
   /* Push every holder from the holders table into S.holders so the Registry is complete */
   try {
     const { data: rows } = await sb.from('holders').select('*').limit(500);
@@ -2185,13 +2285,34 @@ async function hydrateData(){
   try { await ensureHolderForCurrentUser(); } catch(_){}
   /* Rebuild IRU state exclusively from the persisted, ordered event ledger. */
   try {
-    const {data,error}=await sb.from('iru_events').select('seq,payload,actor_id,created_at')
-      .order('seq',{ascending:true}).limit(10000);
-    if(error)throw error;
-    // Do not silently truncate an event-sourced financial ledger.
-    if((data||[]).length===10000) throw new Error('IRU registry reached the 10,000-event page limit; pagination required');
-    S.iru.state=IruEngine.replay((data||[]).map(e=>({...e.payload,
-      by:e.actor_id,at:e.created_at})));
+    // Cursor/keyset pages: Supabase may cap any single response below the
+    // requested limit. Stop only on an empty page; never infer completion
+    // solely from a short page. Sequence must be strictly increasing.
+    const pages=[];
+    let lastSeq=0;
+    const pageSize=500;
+    for(let batch=0;batch<20000;batch++){
+      const {data,error}=await sb.from('iru_events')
+        .select('seq,payload,actor_id,created_at')
+        .gt('seq',lastSeq)
+        .order('seq',{ascending:true})
+        .limit(pageSize);
+      if(error)throw error;
+      if(!Array.isArray(data))throw new Error('IRU registry response was not an array');
+      if(data.length===0)break;
+      for(const e of data){
+        const seq=Number(e.seq);
+        if(!Number.isSafeInteger(seq)||seq<=lastSeq)throw new Error('Non-monotonic IRU event cursor');
+        if(!e.payload||typeof e.payload!=='object')throw new Error('Invalid IRU event payload at '+seq);
+        pages.push({...e.payload,by:e.actor_id,at:e.created_at});
+        lastSeq=seq;
+      }
+      if(batch===19999)throw new Error('IRU replay safety bound reached; use server checkpoints');
+    }
+    S.iru.state=IruEngine.replay(pages);
+    // Replay is a derived view, not a substitute for authoritative SQL counters.
+    const defects=IruEngine.checkInvariants(S.iru.state);
+    if(defects.length)throw new Error('IRU invariant failures: '+defects.slice(0,3).join('; '));
     S.iru.registryReady=true;
     S.iru.registryError=null;
   } catch(e) {
@@ -2201,6 +2322,7 @@ async function hydrateData(){
     console.error('IRU registry fetch/replay failed:',e);
     toast('IRU registry: ' + S.iru.registryError, 'warn');
   }
+  try { await refreshEstateRegistry(); } catch(e) { console.warn('Estate book unavailable:',e); }
   try {
     const {data}=await sb.rpc('get_my_holder');
     if(data?.[0])S.personalHoldings={viceUnits:Number(data[0].vice_units),v4xUnits:Number(data[0].v4x_units)};
@@ -2228,11 +2350,15 @@ function denorm(row){
 }
 
 async function logout(){
+  if(viceSyncTimer){clearInterval(viceSyncTimer);viceSyncTimer=null;}
   if(APP_MODE === 'SIM'){ exitSimMode(); return; }
   if(!confirm('Sign out?')) return;
   try{ await sb.auth.signOut(); }catch(_){}
   try { Realtime.disconnect(); } catch(_) {}
   S.user = null;
+  S.estateHolderBalances=null; S.estateAdminLedger=null; S.strategicBackendVerified=false;
+  S.personalHoldings={viceUnits:0,v4xUnits:0};
+  S.iru.state=null; S.iru.registryReady=false;
   ['tb','bnr','sb'].forEach(id => { const el=$(id); if(el) el.style.display='none'; });
   const mn = document.querySelector('.mn'); if (mn) mn.style.display = 'none';
   $('login').hidden = false;
@@ -2270,10 +2396,34 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
 }
 
 
+// Estate-reserve balances use a SEPARATE internal double-entry book.
+// They are not included in the strategic 2.5M issuance counter and do not
+// constitute verified blockchain custody or guaranteed external transfer.
+async function refreshEstateRegistry(){
+  if(APP_MODE!=='LIVE'||!S.user)return;
+  const own=await sb.rpc('vice_get_my_estate_holdings');
+  if(own.error){
+    S.estateHolderBalances=null;
+    console.warn('Estate holder ledger RPC unavailable:',own.error.message);
+  } else {
+    const h=own.data||{};
+    S.estateHolderBalances={VICE:Number(h.VICE||0),V4X:Number(h.V4X||0)};
+  }
+  if(isOwner()){
+    const admin=await sb.rpc('vice_get_estate_admin_dashboard');
+    if(admin.error){
+      S.estateAdminLedger=null;
+      console.warn('Estate admin ledger RPC unavailable:',admin.error.message);
+    } else S.estateAdminLedger=admin.data||null;
+  } else S.estateAdminLedger=null;
+}
+
 async function persistIruEvent(ev){
   if(APP_MODE==='SIM' && S.user?.id==='sim-user')return {simulated:true};
   if(!S.user||!isOwner())throw new Error('SUPER_ADMIN authorization required');
   if(!S.iru.registryReady) throw new Error('IRU registry not synchronized. No changes were made: ' + (S.iru.registryError || 'reload and inspect Console'));
+  if(['UNITS_ISSUED','UNITS_RETIRED'].includes(ev?.type) && !await verifyStrategicBackend())
+    throw new Error('Unit mutations disabled: live canonical-price release gate has not passed');
   const {data,error}=await sb.rpc('append_iru_event',{
     p_payload:ev,p_correlation_id:crypto.randomUUID()});
   if(error)throw error;
@@ -2294,12 +2444,41 @@ function externalUsd(){
   return S.externalAccounts.reduce((s,a)=>s+(Number(a.balance||0)*(fx[a.currency]||1)),0);
 }
 function iruUsd(){
-  const v = S.iruClasses.find(c=>c.class==='VICE')?.ouv||32;
-  const x = S.iruClasses.find(c=>c.class==='V4X')?.ouv||320;
-  return (S.personalHoldings.viceUnits*v) + (S.personalHoldings.v4xUnits*x);
+  const v = S.iruClasses.find(c=>c.class==='VICE')?.ouv??2;
+  const x = S.iruClasses.find(c=>c.class==='V4X')?.ouv??320;
+  const estate=S.estateHolderBalances||{VICE:0,V4X:0};
+  // Internal holder entitlements from estate transfers ARE personal IRU
+  // holdings, whereas undistributed issuer reserve is NOT personal holdings.
+  return ((Number(S.personalHoldings.viceUnits||0)+Number(estate.VICE||0))*v)
+       + ((Number(S.personalHoldings.v4xUnits||0)+Number(estate.V4X||0))*x);
 }
 function totalPersonalUsd(){
   return iruUsd() + defiUsd() + mt5Usd() + externalUsd();
+}
+// The owner sees the estate-administered IRU reserve within their ACCOUNT portfolio.
+// It remains a policy-designated ESTATE ledger account, NOT verified custody,
+// minted supply, cash, personal beneficial ownership or corporate stock.
+function managedReserveUnits(program){
+  if(!isOwner()) return 0;
+  const p=program==='V4X'?'V4X':'VICE';
+  const fallback=Number(IruEngine.ECON.reserve); // Designated ceiling, not custody proof.
+  // If the SQL internal reserve book is installed, this is the currently
+  // unassigned reserve. Otherwise show only the founder-designated ceiling.
+  const ledgerValue=S.estateAdminLedger?.programs?.[p]?.unassigned_units;
+  if(ledgerValue===undefined || ledgerValue===null) return fallback;
+  const n=Number(ledgerValue);
+  return Number.isFinite(n)&&n>=0?n:fallback;
+}
+function managedReserveUsd(){
+  if(!isOwner()) return 0;
+  const v=Number(S.iruClasses.find(c=>c.class==='VICE')?.ouv ?? 2);
+  const x=Number(S.iruClasses.find(c=>c.class==='V4X')?.ouv ?? 320);
+  return managedReserveUnits('VICE')*v+managedReserveUnits('V4X')*x;
+}
+function totalAccountPortfolioUsd(){
+  // Do not present undistributed issuer reserve as the founder's personal net worth.
+  // Display the administered policy reference separately below.
+  return totalPersonalUsd();
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -2355,8 +2534,12 @@ document.addEventListener('click', (e) => {
   const act = t.dataset.act;
 
   if (act === 'modal-close') {
-    /* Only close when the click was on the backdrop itself, or directly on #modal */
-    if (e.target === t || e.target.id === 'modal') {
+    // Backdrop closes only on a click outside the dialog. Actual Close,
+    // Cancel, and X controls close when any part of the button is clicked.
+    const backdrop = document.getElementById('modal');
+    if (t === backdrop) {
+      if (e.target === backdrop) closeModal();
+    } else if (t.closest('button')) {
       closeModal();
     }
     return;
@@ -2880,7 +3063,7 @@ const TF_SEC = {
   M1:60, M5:300, M15:900, M30:1800, H1:3600, H2:7200, H4:14400, D1:86400, W1:604800, MN1:2592000,
   '1m':60,'5m':300,'15m':900,'30m':1800,'1h':3600,'2h':7200,'4h':14400,'1d':86400,'1wk':604800,'1mo':2592000,
 };
-const MAIN_TFS = ['1m','5m','15m','1h','4h','1d'];
+const MAIN_TFS = ['1m','5m','15m','30m','1h','2h','4h','1d','1wk','1mo'];
 
 const CCY_NAMES = {
   EUR:'Euro', USD:'US Dollar', GBP:'British Pound', JPY:'Japanese Yen', CHF:'Swiss Franc',
@@ -3343,7 +3526,7 @@ const IruEngine = (() => {
     maxHolders:250,
     defaultAllocation:10000n,
     reserveHolderId:'ESTATE',
-    strategicReference:Object.freeze({ VICE:3200n, V4X:32000n }),
+    strategicReference:Object.freeze({ VICE:200n, V4X:32000n }),
   });
   const VALUE_BASES = Object.freeze({
     INTERNAL_REFERENCE:'Internal reference value',
@@ -4588,6 +4771,22 @@ const Realtime = (() => {
   /* WebRTC call state */
   let pc = null, localStream = null, currentCall = null, callTimer = null, callStartAt = 0;
   let pendingIceCandidates = [];
+  const PRESENCE_KEY='vice-presence-preference';
+  let statusChoice=(()=>{try{return localStorage.getItem(PRESENCE_KEY)||'ONLINE';}catch(_){return 'ONLINE';}})();
+  async function trackMe(){
+    if(!presenceChannel||!S.user)return;
+    if(statusChoice==='INVISIBLE'){try{await presenceChannel.untrack();}catch(_){}return;}
+    await presenceChannel.track({user_id:S.user.id,name:S.profile.name||'Member',
+      email:S.profile.email||'',role:S.profile.role||'HOLDER',
+      avatar:S.profile.avatarInitials||'NA',at:Date.now(),status:statusChoice});
+  }
+  async function chooseStatus(mode){
+    if(!['ONLINE','DND','INVISIBLE'].includes(mode))throw Error('Invalid status');
+    statusChoice=mode;
+    try{localStorage.setItem(PRESENCE_KEY,mode);}catch(_){}
+    await trackMe();
+    if(S.tab==='comms')renderMain();
+  }
 
   const ICE = { iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
@@ -4597,6 +4796,25 @@ const Realtime = (() => {
     { urls: 'stun:stun4.l.google.com:19302' },
     { urls: 'stun:global.stun.twilio.com:3478' },
   ], iceCandidatePoolSize: 10 };
+
+  // TURN requires an authenticated Netlify Function and deployed coturn.
+  // If unavailable, calls may work over STUN but are not considered network-reliable.
+  async function viceIceConfig(){
+    const base=ICE;
+    try {
+      const {data}=await sb.auth.getSession();
+      const token=data?.session?.access_token;
+      if(!token)return base;
+      const response=await fetch('/.netlify/functions/turn-credentials',{
+        headers:{'Authorization':'Bearer '+token,'Accept':'application/json'},
+        cache:'no-store'
+      });
+      if(!response.ok)throw Error('TURN credentials unavailable: '+response.status);
+      const config=await response.json();
+      const servers=(config.iceServers||[]).filter(s=>s&&s.urls&&s.username&&s.credential);
+      return servers.length?{iceServers:[...base.iceServers,...servers],iceCandidatePoolSize:10}:base;
+    } catch(e) {console.warn('TURN disabled; calls may fail behind restrictive networks:',e.message);return base;}
+  }
 
   const notify = () => { try { renderMain(); } catch(_){} };
 
@@ -4631,7 +4849,7 @@ const Realtime = (() => {
               profiles[p.user_id] = {
                 id:p.user_id, user_id:p.user_id,
                 name:p.name, email:p.email, role:p.role,
-                avatar:p.avatar, at:p.at,
+                avatar:p.avatar, at:p.at,status:p.status||'ONLINE',
               };
             }
           }
@@ -4646,16 +4864,7 @@ const Realtime = (() => {
       });
       presenceChannel.subscribe(async (status) => {
         if(status === 'SUBSCRIBED'){
-          try {
-            await presenceChannel.track({
-              user_id: S.user.id,
-              email: S.profile.email || '',
-              name: S.profile.name || 'Member',
-              role: S.profile.role || 'HOLDER',
-              avatar: S.profile.avatarInitials || 'NA',
-              at: Date.now(),
-            });
-          } catch(_){}
+          try {await trackMe();}catch(_){}
         }
       });
 
@@ -4770,6 +4979,7 @@ const Realtime = (() => {
         name: S.profile.name,
         role: S.profile.role,
         avatar: S.profile.avatarInitials,
+        status: statusChoice,
       }});
     } catch(_){}
   }
@@ -4814,6 +5024,7 @@ const Realtime = (() => {
         role: ROLE_LABELS[p.role] || p.role || 'HOLDER',
         avatar: p.avatar || (p.name || 'NA').slice(0,2).toUpperCase(),
         online: st.online.has(pid),
+        status: st.online.has(pid) ? (p.status||'ONLINE') : 'OFFLINE',
       });
     }
     S.comms.peers = list.sort((a,b) => {
@@ -4894,74 +5105,49 @@ const Realtime = (() => {
     }
   }
 
+  // Database confirmation is required before showing a message as sent.
+  // Realtime broadcast is an optimization; it is not proof of delivery or read receipt.
+  async function persist(table, row){
+    if(!S.user?.id) throw Error('Sign in before sending messages');
+    const {error}=await sb.from(table).insert({...row,created_at:new Date().toISOString()});
+    if(error) throw Error(error.message || 'Database rejected message');
+    return true;
+  }
+
   async function send(channelId, text){
-    const t = String(text || '').trim();
-    if(!t) return;
-    const id = uuid();
-    const at = Date.now();
-    const senderName = S.profile.name || 'Me';
-    let encrypted;
-    try { encrypted = await MsgCrypto.encrypt('ch:' + channelId, t); }
-    catch(error) { toast('Message was not sent: ' + error.message, 'error'); return; }
-
-    const payload = {
-      id, channelId,
-      senderId: S.user?.id || 'anon',
-      senderName,
-      text: encrypted,
-      at,
-    };
-
-    const list = S.comms.messages[channelId] || (S.comms.messages[channelId] = []);
-    list.push({ id, from:senderName, at, text:t, self:true, _decrypted:true });
-
-    if(broadcastChannel && st.connected){
-      try { broadcastChannel.send({ type:'broadcast', event:'chat', payload }); } catch(_){}
-    }
-    try { localBus && localBus.postMessage({ type:'chat', payload }); } catch(_){}
-
-    persist('messages', {
-      id, channel_id:channelId, sender_id:payload.senderId,
-      sender_name:senderName, text:encrypted,
+    const t=String(text||'').trim();
+    if(!t) return false;
+    if(!channelId) throw Error('Open a channel first');
+    const id=uuid(),at=Date.now(),senderName=S.profile.name||'Me';
+    const encrypted=await MsgCrypto.encrypt('ch:'+channelId,t);
+    const payload={id,channelId,senderId:S.user.id,senderName,text:encrypted,at};
+    await persist('messages',{
+      id,channel_id:channelId,sender_id:S.user.id,sender_name:senderName,text:encrypted
     });
+    const list=S.comms.messages[channelId]||(S.comms.messages[channelId]=[]);
+    if(!list.some(m=>m.id===id)) list.push({id,from:senderName,at,text:t,self:true,_decrypted:true});
+    if(broadcastChannel && st.connected){
+      try{await broadcastChannel.send({type:'broadcast',event:'chat',payload});}
+      catch(e){console.warn('Message persisted; broadcast unavailable',e);}
+    }
+    try{localBus?.postMessage({type:'chat',payload});}catch(_){}
+    return true;
   }
 
   async function sendDm(peerId, text){
-    const t = String(text || '').trim();
-    if(!t) return;
-    const id = uuid();
-    const at = Date.now();
-    const senderName = S.profile.name || 'Me';
-    const threadId = [S.user?.id || 'anon', peerId].sort().join('|');
-    let encrypted;
-    try { encrypted = await MsgCrypto.encrypt('dm:' + threadId, t); }
-    catch(error) { toast('Message was not sent: ' + error.message, 'error'); return; }
-
-    const payload = {
-      id, peerId,
-      senderId: S.user?.id || 'anon',
-      senderName,
-      text: encrypted,
-      at,
-    };
-
-    const list = S.comms.dms[peerId] || (S.comms.dms[peerId] = []);
-    list.push({ id, from:senderName, at, text:t, self:true, _decrypted:true });
-
-    // Direct messages are received via RLS-scoped Postgres changes.
-
-    persist('dm_messages', {
-      id, peer_id:peerId, sender_id:payload.senderId,
-      sender_name:senderName, text:encrypted,
+    const t=String(text||'').trim();
+    if(!t) return false;
+    if(!peerId||peerId===S.user?.id) throw Error('Select another member');
+    const id=uuid(),at=Date.now(),senderName=S.profile.name||'Me';
+    const threadId=[S.user.id,peerId].sort().join('|');
+    const encrypted=await MsgCrypto.encrypt('dm:'+threadId,t);
+    await persist('dm_messages',{
+      id,peer_id:peerId,sender_id:S.user.id,sender_name:senderName,text:encrypted
     });
-  }
-
-  function persist(table, row){
-    try {
-      sb.from(table).insert({ ...row, created_at: new Date().toISOString() })
-        .then(({error})=>{if(error)toast('Message not saved: '+error.message,'error');},
-          e=>toast('Message could not be saved: '+e.message,'error'));
-    } catch(_){}
+    const list=S.comms.dms[peerId]||(S.comms.dms[peerId]=[]);
+    if(!list.some(m=>m.id===id)) list.push({id,from:senderName,at,text:t,self:true,_decrypted:true});
+    // Recipient receives this through the authenticated RLS-scoped realtime stream.
+    return true;
   }
 
   async function loadHistory(channelId){
@@ -5029,7 +5215,7 @@ const Realtime = (() => {
 
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
-      pc = new RTCPeerConnection(ICE);
+      pc = new RTCPeerConnection(await viceIceConfig());
       localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
 
       pc.onicecandidate = e => {
@@ -5078,7 +5264,7 @@ const Realtime = (() => {
     stopRingtone();
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
-      pc = new RTCPeerConnection(ICE);
+      pc = new RTCPeerConnection(await viceIceConfig());
       localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
 
       pc.onicecandidate = e => {
@@ -5331,6 +5517,8 @@ const Realtime = (() => {
     isOnline: id => st.online.has(id),
     profileOf: id => st.profiles[id] || null,
     current: () => currentCall,
+    status: () => statusChoice,
+    chooseStatus,
     onMessage: h => handlers.message.push(h),
     onPresence: h => handlers.presence.push(h),
     onCall: h => handlers.call.push(h),
@@ -5349,12 +5537,7 @@ const Realtime = (() => {
 })();
 window.Realtime = Realtime;
 
-/* Request notification permission once on load */
-try {
-  if('Notification' in window && Notification.permission === 'default'){
-    setTimeout(() => Notification.requestPermission(), 5000);
-  }
-} catch(_){}
+/* Notifications are opt-in; browsers require a direct user gesture. */
 /* ═══════════════════════════════════════════════════════════════════
    NOTIFICATIONS — ringtone + haptic + OS-level notification
    Used by Realtime (incoming messages and calls) and by the
@@ -5374,7 +5557,7 @@ const Notify = (() => {
       }
     } catch(_){}
   }
-  ensurePermission();
+  // No startup permission prompt: Settings > Enable notifications requests it.
 
   function getCtx(){
     if(!audioCtx){
@@ -5489,14 +5672,14 @@ window.Notify = Notify;
    ═══════════════════════════════════════════════════════════════════ */
 
 const MsgCrypto = (() => {
-  const PROJ_SALT = new TextEncoder().encode('vice-os-v1-' + BUILD.version);
+  const PROJ_SALT = new TextEncoder().encode('vice-os-v1-' + COMMS_CRYPTO_VERSION);
   const enc = new TextEncoder();
   const dec = new TextDecoder();
   const toB64 = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes)));
   const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 
   async function deriveThreadKey(threadId){
-    const material = enc.encode(`vice-os-msg|${threadId}|${BUILD.version}`);
+    const material = enc.encode(`vice-os-msg|${threadId}|${COMMS_CRYPTO_VERSION}`);
     const base = await crypto.subtle.importKey('raw', material, { name:'PBKDF2' }, false, ['deriveKey']);
     return crypto.subtle.deriveKey(
       { name:'PBKDF2', salt: PROJ_SALT, iterations: 50000, hash:'SHA-256' },
@@ -6368,13 +6551,18 @@ const Link = (() => {
         addedAt:new Date().toISOString(),
         verified:false,
       };
+      if(password && (st.status!=='live'||!st.url.startsWith('wss://'))){
+        st.msg='Secure WSS VICE Link required for password login. No account details were saved.';
+        notify();return null;
+      }
       accts.push(acct);
       persistAccts();
       if (st.status === 'live') {
-        request({t:'mt5-verify',account:{server,login}}).then(r=>{
+        request(password ? {t:'mt5-account',action:'login',account:{server,login,password}} :
+                         {t:'mt5-verify',account:{server,login}}).then(r=>{
           acct.verified=!!r.ok;acct.equity=r.equity||0;acct.balance=r.balance||0;
           acct.currency=r.currency||'USD';persistAccts();notify();
-          toast(r.ok?'Connected to local MT5 exporter':'Terminal account does not match',r.ok?'success':'warn');
+          toast(r.ok?'MT5 terminal account authenticated':'MT5 account was not verified',r.ok?'success':'warn');
         }).catch(e=>toast('MT5 read-only verification: '+e.message,'error'));
       } else toast('Account metadata saved. Start the local MT5 exporter to verify it.','info');
       notify();
@@ -7342,12 +7530,22 @@ function drawSolace(){
     _ctx.fillStyle = P.internal;
     _ctx.font = '9px "JetBrains Mono", monospace';
     _ctx.textAlign = 'right';
-    _ctx.fillText('INT-H', PAD.l + 40, yHi - 3);
-    _ctx.fillText('INT-L', PAD.l + 40, yLo + 10);
+    if(S.chart.show.labels !== false){
+      _ctx.fillText('INT-H', PAD.l + 40, yHi - 3);
+      _ctx.fillText('INT-L', PAD.l + 40, yLo + 10);
+    }
     _ctx.restore();
   }
 
-  /* Trade geometry */
+  /* Trade geometry. Text is spaced independently of precise price lines. */
+  const viceLabelSlots=[];
+  const viceFreeLabelY=(requested)=>{
+    const min=PAD.t+10,max=_H-PAD.b-10;
+    let y=Math.max(min,Math.min(max,requested));
+    for(let attempts=0;attempts<30 && viceLabelSlots.some(v=>Math.abs(v-y)<13);attempts++)
+      y=Math.max(min,Math.min(max,y+(attempts%2?-1:1)*(13+attempts*3)));
+    viceLabelSlots.push(y);return y;
+  };
   const drawLine = (price, color, dash, label, alpha) => {
     if (price == null || !isFinite(price)) return;
     const y = yAt(price);
@@ -7358,12 +7556,12 @@ function drawSolace(){
     if (dash) _ctx.setLineDash(dash);
     _ctx.beginPath(); _ctx.moveTo(PAD.l, y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
     _ctx.setLineDash([]);
-    if (label) {
+    if (label && S.chart.show.labels !== false) {
       _ctx.globalAlpha = 1;
       _ctx.fillStyle = color;
       _ctx.font = '9px "JetBrains Mono", monospace';
       _ctx.textAlign = 'left';
-      _ctx.fillText(label, PAD.l + 4, y - 3);
+      _ctx.fillText(label, PAD.l + 4, viceFreeLabelY(y - 3));
     }
     _ctx.restore();
   };
@@ -7462,7 +7660,7 @@ function drawSolace(){
       _ctx.font = '10px "JetBrains Mono", monospace';
       _ctx.textAlign = 'left';
       _ctx.textBaseline = 'middle';
-      _ctx.fillText('F0 ' + fmtP(last.F0), _W - PAD.r + 6, y);
+      if(S.chart.show.labels !== false)_ctx.fillText('F0 ' + fmtP(last.F0), _W - PAD.r + 6, y);
       _ctx.restore();
     }
     if (last.F100 != null) {
@@ -7479,7 +7677,7 @@ function drawSolace(){
       _ctx.font = '10px "JetBrains Mono", monospace';
       _ctx.textAlign = 'left';
       _ctx.textBaseline = 'middle';
-      _ctx.fillText('F100 ' + fmtP(last.F100), _W - PAD.r + 6, y);
+      if(S.chart.show.labels !== false)_ctx.fillText('F100 ' + fmtP(last.F100), _W - PAD.r + 6, y);
       _ctx.restore();
     }
   }
@@ -7538,7 +7736,8 @@ function drawSolace(){
     _ctx.font = '10px "JetBrains Mono", monospace';
     _ctx.textAlign = 'left';
     _ctx.textBaseline = 'middle';
-    _ctx.fillText(`CHoCH ${res.choch.dir === 1 ? 'BULL' : 'BEAR'} ${fmtP(res.choch.level)}`, PAD.l + 6, y - 4);
+    if(S.chart.show.labels !== false)
+      _ctx.fillText(`CHoCH ${res.choch.dir === 1 ? 'BULL' : 'BEAR'} ${fmtP(res.choch.level)}`, PAD.l + 6, y - 4);
     _ctx.restore();
   }
 
@@ -7879,14 +8078,16 @@ function renderLivePositions(P){
 function openMT5AddModal(){
   openModal('Add MT5 Account', `
     <p style="font-size:.86rem;color:var(--tx-2);line-height:1.6;margin-bottom:14px">
-      Enter the login number and server of the account currently open on your Windows MT5 terminal.
-      The VICE Link connection is read-only. No broker password is collected or stored.
+      Connect through the official Windows MetaTrader 5 terminal using a secure WSS VICE Link.
+      Login/password or investor password is sent directly to your authenticated connector and never saved in VICE OS. If the connector is offline, sign in to MT5 on your PC first and reconnect.
     </p>
     <div class="fg">
       <div class="ff"><label>Broker</label><input id="mt5Broker" placeholder="IC Markets"></div>
       <div class="ff"><label>Label (optional)</label><input id="mt5Label" placeholder="Live USD account"></div>
       <div class="ff fc"><label>Server *</label><input id="mt5Server" placeholder="ICMarketsSC-Live01"></div>
-      <div class="ff"><label>Login *</label><input id="mt5Login" inputmode="numeric" placeholder="5001234"></div>
+      <div class="ff"><label>Login *</label><input id="mt5Login" inputmode="numeric" placeholder="5001234" autocomplete="off"></div>
+      <div class="ff fc"><label>Broker website (for reference/search)</label><input id="mt5BrokerUrl" type="url" placeholder="https://broker.example"></div>
+      <div class="ff fc"><label>MT5 trading or investor password (never saved)</label><input id="mt5Password" type="password" placeholder="Only sent to connected secure Windows terminal" autocomplete="off"></div>
 
       <div class="ff fc"><label>Mode</label>
         <select id="mt5Mode"><option value="LIVE">Live</option><option value="DEMO" selected>Demo</option></select>
@@ -7907,12 +8108,16 @@ function submitMT5Add(){
   const server = $('mt5Server')?.value.trim();
   const login = $('mt5Login')?.value.trim();
   const mode = $('mt5Mode')?.value || 'DEMO';
+  const password = $('mt5Password')?.value || '';
+  const brokerUrl=($('mt5BrokerUrl')?.value||'').trim();
+  if(brokerUrl){try{const u=new URL(brokerUrl);if(u.protocol!=='https:')throw Error();}catch(_){toast('Broker website must use https://','error');return;}}
   if (!server || !login) {
     Link.state.msg = 'Server and login required.';
     openMT5AddModal();
     return;
   }
-  const r = Link.addAccount({ broker, server, login, mode, label });
+  const r = Link.addAccount({ broker:broker||(() => {try{return new URL(brokerUrl).hostname;}catch(_){return '';}})(), server, login, password, mode, label });
+  if($('mt5Password'))$('mt5Password').value='';
   if (r) {
     Link.state.msg = '';
     closeModal();
@@ -7962,7 +8167,10 @@ function walletBalancesHtml(){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewCommand(el){
-  const total = totalPersonalUsd();
+  const total = totalAccountPortfolioUsd();
+  const managedVice=managedReserveUnits('VICE');
+  const managedV4x=managedReserveUnits('V4X');
+  const hasReserve=isOwner();
   const isHolder = S.profile.role === 'HOLDER' || isClient();
 
   const holderStrip = (() => {
@@ -8037,25 +8245,37 @@ function viewCommand(el){
     ${holderStrip}
     <div class="stats">
       <div class="st">
-        <span class="l">Total Value</span>
-        <div class="v gd">${fmtK(total)}</div>
-        <div class="n">${isClient() ? 'Your client reserve' : isHolder ? 'Your record' : 'Estate reserve'}</div>
+        <span class="l">Personal Portfolio Reference Estimate</span>
+        <div class="v gd" data-money-value="${total}" title="Double-click to switch between compact and exact cents">${viceMoneyView(total)}</div>
+        <div class="n">Excludes unassigned issuer reserve · Internal IRU reference values are not cash · Double-click for cents</div>
       </div>
       <div class="st">
-        <span class="l">VICE Units</span>
-        <div class="v">${fmtNum(S.personalHoldings.viceUnits)}</div>
-        <div class="n">OUV $${S.iruClasses[0].ouv}</div>
+        <span class="l">VICE · Personal IRUs</span>
+        <div class="v">${fmtNum(Number(S.personalHoldings.viceUnits||0)+Number(S.estateHolderBalances?.VICE||0))}</div>
+        <div class="n">Excludes undistributed issuer reserve · OUV $${S.iruClasses[0].ouv}</div>
       </div>
       <div class="st">
-        <span class="l">V4X Units</span>
-        <div class="v">${fmtNum(S.personalHoldings.v4xUnits)}</div>
-        <div class="n">OUV $${S.iruClasses[1].ouv}</div>
+        <span class="l">V4X · Personal IRUs</span>
+        <div class="v">${fmtNum(Number(S.personalHoldings.v4xUnits||0)+Number(S.estateHolderBalances?.V4X||0))}</div>
+        <div class="n">Excludes undistributed issuer reserve · OUV $${S.iruClasses[1].ouv}</div>
       </div>
       <div class="st">
         <span class="l">Mode</span>
         <div class="v ${APP_MODE === 'SIM' ? 'sm' : 'gr'}">${APP_MODE}</div>
       </div>
     </div>
+    ${isOwner()?`<section class="band">
+      <div class="band-head"><h2>Estate Reserve and Administrative Reserve</h2><span class="bdg gd">FOUNDER · CEO ADMINISTRATION</span></div>
+      <div class="stats">
+        <div class="st"><span class="l">VICE · ${S.estateAdminLedger?'unassigned internal book':'designated capacity'}</span><div class="v">${fmtNum(managedVice)}</div></div>
+        <div class="st"><span class="l">V4X · ${S.estateAdminLedger?'unassigned internal book':'designated capacity'}</span><div class="v">${fmtNum(managedV4x)}</div></div>
+        <div class="st"><span class="l">Reserve internal reference (not verified custody)</span><div class="v">${fmtK(managedReserveUsd())}</div></div>
+      </div>
+      <p class="note">Issuer reserve is excluded from personal portfolio totals. ${S.estateAdminLedger?'Internal reserve book loaded; internal transfers are not on-chain settlement.':'No synchronized reserve balance: amounts above are policy-designated capacities only.'} Neither source establishes verified blockchain custody, legal corporate stock, spendable cash, independent appraisal, or lender-accepted collateral. Do not treat a book entry as an on-chain token transfer.</p>
+      ${APP_MODE==='LIVE'?'<button class="btn btn-g" data-act="strategic-manager">Manage strategic-holder allocations</button>':''}
+      ${APP_MODE==='LIVE' && S.estateAdminLedger?'<button class="btn btn-gd" data-act="estate-manager">Manage internal estate IRU allocations</button>':'<span class="meta">Estate allocation controls await the verified database migration.</span>'}
+    </section>`:''}
+    ${isOwner() && (S.proposals||[]).some(p=>p.status==='OPEN' && (!p.closesAt||new Date(p.closesAt)>new Date()))?`<section class="band"><div class="band-head"><h2>Governance in progress</h2><button class="btn btn-gd" data-go="governance">Review votes</button></div><p class="meta">Open proposals are synchronized for eligible authenticated members.</p></section>`:''}
     ${myDistributions}
     <div class="grid cols-2">
       <section class="band">
@@ -8065,8 +8285,8 @@ function viewCommand(el){
           <span class="row-r">${S.ch.candles.length ? `<b>${esc(displaySymbol(S.sel.symbol))}</b><span class="meta">${S.sel.tf}</span>` : '<span class="chip blocked"><i></i>No data</span>'}</span>
         </button>
         <button class="row" data-go="comms">
-          <span class="row-l"><b>Comms</b><span class="meta">Channels · DMs · voice calls · encrypted</span></span>
-          <span class="row-r"><span class="chip live"><i></i>E2E</span></span>
+          <span class="row-l"><b>Comms</b><span class="meta">Channels · DMs · voice calls · legacy message envelope</span></span>
+          <span class="row-r"><span class="chip blocked"><i></i>E2EE unverified</span></span>
         </button>
         ${can('exec') || isOwner() ? `
         <button class="row" data-go="mt5">
@@ -8105,6 +8325,46 @@ function viewCommand(el){
   `;
 }
 
+/* Chart appearance is a per-device preference, never a financial record. */
+const VICE_COLOR_FIELDS = [
+  ['bg','Background'],['bull','Bull candle'],['bear','Bear candle'],
+  ['f0','F0 support'],['f100','F100 resistance'],['internal','Internal levels'],
+  ['chochBull','Bull CHoCH'],['chochBear','Bear CHoCH'],
+  ['entry','Entry'],['stop','Stop'],['last','Last price']
+];
+function openChartStyleModal(){
+  openModal('SOLACE Chart Appearance', `
+    <p class="meta">Customize this device's chart. Labels can also be toggled from the chart toolbar.</p>
+    <div class="fields">${VICE_COLOR_FIELDS.map(([k,label]) => `
+      <label class="field">${label}<input type="color" data-chart-color="${k}"
+      value="${/^#[a-fA-F0-9]{6}$/.test(S.chart.colors[k])?S.chart.colors[k]:'#c9a84c'}"></label>`).join('')}</div>
+    <div class="mact"><button class="btn btn-g" data-act="chart-style-reset">Preset defaults</button>
+      <button class="btn btn-g" data-act="modal-close">Cancel</button>
+      <button class="btn btn-p" data-act="chart-style-save">Save colors</button></div>`);
+}
+function saveChartStyle(){
+  for(const i of document.querySelectorAll('[data-chart-color]')){
+    if(/^#[0-9a-f]{6}$/i.test(i.value)) S.chart.colors[i.dataset.chartColor]=i.value;
+  }
+  try{localStorage.setItem('vice-chart-style-v1',JSON.stringify(S.chart.colors));}catch(_){}
+  closeModal();renderMain();toast('Chart colors saved on this device','success');
+}
+function initChartPreferences(){
+  try{
+    const p=JSON.parse(localStorage.getItem('vice-chart-style-v1')||'null');
+    if(p && typeof p==='object') for(const [k,v] of Object.entries(p)){
+      if(VICE_COLOR_FIELDS.some(f=>f[0]===k)&&/^#[0-9a-f]{6}$/i.test(v))S.chart.colors[k]=v;
+    }
+  }catch(_){}
+}
+initChartPreferences();
+document.addEventListener('fullscreenchange',()=>{
+  if(document.getElementById('cv'))setTimeout(()=>{resizeCanvas();drawAll();},80);
+});
+window.addEventListener('resize',()=>{
+  if(document.getElementById('cv')){resizeCanvas();drawAll();}
+});
+
 /* ═══════════════════════════════════════════════════════════════════
    VIEW: MARKETS
    ═══════════════════════════════════════════════════════════════════ */
@@ -8136,7 +8396,7 @@ function viewMarkets(el){
         ['poles','Poles'],['internal','Internal'],['choch','CHoCH'],
         ['trades','Trade'],['events','Events'],['history','History'],
         ['zones','Zones'],['vol','Volume'],['lastPrice','Last'],
-        ['grid','Grid'],['watermark','Title']
+        ['grid','Grid'],['watermark','Title'],['labels','Labels']
       ].map(([k,l]) =>
         `<button class="ctb-btn${S.chart.show[k] !== false ? ' on' : ''}" data-act="toggle-show" data-key="${k}">${l}</button>`
       ).join('')}
@@ -8150,6 +8410,7 @@ function viewMarkets(el){
       ].map(([k,l]) =>
         `<button class="ctb-btn${S.chart.type === k ? ' on' : ''}" data-act="set-ctype" data-ctype="${k}">${l}</button>`
       ).join('')}</div>
+      <button class="btn btn-sm btn-g" data-act="chart-style">Colors & Style</button>
       <button class="btn btn-sm btn-gd" data-act="refresh-chart">Refresh</button>
     </div>
     <div class="cwrap" id="cwrap" style="background:${P.bg}">
@@ -8176,8 +8437,8 @@ function viewMarkets(el){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewPortfolio(el){
-  const iru = iruUsd(), df = defiUsd(), mt = mt5Usd(), ex = externalUsd();
-  const total = iru + df + mt + ex;
+  const iru = iruUsd(), reserve=managedReserveUsd(), df = defiUsd(), mt = mt5Usd(), ex = externalUsd();
+  const total = iru + df + mt + ex; // reserve is separately administered, NOT personal portfolio
   const live = Link.state.status === 'live' && Link.state.portfolio;
   const accts = live ? Link.state.portfolio.accounts : [];
   el.innerHTML = `
@@ -8187,9 +8448,11 @@ function viewPortfolio(el){
         ? '<span class="chip live"><i></i>Live MT5</span>'
         : '<span class="chip blocked"><i></i>Bridge off</span>'}</div>
     </div>
+    ${S.daoPriceSyncStatus!=='CANONICAL' && APP_MODE==='LIVE'?`<p class="note warn">Management reference policy sync: ${esc(S.daoPriceSyncStatus)}. Confirm the 2/320 policy in the live registry before relying on account reference calculations.</p>`:''}
     <div class="stats">
-      <div class="st"><span class="l">Total</span><div class="v gd">${fmtK(total)}</div></div>
-      <div class="st"><span class="l">IRU</span><div class="v">${fmtK(iru)}</div></div>
+      <div class="st"><span class="l">Portfolio estimate (issuer reserve excluded)</span><div class="v gd" data-money-value="${total}" title="Double-click for exact cents">${viceMoneyView(total)}</div></div>
+      <div class="st"><span class="l">IRU · Personal</span><div class="v">${fmtK(iru)}</div></div>
+      ${isOwner()?`<div class="st"><span class="l">CEO Reserve · Designated Reference (Unverified)</span><div class="v">${fmtK(reserve)}</div></div>`:''}
       <div class="st"><span class="l">DeFi</span><div class="v">${fmtK(df)}</div></div>
       <div class="st"><span class="l">MT5</span><div class="v">${fmtK(mt)}</div></div>
       <div class="st"><span class="l">External</span><div class="v">${fmtK(ex)}</div></div>
@@ -8197,11 +8460,13 @@ function viewPortfolio(el){
     <div class="pnl">
       <div class="pnl-h"><h3>Breakdown</h3></div>
       <div class="pnl-b fl">
-        <div class="rw" style="padding:12px 18px"><span class="rw-l">IRU Holdings</span><span class="rw-v">${fmtUsd(iru)}</span></div>
+        <div class="rw" style="padding:12px 18px"><span class="rw-l">Personal IRU Holdings</span><span class="rw-v">${fmtUsd(iru)}</span></div>
+        ${isOwner()?`<div class="rw" style="padding:12px 18px"><span class="rw-l">Separate issuer administration · Estate Reserve and Administrative Reserve</span><span class="rw-v">${fmtUsd(reserve)}</span></div>`:''}
         <div class="rw" style="padding:12px 18px"><span class="rw-l">DeFi Wallet</span><span class="rw-v">${fmtUsd(df)}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">MT5 Accounts</span><span class="rw-v">${fmtUsd(mt)}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">External Accounts</span><span class="rw-v">${fmtUsd(ex)}</span></div>
       </div>
+      ${isOwner()?`<p class="note" style="padding:0 18px 16px">The issuer-designated reserve reference is displayed separately and excluded from personal portfolio totals. An internal book entitlement is not proof of minted on-chain token custody, liquidity, corporate equity, or lender-recognized collateral.</p>`:''}
     </div>
     ${live && accts.length ? `<section class="band">
       <div class="band-head"><h2>Live MT5</h2><span class="meta">${ageText(Date.now() - Link.state.portfolioAt)}</span></div>
@@ -8236,7 +8501,7 @@ function viewMT5(el){
       <div>
         <div class="eb">Portfolio</div>
         <h1>MT5 <em>Accounts</em></h1>
-        <p>Register MT5 accounts already signed into your Windows terminal. VICE Link reads the exporter snapshots; it never collects passwords or places orders.</p>
+        <p>Authenticate via MetaTrader 5's Windows terminal. VICE Link provides read-only account, trade, price and candle data; password login requires a connected WSS bridge.</p>
       </div>
       <div class="ph-acts">
         <button class="btn btn-p" data-act="mt5-add">+ Add Account</button>
@@ -8572,7 +8837,7 @@ function viewLab(el){
 function viewWallet(el){
   const W = Wallet.state;
   if (W.status === 'unsupported') {
-    el.innerHTML = '<div class="grid"><section class="band"><h1>VICE Wallet</h1><p class="muted">This device can\'t run the wallet\'s cryptography.</p></section></div>';
+    el.innerHTML = '<div class="grid"><section class="band"><h1>VICE Wallet</h1><p class="muted">Embedded wallet cryptography failed to load. Try an up-to-date browser with HTTPS and network access, or connect a separately installed EVM wallet below. Do not enter a recovery phrase into an unverified device.</p></section></div>';
     return;
   }
   if (W.status === 'pending') {
@@ -8682,8 +8947,8 @@ function viewComms(el){
     <div class="ph">
       <div>
         <div class="eb">Comms</div>
-        <h1>${C.tab === 'chats' ? 'Chats' : C.tab === 'calls' ? 'Calls' : C.tab === 'contacts' ? 'Contacts' : 'Settings'}</h1>
-        <p>${unread ? `${unread} unread` : 'Channels · Direct messages · real-time · encrypted'}</p>
+        <h1>${C.tab === 'chats' ? 'Chats' : C.tab === 'calls' ? 'Calls' : C.tab === 'contacts' ? 'Contacts' : 'Settings'}</h1><span class="meta">Presence: ${Realtime.status()}</span>
+        <p>${unread ? `${unread} unread` : 'Channels · Direct messages · encrypted envelope (E2EE not verified)'} · ${S.realtime.connected ? 'Realtime connected' : 'Realtime disconnected'}</p>
       </div>
       <div class="ph-acts">
         <button class="btn btn-sm btn-gd" data-act="comms-new-dm">New DM</button>
@@ -8727,13 +8992,16 @@ function commsChats(){
               ${!m.self ? `<div class="cmm-a">${esc((m.from || '?').slice(0,2).toUpperCase())}</div>` : ''}
               <div class="cmm-b">
                 ${!m.self ? `<div class="cmm-f">${esc(m.from)}</div>` : ''}
-                <div class="cmm-t">${esc(m.text)}</div>
+                <div class="cmm-t">${viceCommsBubble(m.text)}</div>
                 <div class="cmm-time">${whenText(m.at)}</div>
               </div>
             </div>
           `).join('') : '<p class="muted" style="padding:12px 0">No messages yet.</p>'}
         </div>
         <div class="cm-input">
+          <button class="btn btn-sm btn-g vice-attach" data-act="vice-attach" title="Attach image">+</button>
+          <button class="btn btn-sm btn-g vice-voice" data-act="vice-voice" title="Record voice note">Mic</button>
+          <input type="file" id="viceMediaInput" accept="image/jpeg,image/png,image/webp" hidden>
           <input type="text" id="cmIn" placeholder="Message ${esc(prof.name)}…" data-enter="comms-dm-send">
           <button class="btn btn-p btn-sm" data-act="comms-dm-send">Send</button>
         </div>
@@ -8761,13 +9029,16 @@ function commsChats(){
               ${!m.self ? `<div class="cmm-a">${esc((m.from || '?').slice(0,2).toUpperCase())}</div>` : ''}
               <div class="cmm-b">
                 ${!m.self ? `<div class="cmm-f">${esc(m.from)}</div>` : ''}
-                <div class="cmm-t">${esc(shown)}</div>
+                <div class="cmm-t">${viceCommsBubble(shown)}</div>
                 <div class="cmm-time">${whenText(m.at)}</div>
               </div>
             </div>`;
           }).join('') : '<p class="muted" style="padding:12px 0">No messages yet — say hello.</p>'}
         </div>
         <div class="cm-input">
+          <button class="btn btn-sm btn-g vice-attach" data-act="vice-attach" title="Attach image">+</button>
+          <button class="btn btn-sm btn-g vice-voice" data-act="vice-voice" title="Record voice note">Mic</button>
+          <input type="file" id="viceMediaInput" accept="image/jpeg,image/png,image/webp" hidden>
           <input type="text" id="cmIn" placeholder="Message ${esc(ch.name)}…" data-enter="comms-send">
           <button class="btn btn-p btn-sm" data-act="comms-send">Send</button>
         </div>
@@ -8810,7 +9081,7 @@ function commsChats(){
               </span>
             </span>
             <span class="row-r">
-              ${p.online ? '<span class="comm-peer-live on"></span>' : '<span class="comm-peer-live"></span>'}
+              <span class="vice-aura ${p.status==='DND'?'dnd':p.online?'online':'offline'}" title="${esc(p.status||'OFFLINE')}"></span>
               ${n ? `<span class="bdg rd">${n}</span>` : ''}
             </span>
           </button>
@@ -8851,7 +9122,7 @@ function commsContacts(){
             </span>
           </span>
           <span class="row-r">
-            ${p.online ? '<span class="chip live"><i></i>online</span>' : '<span class="chip blocked"><i></i>offline</span>'}
+            ${p.status==='DND'?'<span class="chip file"><i></i>DND</span>':p.online?'<span class="chip live"><i></i>online</span>':'<span class="chip blocked"><i></i>offline</span>'}
           </span>
         </button>
       `).join('') : '<p class="muted">No contacts yet.</p>'}
@@ -8865,7 +9136,9 @@ function commsSettings(){
       <div class="band-head"><h2>Comms settings</h2></div>
       <div class="rw"><span class="rw-l">Realtime status</span><span class="rw-v">${S.realtime.connected ? '<span class="chip live"><i></i>connected</span>' : '<span class="chip blocked"><i></i>offline</span>'}</span></div>
       <div class="rw"><span class="rw-l">Online members</span><span class="rw-v">${S.realtime.online.size}</span></div>
-      <div class="rw"><span class="rw-l">Message encryption</span><span class="rw-v"><span class="chip file"><i></i>AES-GCM</span></span></div>
+      <div class="rw"><span class="rw-l">Legacy message protection</span><span class="rw-v"><span class="chip file"><i></i>AES-GCM · NOT VERIFIED E2EE</span></span></div>
+      <p class="note warn">Legacy chat keys are predictable from thread identifiers. Do not send sensitive documents, recovery phrases or secrets until device-verified E2EE is deployed and independently audited.</p>
+      <div class="rw"><span class="rw-l">Presence</span><span class="rw-v"><select id="vicePresenceMode" data-vice-presence style="min-width:145px"><option value="ONLINE" ${Realtime.status()==='ONLINE'?'selected':''}>Online · gold glow</option><option value="DND" ${Realtime.status()==='DND'?'selected':''}>Do not disturb · white glow</option><option value="INVISIBLE" ${Realtime.status()==='INVISIBLE'?'selected':''}>Invisible</option></select></span></div>
       <div class="rw"><span class="rw-l">Notifications</span><span class="rw-v">${('Notification' in window) ? (Notification.permission === 'granted' ? '<span class="chip live"><i></i>granted</span>' : Notification.permission === 'denied' ? '<span class="chip blocked"><i></i>denied</span>' : '<span class="chip file"><i></i>prompt</span>') : '—'}</span></div>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn-g" data-act="comms-refresh">Refresh peers</button>
@@ -9121,24 +9394,30 @@ function viewHolders(el){
 
 function viewGovernance(el){
   const props = S.proposals || [];
+  const live=APP_MODE==='LIVE';
+  const now=Date.now();
+  const statusOf=p=>p.status==='OPEN'&&p.closesAt&&new Date(p.closesAt).getTime()<=now?'CLOSED':p.status;
   el.innerHTML = `
-    <div class="ph">
-      <div><div class="eb">Records</div><h1><em>Proposals</em></h1></div>
-      <div class="ph-acts">${can('exec') || isOwner() ? '<button class="btn btn-p" data-act="prop-new">+ New proposal</button>' : ''}</div>
-    </div>
-    <section class="band">
-      <div class="band-head"><h2>All proposals</h2><span class="meta">${props.length}</span></div>
-      ${props.length ? props.map(p => `
-        <div class="row" style="cursor:default">
-          <span class="row-l"><b>${esc(p.title)}</b><span class="meta">${whenText(p.createdAt)}</span></span>
-          <span class="row-r">
-            <span class="bdg ${p.status === 'PASSED' ? 'gr' : p.status === 'REJECTED' ? 'rd' : 'gd'}">${esc(p.status)}</span>
-            <span class="meta">${fmtNum(p.votesFor)} for · ${fmtNum(p.votesAgainst)} against</span>
-          </span>
-        </div>
-      `).join('') : '<p class="muted">No proposals yet.</p>'}
-    </section>
-  `;
+    <div class="ph"><div><div class="eb">Governance</div><h1><em>Member Proposals</em></h1>
+      <p>Founder-controlled DAO · CEO 75% / holder pool 25% · one weighted ballot per member · UTC closing times.</p></div>
+      <div class="ph-acts">${isOwner()||can('create')?'<button class="btn btn-p" data-act="prop-new">+ Publish proposal</button>':''}
+        <button class="btn btn-g" data-act="gov-refresh">Refresh</button></div></div>
+    <section class="band"><div class="band-head"><h2>Proposals</h2><span class="meta">${props.length}</span></div>
+      ${props.length?props.map(p=>{
+        const status=statusOf(p), voted=S.proposalVotes.find(v=>v.proposal_id===p.id);
+        const eligible=status==='OPEN'&&(!p.opensAt||new Date(p.opensAt).getTime()<=now)&&(!p.closesAt||new Date(p.closesAt).getTime()>now);
+        return `<div class="row" style="display:block;border-bottom:1px solid var(--bd);padding:14px 0">
+          <div class="row-l"><b>${esc(p.title)}</b><span class="meta">${esc(p.body||'')}</span>
+           <span class="meta">Recorded ${fmtD(p.createdAt)}${p.effectiveAt?' · Effective '+fmtD(p.effectiveAt):''}</span>
+           <span class="meta">${p.opensAt?'Opens '+fmtD(p.opensAt):''}${p.closesAt?' · Closes '+fmtD(p.closesAt):''}</span></div>
+          <div class="row-r" style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span class="bdg ${status==='PASSED'?'gr':status==='REJECTED'?'rd':'gd'}">${esc(status||'DRAFT')}</span>
+            <span class="meta">${fmtNum(p.votesFor||0)} FOR units (${((Number(p.votesFor)||0)/200000).toFixed(3)}%) · ${fmtNum(p.votesAgainst||0)} AGAINST units (${((Number(p.votesAgainst)||0)/200000).toFixed(3)}%)</span>
+            ${voted?`<span class="bdg gr">Your vote: ${esc(voted.choice)}</span>`:''}
+            ${live&&eligible?`<button class="btn btn-sm btn-gd" data-act="prop-vote" data-id="${esc(p.id)}" data-choice="FOR">Vote for</button>
+             <button class="btn btn-sm btn-g" data-act="prop-vote" data-id="${esc(p.id)}" data-choice="AGAINST">Vote against</button>`:''}
+          </div></div>`;
+      }).join(''):'<p class="muted">No proposals yet.</p>'}</section>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -9318,6 +9597,18 @@ function viewAdmin(el){
       </div>
     </section>
     <section class="band">
+      <div class="band-head"><h2>Issuer IRU reference values</h2></div>
+      <p class="meta">Published to signed-in holders after database save. Historical versions remain recorded.</p>
+      <div class="rw"><span class="rw-l">VICE public IRU OUV</span><span class="rw-v">${fmtUsd(S.iruClasses[0].ouv)}</span></div>
+      <div class="rw"><span class="rw-l">V4X private IRU OUV</span><span class="rw-v">${fmtUsd(S.iruClasses[1].ouv)}</span></div>
+      <button class="btn btn-gd" data-act="ouv-edit">Publish reference revision</button>
+    </section>
+    <section class="band">
+      <div class="band-head"><h2>Member roles</h2></div>
+      <p class="meta">Founder/CEO access is determined by the authenticated SUPER_ADMIN role. Other roles are granted by a server-checked RPC.</p>
+      <button class="btn btn-gd" data-act="admin-roles">Manage other members' roles</button>
+    </section>
+    <section class="band">
       <div class="band-head"><h2>Operating mode</h2></div>
       <div class="rw"><span class="rw-l">Current</span><span class="rw-v">${APP_MODE}</span></div>
       <div class="rw"><span class="rw-l">Build</span><span class="rw-v mn">v${BUILD.version} · ${BUILD.date}</span></div>
@@ -9490,7 +9781,8 @@ function viewProfile(el){
     : '';
   const holder = S.iru.state && S.user ? S.iru.state.holders[S.user.id] : null;
   const badges = [];
-  if (p.vipAccess || p.role === 'SUPER_ADMIN') badges.push({ label:'VIP', cls:'gd' });
+  if (p.role === 'SUPER_ADMIN') badges.push({ label:'FOUNDER · CEO · ESTATE ADMIN', cls:'gd' });
+  else if (p.vipAccess) badges.push({ label:'VIP', cls:'gd' });
   if (holder && holder.tier) badges.push({ label: `${holder.tier.tier} · ${holder.tier.name}`, cls:'nt' });
   if (holder && holder.legacy) badges.push({ label: `Legacy ${holder.legacy.order} · ${holder.legacy.name}`, cls:'gd' });
   if (holder && holder.entry) badges.push({ label: `Entry: ${holder.entry.entryProgram}`, cls:'gr' });
@@ -9733,7 +10025,7 @@ function viewCommunity(el){
             </span>
           </span>
           <span class="row-r">
-            ${p.online ? '<span class="chip live"><i></i>online</span>' : '<span class="chip blocked"><i></i>offline</span>'}
+            ${p.status==='DND'?'<span class="chip file"><i></i>DND</span>':p.online?'<span class="chip live"><i></i>online</span>':'<span class="chip blocked"><i></i>offline</span>'}
             <button class="btn btn-xs btn-g" data-act="comms-open-dm" data-peer-id="${esc(p.id)}">Message</button>
           </span>
         </div>
@@ -10048,10 +10340,18 @@ function paintOI(){
       case 'chart-reset': { S.view2.count = 140; S.view2.end = null; drawAll(); return; }
       case 'toggle-fullscreen': {
         const w = document.getElementById('cwrap');
-        if(!w) return;
-        if(document.fullscreenElement) document.exitFullscreen();
-        else w.requestFullscreen?.();
+        if(!w){ toast('Open the Chart tab first','warn'); return; }
+        const p = document.fullscreenElement ? document.exitFullscreen() : w.requestFullscreen?.();
+        Promise.resolve(p).then(()=>setTimeout(()=>{ resizeCanvas(); drawAll(); },120))
+          .catch(e=>toast('Fullscreen unavailable: '+e.message,'error'));
         return;
+      }
+      case 'chart-style': { openChartStyleModal(); return; }
+      case 'chart-style-save': { saveChartStyle(); return; }
+      case 'chart-style-reset': {
+        S.chart.colors={...PRESETS[S.chart.preset]};
+        try{localStorage.removeItem('vice-chart-style-v1');}catch(_){}
+        closeModal();renderMain();return;
       }
       case 'import-bars': { $('csv')?.click(); return; }
 
@@ -10087,10 +10387,20 @@ function paintOI(){
         const txt = input.value.trim();
         if(!txt) return;
         if(txt.startsWith(MsgCrypto.PREFIX)){ toast('Cannot send pre-encrypted text','warn'); return; }
-        input.value = '';
+        const conversation=S.comms.activeChannel;
+        input.disabled=true;
         (async () => {
-          await Realtime.send(S.comms.activeChannel, txt);
-          renderMain();
+          try {
+            await Realtime.send(conversation, txt);
+            input.value='';
+            renderMain();
+          } catch(err) {
+            toast('Message not sent: '+(err?.message||String(err)), 'error');
+            input.disabled=false;
+            input.focus();
+          } finally {
+            input.disabled=false;
+          }
         })();
         return;
       }
@@ -10100,10 +10410,20 @@ function paintOI(){
         const txt = input.value.trim();
         if(!txt) return;
         if(txt.startsWith(MsgCrypto.PREFIX)){ toast('Cannot send pre-encrypted text','warn'); return; }
-        input.value = '';
+        const conversation=S.comms.activeDm;
+        input.disabled=true;
         (async () => {
-          await Realtime.sendDm(S.comms.activeDm, txt);
-          renderMain();
+          try {
+            await Realtime.sendDm(conversation, txt);
+            input.value='';
+            renderMain();
+          } catch(err) {
+            toast('Message not sent: '+(err?.message||String(err)), 'error');
+            input.disabled=false;
+            input.focus();
+          } finally {
+            input.disabled=false;
+          }
         })();
         return;
       }
@@ -10132,7 +10452,16 @@ function paintOI(){
       }
       case 'comms-refresh': { Realtime.refresh().then(() => { toast('Peers refreshed','success'); renderMain(); }); return; }
       case 'comms-reconnect': { (async () => { Realtime.disconnect(); await Realtime.connect(); toast('Reconnecting…','info'); })(); return; }
-      case 'notify-enable': { Notify.request(); toast('Notification permission requested','info'); return; }
+      case 'notify-enable': {
+        if (!('Notification' in window)) { toast('Browser notifications unavailable','warn'); return; }
+        if (Notification.permission === 'denied') { toast('Notifications blocked by browser settings. Allow this site there first.','warn'); return; }
+        Notification.requestPermission().then(status => {
+          toast(status === 'granted' ? 'Browser notifications enabled' : `Notifications: ${status}`,
+            status === 'granted' ? 'success' : 'warn');
+          if (S.tab === 'profile' || S.tab === 'security') renderMain();
+        }).catch(e=>toast('Notification permission: '+e.message,'error'));
+        return;
+      }
 
       /* ─── CALLS ─── */
       case 'call-accept': { Realtime.acceptCall(); return; }
@@ -10155,8 +10484,14 @@ function paintOI(){
         return;
       }
       case 'mt5-set-url': {
-        const url = prompt('VICE Link URL (ws://…):', Link.state.url || 'ws://127.0.0.1:9000');
-        if(url != null) { Link.setUrl(url.trim()); toast('Bridge URL set','success'); }
+        const url = prompt('Secure VICE Link endpoint (wss://…):', Link.state.url || 'wss://your-secure-mt5-bridge.example');
+        if(url == null)return;
+        if(!/^wss:\/\//i.test(url.trim())){toast('HTTPS VICE OS requires a secure wss:// MT5 bridge','error');return;}
+        const token=prompt('VICE Link token (your private random secret, 24+ characters):', Link.state.token || '');
+        if(token==null)return;
+        if(token.trim().length<24){toast('Bridge token must have 24+ characters','error');return;}
+        Link.setUrl(url.trim(),token.trim());
+        toast('Bridge settings saved locally; connecting to authenticated MT5 terminal…','info');
         return;
       }
 
@@ -10366,6 +10701,20 @@ function paintOI(){
         return;
       }
 
+      /* ─── ISSUER CONTROL ─── */
+      case 'ouv-edit': { openOuvModal(); return; }
+      case 'ouv-save': { saveOuv(); return; }
+      case 'admin-roles': { openRoleModal(); return; }
+      case 'admin-role-submit': { saveRole(); return; }
+
+      /* ─── ESTATE RESERVE / INTERNAL IRU BOOK ─── */
+      case 'strategic-manager': { openStrategicManager(); return; }
+      case 'strategic-create': { submitStrategicAllocation(); return; }
+      case 'strategic-advance': { advanceStrategicAllocation(t.dataset.id,t.dataset.step); return; }
+      case 'estate-manager': { openEstateManager(); return; }
+      case 'estate-create': { submitEstateAllocation(); return; }
+      case 'estate-advance': { advanceEstateAllocation(t.dataset.id,t.dataset.step); return; }
+
       /* ─── IRU / HOLDERS ─── */
       case 'holder-add': { openHolderAddModal(); return; }
       case 'holder-add-submit': { submitHolderAdd(); return; }
@@ -10432,21 +10781,46 @@ function paintOI(){
       /* ─── PROPOSALS ─── */
       case 'prop-new': {
         if(!can('create')){toast('Proposal creation is restricted','error');return;}
-        openModal('New governance proposal',`
-          <div class="ff" style="margin-bottom:12px"><label>Proposal title</label><input id="propTitle" maxlength="180"></div>
-          <div class="ff"><label>Proposal details</label><textarea id="propBody" maxlength="6000" rows="7"></textarea></div>
-          <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button><button class="btn btn-p" data-act="prop-submit">Save proposal</button></div>`);
+        openModal('Publish governance proposal',`
+          <div class="fields">
+           <label class="field fc">Proposal title<input id="propTitle" maxlength="180"></label>
+           <label class="field fc">Details<textarea id="propBody" maxlength="6000" rows="5"></textarea></label>
+           <label class="field">Vote opens (UTC)<input id="propOpens" type="datetime-local"></label>
+           <label class="field">Vote closes (UTC)<input id="propCloses" type="datetime-local"></label>
+           <label class="field fc">Decision effective date (optional, may predate recording)<input id="propEffective" type="date"></label>
+          </div><p class="note">The recorded creation time remains immutable; an older effective date is labelled separately.</p>
+          <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button><button class="btn btn-p" data-act="prop-submit">Publish voting window</button></div>`);
         return;
       }
       case 'prop-submit': {
-        (async()=>{const title=$('propTitle')?.value.trim(),body=$('propBody')?.value.trim();
-          if(!title||!body){toast('Title and details required','error');return;}
-          try{const row={id:uuid(),title,body,status:'DRAFT',votes_for:0,votes_against:0,created_by:S.user.id};
-            if(APP_MODE==='LIVE'){const r=await sb.from('proposals').insert(row);if(r.error)throw r.error;}
-            S.proposals.unshift(denorm({...row,created_at:nowIso()}));closeModal();toast('Proposal saved','success');renderMain();
-          }catch(e){toast('Proposal failed: '+e.message,'error');}
+        (async()=>{
+          const title=$('propTitle')?.value.trim(),body=$('propBody')?.value.trim();
+          const open=$('propOpens')?.value,close=$('propCloses')?.value,eff=$('propEffective')?.value;
+          if(!title||!body||!open||!close){toast('Title, details, opening and closing times required','error');return;}
+          if(new Date(close)<=new Date(open)){toast('Closing must follow opening','error');return;}
+          if(APP_MODE!=='LIVE'){toast('Switch to LIVE to publish proposals','warn');return;}
+          try{
+            const row={title,body,status:'OPEN',votes_for:0,votes_against:0,created_by:S.user.id,
+              opens_at:new Date(open).toISOString(),closes_at:new Date(close).toISOString(),
+              effective_at:eff?new Date(eff+'T12:00:00Z').toISOString():null};
+            const {data,error}=await sb.from('proposals').insert(row).select('*').single();if(error)throw error;
+            S.proposals.unshift(denorm(data));closeModal();toast('Governance voting window published','success');
+            Realtime.emit('governance',{proposalId:data.id,title});renderMain();
+          }catch(e){toast('Proposal failed (check v1.0.3 SQL): '+e.message,'error');}
         })();return;
       }
+      case 'prop-vote': {
+        (async()=>{
+          if(APP_MODE!=='LIVE'||!S.user){toast('Sign in to LIVE before voting','warn');return;}
+          if(!confirm(`Submit ${t.dataset.choice} vote?`))return;
+          try{
+            const {error}=await sb.rpc('vice_cast_proposal_vote',{
+              p_proposal_id:t.dataset.id,p_choice:t.dataset.choice});if(error)throw error;
+            await refreshGovernance();toast('Vote recorded','success');renderMain();
+          }catch(e){toast('Vote failed: '+e.message,'error');}
+        })();return;
+      }
+      case 'gov-refresh': { refreshGovernance().then(()=>renderMain()).catch(e=>toast('Refresh: '+e.message,'error'));return; }
 
       /* ─── INVITES ─── */
       case 'invite-new': { openInviteCreateModal(); return; }
@@ -10638,6 +11012,261 @@ function paintOI(){
    MODAL BUILDERS — HOLDERS, ISSUE UNITS, TIER, LEGACY, ENTRY,
    DISTRIBUTION, INVITE CREATE, INVITE EMAIL
    ═══════════════════════════════════════════════════════════════════ */
+
+function openOuvModal(){
+  if(!isOwner())return;
+  openModal('Publish IRU OUV version',`<p class="note">Issuer internal reference only. No guaranteed market value, personal ownership, or collateral eligibility.</p>
+   <div class="fields">
+    <label class="field">VICE public OUV (USD)<input id="ouvVice" type="number" min="0.0001" step="0.0001" value="${S.iruClasses[0].ouv}"></label>
+    <label class="field">V4X private OUV (USD)<input id="ouvV4x" type="number" min="0.0001" step="0.0001" value="${S.iruClasses[1].ouv}"></label>
+    <label class="field fc">Version / decision reference<input id="ouvVersion" maxlength="100" placeholder="e.g. 2026-Q4-BOARD-01"></label>
+    <label class="field fc">Effective date (may be historical)<input id="ouvEffective" type="date" value="${new Date().toISOString().slice(0,10)}"></label>
+    <label class="field fc">Basis / reason<input id="ouvNote" maxlength="600" placeholder="Supporting valuation rationale"></label>
+   </div><div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button>
+   <button class="btn btn-p" data-act="ouv-save">Publish OUV</button></div>`);
+}
+async function saveOuv(){
+  if(!isOwner())return;
+  const vice=Number($('ouvVice')?.value),v4x=Number($('ouvV4x')?.value);
+  const version=($('ouvVersion')?.value||'').trim(),note=($('ouvNote')?.value||'').trim(),effective=$('ouvEffective')?.value;
+  if(!(vice>0&&v4x>0&&Number.isFinite(vice)&&Number.isFinite(v4x))||!version||!note||!effective){toast('Provide valid values, reference, effective date and basis','error');return;}
+  if(APP_MODE!=='LIVE'){toast('LIVE mode is required to publish issuer data','warn');return;}
+  const row={version,vice_ouv:vice,v4x_ouv:v4x,note,effective_at:new Date(effective+'T12:00:00Z').toISOString()};
+  try{
+    const canonical=await sb.rpc('vice_set_dao_prices',{
+      p_vice:vice,p_v4x:v4x,p_reason:note+' | '+version,
+      p_effective_at:new Date(effective+'T12:00:00Z').toISOString()});
+    if(canonical.error)throw canonical.error;
+    const {data,error}=await sb.from('ouv_versions').insert(row).select('*').single();
+    if(error){toast('DAO prices saved; secondary OUV history failed: '+error.message,'warn');}
+    if(data)S.ouvVersions.unshift(denorm(data));
+    S.iruClasses[0].ouv=vice; S.iruClasses[1].ouv=v4x;
+    await audit('OUV_PUBLISHED',`Publish ${version}`,'vice_dao_config',data?.id||'1');
+    closeModal();toast('OUV reference version published','success');renderMain();
+  }catch(e){toast('OUV publication failed: '+e.message,'error');}
+}
+async function openRoleModal(){
+  if(!isOwner())return;
+  try{
+    const {data,error}=await sb.rpc('list_member_directory');if(error)throw error;
+    const members=(data||[]).filter(p=>p.id!==S.user.id);
+    if(!members.length){toast('No other members to manage','info');return;}
+    const roles=['HOLDER','EXECUTIVE','COMPLIANCE_OFFICER','FINANCE_OFFICER','TREASURY_OPERATOR','LEGAL_OFFICER','AUDITOR'];
+    openModal('Member role administration',`<p class="note">Never upgrade anyone to SUPER_ADMIN here. Changes require the server-side role RPC and are logged.</p>
+      <div class="fields"><label class="field fc">Member<select id="roleMember">${members.map(m=>`<option value="${esc(m.id)}">${esc(m.name)} · ${esc(m.role)}</option>`).join('')}</select></label>
+      <label class="field fc">New role<select id="roleValue">${roles.map(r=>`<option value="${r}">${esc(ROLE_LABELS[r])}</option>`).join('')}</select></label>
+      <label class="field fc">Authorization reason<input id="roleReason" maxlength="400"></label></div>
+      <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button><button class="btn btn-p" data-act="admin-role-submit">Apply role</button></div>`);
+  }catch(e){toast('Directory unavailable: '+e.message,'error');}
+}
+async function saveRole(){
+  if(!isOwner())return;
+  const id=$('roleMember')?.value,role=$('roleValue')?.value,reason=($('roleReason')?.value||'').trim();
+  if(!id||!role||reason.length<5){toast('Select a member/role and provide a reason','error');return;}
+  try{
+    const r=await sb.rpc('vice_assign_member_role',{p_member_id:id,p_role:role,p_reason:reason});
+    if(r.error)throw r.error;
+    closeModal();toast('Member role changed','success');renderMain();
+  }catch(e){toast('Role update failed (requires v1.0.3 SQL): '+e.message,'error');}
+}
+
+// Release gate: require server-attested canonical 2/320 allocation and issuance functions.
+// Do not permit financial writes until an atomic backend migration replaces
+// that function AND installs the verification RPC. Fail closed if unavailable.
+async function verifyStrategicBackend(){
+  S.strategicBackendVerified=false;
+  if(!S.user || APP_MODE!=='LIVE' || !isOwner())return false;
+  if(S.daoPriceSyncStatus!=='CANONICAL'){
+    try{await refreshDaoConfig();}catch(_){return false;}
+  }
+  if(S.daoPriceSyncStatus!=='CANONICAL')return false;
+  try{
+    const {data,error}=await sb.rpc('vice_financial_release_capabilities');
+    S.strategicBackendVerified=(!error && data?.strategic_price_rpc_v133===true
+      && Number(data?.reference_vice)===2 && Number(data?.reference_v4x)===320);
+  }catch(_){S.strategicBackendVerified=false;}
+  return S.strategicBackendVerified;
+}
+
+// STRATEGIC POOL: 2.5M per series. Canonical allocation RPCs use
+// append_iru_event; estate IRUs are never issued through these functions.
+let strategicActionBusy=false;
+async function openStrategicManager(){
+  if(APP_MODE!=='LIVE'||!isOwner()){
+    toast('Authenticated SUPER_ADMIN required','error');return;
+  }
+  try{
+    const backendReady=await verifyStrategicBackend();
+    const [hr,ar]=await Promise.all([
+      sb.from('holders').select('id,name,client_id,holder_type,status')
+        .order('created_at',{ascending:true}).limit(250),
+      sb.from('allocations').select('id,holder_id,class,units,status,price,created_at')
+        .order('created_at',{ascending:false}).limit(100)
+    ]);
+    if(hr.error)throw hr.error;
+    if(ar.error)throw ar.error;
+    const holders=(hr.data||[]).filter(h=>h.holder_type!=='ESTATE_RESERVE'
+      && h.status!=='ESTATE_RESERVE' && h.status!=='FROZEN');
+    const options=holders.map(h=>`<option value="${esc(h.id)}">${esc(h.client_id||'Holder')} · ${esc(h.name||'Unnamed')}</option>`).join('');
+    const rows=(ar.data||[]).map(a=>{
+      const action=backendReady?(a.status==='PENDING'?'APPROVE':a.status==='APPROVED'?'RESERVE':a.status==='RESERVED'?'DISTRIBUTE':null):null;
+      return `<div class="rw"><span class="rw-l"><b>${esc(a.class||'?')} · ${fmtNum(Number(a.units||0))} units</b>
+          <span class="meta">${esc(a.status||'Unknown')} · ${esc(String(a.id).slice(0,12))} · Strategic pool</span></span>
+        <span class="rw-v">${action?`<button class="btn btn-xs btn-gd" data-act="strategic-advance" data-step="${action}" data-id="${esc(a.id)}">${action}</button>`:''}</span></div>`;
+    }).join('');
+    openModal('Strategic-holder IRU Allocation (2.5M Pool)',`
+      <p class="note warn">This workflow issues ONLY from the 2,500,000-unit strategic pool per series. It does not debit Estate Reserve units or make any on-chain transfer. Authoritative balances are enforced by the database.</p>
+      ${backendReady?'':'<p class="note warn">Financial writes disabled: the live backend has not confirmed the 1.3.3 canonical-price RPC migration. This display is READ ONLY.</p>'}
+      <div class="fields">
+        <label class="field">Program<select id="strategicProgram"><option value="VICE">VICE</option><option value="V4X">V4X</option></select></label>
+        <label class="field">Holder<select id="strategicHolder">${options||'<option value="">No eligible holder</option>'}</select></label>
+        <label class="field fc">Whole IRU units<input id="strategicUnits" inputmode="numeric" placeholder="10000"></label>
+      </div>
+      <div class="mact"><button class="btn btn-g" data-act="modal-close">Close</button>
+        <button class="btn btn-p" data-act="strategic-create" ${(options&&backendReady)?'':'disabled'}>Create pending allocation</button></div>
+      <h3 style="margin:16px 0 6px">Allocation register</h3>
+      ${rows||'<p class="meta">No allocations recorded.</p>'}`);
+  }catch(e){toast('Strategic allocation control unavailable: '+e.message,'error');}
+}
+async function submitStrategicAllocation(){
+  if(strategicActionBusy)return;strategicActionBusy=true;
+  try{
+    if(APP_MODE!=='LIVE'||!isOwner())throw Error('SUPER_ADMIN required');
+    if(!await verifyStrategicBackend())throw Error('Financial writes disabled: backend canonical-price migration not verified');
+    const p_holder_id=$('strategicHolder')?.value;
+    const p_program=$('strategicProgram')?.value;
+    const s=String($('strategicUnits')?.value||'').trim();
+    if(!/^\d{1,7}$/.test(s)||Number(s)<=0||Number(s)>2500000)throw Error('Whole units 1–2,500,000 required');
+    if(!p_holder_id)throw Error('Choose holder');
+    if(!confirm(`Create PENDING ${s} ${p_program} strategic allocation? No units will move yet.`))return;
+    const {data,error}=await sb.rpc('create_iru_allocation',{
+      p_holder_id,p_program,p_units:Number(s),p_price:null});
+    if(error)throw error;
+    toast('Strategic allocation PENDING: '+String(data).slice(0,8),'success');
+    await openStrategicManager();
+  }catch(e){toast('Allocation rejected: '+e.message,'error');}
+  finally{strategicActionBusy=false;}
+}
+async function advanceStrategicAllocation(id,action){
+  if(strategicActionBusy)return;strategicActionBusy=true;
+  try{
+    if(APP_MODE!=='LIVE'||!isOwner())throw Error('SUPER_ADMIN required');
+    if(!await verifyStrategicBackend())throw Error('Financial writes disabled: backend canonical-price migration not verified');
+    if(!['APPROVE','RESERVE','DISTRIBUTE'].includes(action))throw Error('Invalid action');
+    if(!confirm('Confirm '+action+' for strategic allocation '+String(id).slice(0,8)+'?'))return;
+    const params=action==='DISTRIBUTE'
+      ? ['distribute_iru_allocation',{p_allocation_id:id,p_correlation_id:crypto.randomUUID()}]
+      : ['advance_iru_allocation',{p_allocation_id:id,p_action:action}];
+    const {data,error}=await sb.rpc(params[0],params[1]);
+    if(error)throw error;
+    const status=action==='DISTRIBUTE'?'DISTRIBUTED':action==='APPROVE'?'APPROVED':'RESERVED';
+    if(!data||data.status!==status)throw Error('Server result uncertain: reconcile before another request');
+    toast('Strategic allocation: '+status,'success');
+    // Invalidating the previous optimistic event projection is essential.
+    // Reload from the authoritative, ordered IRU ledger after issuance.
+    if(status==='DISTRIBUTED'){
+      S.iru.registryReady=false;
+      await hydrateData();
+    }
+    await openStrategicManager();
+    renderMain();
+  }catch(e){toast('Strategic action not confirmed: '+e.message,'error');}
+  finally{strategicActionBusy=false;}
+}
+
+// CEO-managed estate IRU internal transfers. The server owns every state
+// transition; the browser never mints, credits, or marks a transfer complete.
+let estateActionBusy=false;
+async function openEstateManager(){
+  if(APP_MODE!=='LIVE'||!isOwner()){
+    toast('Authenticated SUPER_ADMIN required for reserve administration','error');return;
+  }
+  if(!S.estateAdminLedger){
+    toast('Internal estate reserve book is not installed or synchronized','warn');return;
+  }
+  try {
+    const {data:holders,error}=await sb.from('holders')
+      .select('id,name,client_id,holder_type,status').order('created_at',{ascending:true}).limit(250);
+    if(error)throw error;
+    const eligible=(holders||[]).filter(h=>h.holder_type!=='ESTATE_RESERVE'
+      && h.status!=='ESTATE_RESERVE' && h.status!=='FROZEN');
+    const opts=eligible.map(h=>`<option value="${esc(h.id)}">${esc(h.client_id||'Holder')} · ${esc(h.name||'Unnamed')}</option>`).join('');
+    const programs=S.estateAdminLedger.programs||{};
+    const row=p=>{
+      const x=programs[p]||{};
+      return `<div class="rw"><span class="rw-l">${p} · Internal reserve unassigned</span>
+        <span class="rw-v">${fmtNum(Number(x.unassigned_units||0))} · Reserved ${fmtNum(Number(x.reserved_units||0))}</span></div>`;
+    };
+    const allocations=(S.estateAdminLedger.allocations||[]).map(a=>{
+      const action=a.status==='PENDING'?'APPROVE':a.status==='APPROVED'?'RESERVE':a.status==='RESERVED'?'DISTRIBUTE':null;
+      return `<div class="rw" style="gap:12px;align-items:center">
+        <span class="rw-l"><b>${esc(a.program)} · ${fmtNum(Number(a.units))} units</b>
+          <span class="meta">${esc(a.status)} · ${esc(String(a.id).slice(0,12))} · Internal book only</span></span>
+        <span class="rw-v">${action?`<button class="btn btn-xs btn-gd" data-act="estate-advance" data-step="${action}" data-id="${esc(a.id)}">${action}</button>`:''}
+          ${['PENDING','APPROVED','RESERVED'].includes(a.status)?`<button class="btn btn-xs btn-r" data-act="estate-advance" data-step="REVOKE" data-id="${esc(a.id)}">Revoke</button>`:''}
+        </span></div>`;
+    }).join('');
+    openModal('Estate Reserve · Internal IRU Distribution', `
+      <p class="note warn">Internal IRU accounting only; this does not broadcast a blockchain token transfer. All units remain distinguished from the 2.5M strategic-holder pool. Founder administrative authorization does not override transferred holders' contractual rights.</p>
+      ${row('VICE')}${row('V4X')}
+      <div class="fields" style="margin-top:15px">
+        <label class="field">Program<select id="estateProgram"><option value="VICE">VICE</option><option value="V4X">V4X</option></select></label>
+        <label class="field">Recipient holder<select id="estateHolder">${opts||'<option value="">No eligible holder</option>'}</select></label>
+        <label class="field">Whole IRU units<input id="estateUnits" inputmode="numeric" placeholder="10000"></label>
+        <label class="field fc">Founder allocation reason (8+ characters)<textarea id="estateReason" rows="2" placeholder="Purpose and recorded authorization"></textarea></label>
+      </div>
+      <div class="mact"><button class="btn btn-g" data-act="modal-close">Close</button>
+        <button class="btn btn-p" data-act="estate-create" ${opts?'':'disabled'}>Create pending allocation</button></div>
+      <h3 style="margin:18px 0 6px">Prior internal-book allocations</h3>
+      ${allocations || '<p class="meta">No estate allocations recorded.</p>'}
+    `);
+  }catch(e){toast('Reserve control unavailable: '+e.message,'error');}
+}
+async function submitEstateAllocation(){
+  if(estateActionBusy)return;
+  estateActionBusy=true;
+  try{
+    if(!isOwner()||APP_MODE!=='LIVE')throw Error('SUPER_ADMIN session required');
+    const p_holder_id=$('estateHolder')?.value;
+    const p_program=$('estateProgram')?.value;
+    const n=String($('estateUnits')?.value||'').trim();
+    const p_reason=String($('estateReason')?.value||'').trim();
+    if(!/^\d{1,7}$/.test(n)||Number(n)<=0||Number(n)>7500000)throw Error('Enter 1–7,500,000 whole units');
+    if(p_reason.length<8||p_reason.length>500)throw Error('Reason must contain 8–500 characters');
+    if(!p_holder_id)throw Error('Select a recipient holder');
+    if(!confirm(`Create a PENDING ${n} ${p_program} estate allocation? No units will move yet.`))return;
+    const {data,error}=await sb.rpc('vice_estate_create_allocation',{
+      p_holder_id,p_program,p_units:Number(n),p_reason});
+    if(error)throw error;
+    await refreshEstateRegistry();
+    toast('Estate allocation created: '+String(data.allocation_id).slice(0,8),'success');
+    renderMain();await openEstateManager();
+  }catch(e){toast('Estate allocation rejected: '+e.message,'error');}
+  finally{estateActionBusy=false;}
+}
+async function advanceEstateAllocation(id,action){
+  if(estateActionBusy)return;
+  estateActionBusy=true;
+  try{
+    if(!isOwner()||APP_MODE!=='LIVE')throw Error('SUPER_ADMIN session required');
+    if(!['APPROVE','RESERVE','DISTRIBUTE','REVOKE'].includes(action))throw Error('Invalid action');
+    const explanation=action==='DISTRIBUTE'
+      ? 'This makes an INTERNAL-BOOK estate IRU transfer. It does NOT move on-chain tokens. Confirm?'
+      : 'Confirm estate allocation '+action+'?';
+    if(!confirm(explanation))return;
+    const args=action==='DISTRIBUTE'
+      ? ['vice_estate_distribute_allocation',{p_allocation_id:id,p_correlation_id:crypto.randomUUID()}]
+      : ['vice_estate_advance_allocation',{p_allocation_id:id,p_action:action}];
+    const {data,error}=await sb.rpc(args[0],args[1]);
+    if(error)throw error;
+    if(!data||data.status!==(action==='DISTRIBUTE'?'DISTRIBUTED':action==='REVOKE'?'REVOKED':action))
+      throw Error('Unexpected response from reserve server; refresh/reconcile before retry');
+    await refreshEstateRegistry();
+    toast('Estate allocation: '+data.status+' · '+String(id).slice(0,8),'success');
+    renderMain();await openEstateManager();
+  }catch(e){toast('Estate action not confirmed: '+e.message,'error');}
+  finally{estateActionBusy=false;}
+}
 
 function openHolderAddModal(){
   openModal('Appoint holder', `
@@ -11751,10 +12380,17 @@ function openCertificateModal(cert){
 }
 
 
+// v1.0.3 deliberately retires the previous offline HTML cache: account pages
+// must be network-fresh after deployments. Never erase IndexedDB wallet data.
 if('serviceWorker' in navigator && location.protocol==='https:'){
-  navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'}).then(r=>r.update()).catch(e=>console.warn('PWA registration:',e));
+  navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister())))
+    .catch(e=>console.warn('Retire old service worker:',e));
+  if('caches' in window) caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('vice-os-')).map(k=>caches.delete(k))))
+    .catch(e=>console.warn('Retire old shell caches:',e));
 }
 
 </script>
+<link rel="stylesheet" href="vice-mega.css?v=134">
+<script src="vice-mega.js?v=134"></script>
 </body>
 </html>

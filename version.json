@@ -1,0 +1,17 @@
+{
+  "version": "1.3.4-LIVE-BACKEND-SYNC",
+  "date": "2026-10-12",
+  "category": "source-preserving engineering candidate",
+  "status": "UNVERIFIED_END_TO_END",
+  "release_status": "RELEASE_CANDIDATE_LIVE_BACKEND_INSTALLED_UI_NOT_DEPLOYED",
+  "source_baseline": "1.3.3-DUAL-SOURCE-SAFE-GATE",
+  "canonical_reference_policy": "2026-10-12-1-160",
+  "features_not_certified": [
+    "Authenticated distribution E2E and rollback",
+    "Role-based frontend login acceptance",
+    "On-chain proof of issuance and custody",
+    "Production Netlify deployment",
+    "Communications media and MT5 execution"
+  ],
+  "live_status": "pricing_pool_policy_estate_rpcs_strategic_price_and_release_capability_installed"
+}

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VICE Capital — Certificate Verification</title><meta name="theme-color" content="#07080a"><meta name="color-scheme" content="dark">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;1,300&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#07080a;color:#ece8e1}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% 0,rgba(201,168,76,.13),transparent 65%),#07080a;display:flex;justify-content:center;align-items:center;padding:26px}
+main{width:min(100%,750px);padding:40px 34px;border-radius:16px;border:1px solid rgba(201,168,76,.23);background:linear-gradient(160deg,#101115,#08090b);box-shadow:0 24px 90px #0008}
+.logo{display:flex;align-items:center;justify-content:center;gap:12px;letter-spacing:.24em;font-weight:600;color:#ecd28a;font-size:24px}.mark{width:34px;height:34px;border:2px solid #c9a84c;transform:rotate(45deg);display:grid;place-items:center}.mark span{transform:rotate(-45deg);letter-spacing:0;font-family:Fraunces,serif}
+h1{text-align:center;font:italic 300 clamp(30px,5vw,46px) Fraunces,Georgia,serif;margin:30px 0 7px}.sub{text-align:center;letter-spacing:.25em;color:#b6a884;font:11px 'JetBrains Mono',monospace;margin:0 0 30px}
+form{display:flex;gap:10px;margin:20px auto 28px}input{min-width:0;flex:1;background:#111318;color:#f3eee4;border:1px solid #36322a;border-radius:7px;padding:13px;font:13px 'JetBrains Mono',monospace}button{border:0;border-radius:7px;padding:12px 20px;background:linear-gradient(135deg,#ecd28a,#b99039);color:#20180a;font-weight:700;cursor:pointer}button:disabled{opacity:.5}button:focus-visible,input:focus-visible{outline:2px solid #ecd28a;outline-offset:2px}
+#result{min-height:68px}#result[aria-busy="true"]{color:#e3bd6f}.verdict{font-size:19px;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:13px}.valid{color:#6fd49a}.invalid{color:#ef7781}.muted{color:#bdb8ae;font-size:13px;line-height:1.7}table{border-collapse:collapse;width:100%;font-size:13px}td{padding:13px 9px;border-bottom:1px solid #252627;vertical-align:top;overflow-wrap:anywhere}td:first-child{color:#9a958c;width:35%}.stamp{display:flex;gap:20px;align-items:center;flex-wrap:wrap}.qr{padding:7px;background:#fff;border-radius:5px}.qr svg{display:block;width:144px;height:144px}
+footer{text-align:center;color:#6b5f59;margin-top:28px;font:10px 'JetBrains Mono',monospace;line-height:1.8}
+@media(max-width:550px){main{padding:28px 18px}form{flex-direction:column}button{padding:14px}.stamp{justify-content:center}}
+@media print{body{padding:0}main{box-shadow:none;background:#fff;color:#000;border:0}.sub,footer{color:#555}}
+</style></head><body><main><div class="logo"><div class="mark"><span>V</span></div> VICE</div>
+<h1>Certificate Verification</h1><p class="sub">VICE CAPITAL INC.</p>
+<form id="verifyForm"><input id="certId" required maxlength="40" autocomplete="off" autocapitalize="characters" placeholder="VCA-XXXX-XXXX-XXXX-XXXX" aria-label="Certificate ID"><button type="submit" id="verifyButton">Verify</button></form>
+<section id="result" aria-live="polite"></section>
+<footer>Authenticity requires a successful response from the official VICE issuance registry.<br>Reference units, training completion and broker performance are distinct records.</footer></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<script>
+'use strict';
+const SUPABASE_URL='https://sdsaewumabzjjvsmqqsl.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+</script>
+<script>
+/* VICE OS standalone QR Model 2, byte-mode, error-correction M, versions 1–9.
+   Matrix implementation is self-contained; no external runtime dependency. */
+const ViceQR = (() => {
+  const BLOCKS = [null,[[26,16]],[[44,28]],[[70,44]],[[50,32],[50,32]],
+    [[67,43],[67,43]],[[43,27],[43,27],[43,27],[43,27]],
+    [[49,31],[49,31],[49,31],[49,31]],[[60,38],[60,38],[61,39],[61,39]],
+    [[58,36],[58,36],[58,36],[59,37],[59,37]]];
+  const ALIGN = [null,[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46]];
+  const exp = new Uint8Array(512), log = new Uint8Array(256);
+  for(let i=0,v=1;i<255;i++) { exp[i]=v;log[v]=i;v<<=1;if(v&256)v^=0x11d; }
+  for(let i=255;i<512;i++)exp[i]=exp[i-255];
+  const mul=(x,y)=>!x||!y?0:exp[log[x]+log[y]];
+  function rsPolynomial(n){let poly=[1];for(let i=0;i<n;i++){
+    const out=Array(poly.length+1).fill(0);
+    poly.forEach((c,j)=>{out[j]^=c;out[j+1]^=mul(c,exp[i]);});poly=out;
+  }return poly;}
+  function rs(data,n){let r=Array(n).fill(0),gen=rsPolynomial(n);
+    for(const b of data){const f=b^r[0];r.shift();r.push(0);
+      for(let j=0;j<n;j++)r[j]^=mul(f,gen[j+1]);}
+    return r;
+  }
+  function bitsFor(text,v){
+    const b=new TextEncoder().encode(text), cap=BLOCKS[v].reduce((n,a)=>n+a[1],0);
+    const bits=[];const put=(x,n)=>{for(let i=n-1;i>=0;i--)bits.push((x>>>i)&1);};
+    put(4,4);put(b.length,8);for(const c of b)put(c,8);
+    for(let k=0;k<4&&bits.length<cap*8;k++)bits.push(0);
+    while(bits.length%8)bits.push(0);
+    const out=[];for(let i=0;i<bits.length;i+=8)out.push(parseInt(bits.slice(i,i+8).join(''),2));
+    let pad=0;while(out.length<cap)out.push(pad++%2?0x11:0xec);
+    return out;
+  }
+  function interleave(bytes,v){
+    let off=0;const blocks=BLOCKS[v].map(([size,n])=>{
+      const d=bytes.slice(off,off+n);off+=n;return {d,e:rs(d,size-n)};});
+    const ans=[];for(const key of ['d','e']){
+      const m=Math.max(...blocks.map(b=>b[key].length));
+      for(let i=0;i<m;i++)for(const b of blocks)if(i<b[key].length)ans.push(b[key][i]);
+    }return ans;
+  }
+  function build(text){
+    const b=new TextEncoder().encode(text);
+    const v=BLOCKS.findIndex((x,i)=>i>0&&i<10&&b.length<=x.reduce((n,a)=>n+a[1],0)-2);
+    if(v<1)throw new Error('QR URL exceeds 9-version capacity');
+    const n=v*4+17, m=Array.from({length:n},()=>Array(n).fill(false)),
+      reserved=Array.from({length:n},()=>Array(n).fill(false));
+    const set=(x,y,color)=>{if(x<0||y<0||x>=n||y>=n)return;m[y][x]=!!color;reserved[y][x]=true;};
+    function finder(cx,cy){for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){
+      const d=Math.max(Math.abs(dx),Math.abs(dy));set(cx+dx,cy+dy,d!==2&&d!==4);}}
+    finder(3,3);finder(n-4,3);finder(3,n-4);
+    for(let i=8;i<n-8;i++){set(i,6,i%2===0);set(6,i,i%2===0);}
+    for(const y of ALIGN[v])for(const x of ALIGN[v]){
+      if((x===6&&y===6)||(x===6&&y===n-7)||(x===n-7&&y===6))continue;
+      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)
+        set(x+dx,y+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);
+    }
+    // Format reservation and fixed dark module.
+    for(let i=0;i<9;i++)if(i!==6){set(8,i,false);set(i,8,false);}
+    for(let i=n-8;i<n;i++){set(8,i,false);set(i,8,false);}
+    set(8,n-8,true);
+    if(v>=7){for(let i=0;i<18;i++){
+      set(n-11+i%3,Math.floor(i/3),false);set(Math.floor(i/3),n-11+i%3,false);}}
+    const cw=interleave(bitsFor(text,v),v),bits=[];
+    for(const c of cw)for(let i=7;i>=0;i--)bits.push((c>>>i)&1);
+    let idx=0,up=true;
+    for(let right=n-1;right>=1;right-=2){
+      if(right===6)right=5;
+      for(let j=0;j<n;j++){
+        const y=up?n-1-j:j;
+        for(let dx=0;dx<2;dx++){
+          const x=right-dx;
+          if(reserved[y][x])continue;
+          const bit=idx<bits.length?bits[idx++]:0;
+          m[y][x]=!!(bit^(((x+y)%2)===0?1:0));
+        }
+      }up=!up;
+    }
+    // Format information for EC level M (00) and mask 0, BCH(15,5).
+    let rem=0,formatData=0;
+    for(let i=14;i>=10;i--){ /* BCH polynomial division below */ }
+    let val=formatData<<10;
+    for(let i=14;i>=10;i--)if((val>>>i)&1)val^=0x537<<(i-10);
+    const format=((formatData<<10)|val)^0x5412;
+    const bit=i=>!!((format>>>i)&1);
+    for(let i=0;i<=5;i++)set(8,i,bit(i));
+    set(8,7,bit(6));set(8,8,bit(7));set(7,8,bit(8));
+    for(let i=9;i<15;i++)set(14-i,8,bit(i));
+    for(let i=0;i<8;i++)set(n-1-i,8,bit(i));
+    for(let i=8;i<15;i++)set(8,n-15+i,bit(i));
+    set(8,n-8,true);
+    if(v>=7){let vv=v<<12;
+      for(let i=17;i>=12;i--)if((vv>>>i)&1)vv^=0x1f25<<(i-12);
+      const vb=(v<<12)|vv;
+      for(let i=0;i<18;i++){
+        const c=!!((vb>>>i)&1),a=n-11+i%3,d=Math.floor(i/3);
+        set(a,d,c);set(d,a,c);
+      }
+    }
+    return {version:v,size:n,matrix:m};
+  }
+  function encode(text,{moduleSize=6,quiet=4}={}){
+    const q=build(String(text)), path=[];
+    for(let y=0;y<q.size;y++)for(let x=0;x<q.size;x++)
+      if(q.matrix[y][x])path.push(`M${x+quiet} ${y+quiet}h1v1h-1z`);
+    return {...q,path:path.join(''),moduleSize,quiet,
+      svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${q.size+quiet*2} ${q.size+quiet*2}" width="${(q.size+quiet*2)*moduleSize}" height="${(q.size+quiet*2)*moduleSize}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="white"/><path d="${path.join('')}" fill="#07080a"/></svg>`};
+  }
+  return {encode};
+})();
+
+</script>
+<script>
+'use strict';
+const input=document.getElementById('certId');const host=document.getElementById('result');
+async function verify(id){
+  id=String(id||'').trim().toUpperCase();input.value=id;
+  if(!/^VCA-[A-F0-9]{4}(?:-[A-F0-9]{4}){3}$/.test(id)){
+    host.innerHTML='<div class="verdict invalid">✕ Invalid certificate ID</div><p class="muted">Use the full VCA-XXXX-XXXX-XXXX-XXXX identifier.</p>';return;}
+  history.replaceState(null,'','?id='+encodeURIComponent(id));
+  host.setAttribute('aria-busy','true');host.innerHTML='<div class="verdict">◷ Verifying against issuer registry…</div>';
+  document.getElementById('verifyButton').disabled=true;
+  try{
+    const {data,error}=await sb.rpc('verify_certificate',{p_cert_id:id});
+    if(error)throw error;
+    if(!data||!data.valid){host.innerHTML=`<div class="verdict invalid">✕ Certificate is not authentic</div><p class="muted">${esc(data?.reason||'Certificate not found')}</p>`;return;}
+    const t=Intl.DateTimeFormat('en-US',{dateStyle:'long'}).format(new Date(data.issued_at));
+    const url=location.href;
+    let qr='';try{qr=ViceQR.encode(url,{moduleSize:3}).svg;}catch(e){console.error('QR failed',e);}
+    host.innerHTML=`<div class="verdict valid">✓ Certificate is authentic</div><div class="stamp"><table>
+    <tr><td>Certificate ID</td><td><strong>${esc(data.cert_id)}</strong></td></tr>
+    <tr><td>Recipient</td><td>${esc(data.name)}</td></tr><tr><td>Course</td><td>${esc(data.course)}</td></tr>
+    <tr><td>Issued</td><td>${esc(t)}</td></tr><tr><td>Overall score</td><td>${esc(data.overall_score)}%</td></tr>
+    <tr><td>SHA-256 registry digest</td><td style="font-family:monospace;font-size:10px">${esc(data.digest)}</td></tr>
+    </table>${qr?`<div class="qr" role="img" aria-label="QR linking to this verification page">${qr}</div>`:''}</div>
+    <p class="muted">Validated against the issuer's active, non-revoked record. A certificate is evidence of this training assessment, not a trading license or guaranteed performance.</p>`;
+  }catch(e){host.innerHTML='<div class="verdict invalid">✕ Registry temporarily unavailable</div><p class="muted">Authenticity could not be checked. Retry when online; do not treat this as valid.</p>';}
+  finally{host.removeAttribute('aria-busy');document.getElementById('verifyButton').disabled=false;}
+}
+document.getElementById('verifyForm').addEventListener('submit',e=>{e.preventDefault();verify(input.value);});
+const initial=new URLSearchParams(location.search).get('id');if(initial)verify(initial);
+</script></body></html>

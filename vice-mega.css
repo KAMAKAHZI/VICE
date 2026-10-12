@@ -1,0 +1,35 @@
+/* VICE OS MEGA — layout enhancements. Existing theme and sections remain intact. */
+.vice-comms-shell{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:14px;align-items:stretch;min-height:450px}
+.vice-chat-list,.vice-chat-thread{min-width:0}.vice-chat-list>.band{margin-bottom:12px}
+.vice-chat-list{max-height:min(72vh,820px);overflow:auto;scrollbar-width:thin;background:rgba(9,10,13,.6);border:1px solid rgba(201,168,76,.13);border-radius:12px;padding:10px}
+.vice-chat-list .row{width:100%;border-radius:7px;padding:10px 7px;white-space:normal;text-align:left}
+.vice-chat-list .row:hover{background:rgba(201,168,76,.09)}
+.vice-chat-list .band{padding:10px;background:rgba(0,0,0,.10);border:0}
+.vice-chat-list .band-head{padding:4px 0 8px}.vice-chat-list .band-head h2{font-size:.77rem}
+.vice-chat-search{display:block;width:100%;min-width:0;color:var(--tx);background:rgba(255,255,255,.035);border:1px solid rgba(201,168,76,.18);border-radius:9px;padding:11px 12px;margin-bottom:12px;outline:none}
+.vice-chat-search:focus{border-color:rgba(201,168,76,.6)}
+.vice-chat-thread{background:rgba(12,14,19,.56);border:1px solid rgba(201,168,76,.14);border-radius:12px;padding:11px;overflow:hidden}
+.vice-chat-thread .band{margin:0;min-height:440px;display:flex;flex-direction:column;overflow:hidden}
+.vice-chat-thread .cm-msgs{flex:1;min-height:270px;max-height:min(65vh,600px);overflow-y:auto;scrollbar-width:thin}
+.vice-comms-empty{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:440px;text-align:center;gap:15px;padding:25px}
+.vice-comms-empty strong{font-size:1.3rem;color:var(--gdl);font-family:var(--sf);font-weight:400}.vice-comms-empty p{max-width:420px;font-size:.83rem}
+.vice-aura{display:inline-block;width:12px;height:12px;flex:0 0 12px;border-radius:50%;background:#4c515c;border:1px solid #6d7581}
+.vice-aura.online{background:#debf76;border-color:#f6d893;box-shadow:0 0 0 3px rgba(224,180,75,.12),0 0 8px 2px rgba(242,191,79,.8),0 0 21px rgba(224,169,60,.38)}
+.vice-aura.dnd{background:#e9ecf4;border-color:#fff;box-shadow:0 0 0 3px rgba(235,237,245,.1),0 0 9px 2px rgba(255,255,255,.8),0 0 18px rgba(255,255,255,.35)}
+.vice-chat-thread .cm-input{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;min-width:0}
+.vice-chat-thread .cm-input input#cmIn{min-width:50px;flex:1}
+.vice-attach,.vice-voice{min-width:42px;flex-shrink:0}
+.vice-voice.recording{border-color:#e7696b;color:#ff8e91;box-shadow:0 0 17px rgba(230,89,91,.35);animation:vice-record 1.3s ease-in-out infinite alternate}
+@keyframes vice-record{from{opacity:1}to{opacity:.65}}
+.vice-media-img{max-width:100%;max-height:360px;border-radius:8px;display:block;object-fit:contain}
+.vice-media-audio{width:min(100%,315px);min-width:150px}
+/* Avoid floating ONLINE badge covering menus or charts: dock it in top navbar. */
+.rt-badge{position:fixed!important;left:auto!important;right:245px!important;top:12px!important;bottom:auto!important;z-index:105!important;max-width:125px;pointer-events:none}
+@media(max-width:1050px){.rt-badge{right:132px!important}}
+@media(max-width:760px){.vice-comms-shell{grid-template-columns:1fr}.vice-chat-list{max-height:210px}.vice-chat-thread .cm-msgs{max-height:52vh}.rt-badge{right:68px!important;top:11px!important;max-width:95px!important;font-size:.48rem}}
+@media(max-width:450px){.vice-chat-list{max-height:170px}.vice-chat-thread{padding:4px}.vice-chat-thread .band{padding:10px}.vice-attach,.vice-voice{min-width:32px;padding:7px}.rt-badge{right:60px!important;max-width:72px!important}}
+.vice-peer-dock{display:flex;align-items:center;gap:13px;overflow:auto;padding:8px 9px 15px;border-bottom:1px solid rgba(201,168,76,.12);margin-bottom:9px;scrollbar-width:thin}
+.vice-peer-bubble{width:38px;height:38px;flex:0 0 38px;border-radius:50%;font-size:.64rem;color:#f6edda;background:#292c35;display:flex;align-items:center;justify-content:center;position:relative;border:2px solid rgba(218,183,94,.8);cursor:pointer}
+.vice-peer-bubble.online{box-shadow:0 0 9px 2px rgba(225,186,90,.65),0 0 22px rgba(196,145,38,.25)}
+.vice-peer-bubble.dnd{border-color:#fff;box-shadow:0 0 9px 2px rgba(255,255,255,.75),0 0 20px rgba(255,255,255,.24)}
+.vice-peer-bubble small{position:absolute;bottom:-8px;left:0;font-size:.38rem;letter-spacing:.02em;background:#2e4050;padding:1px 3px;border:1px solid rgba(201,168,76,.5);border-radius:3px}
