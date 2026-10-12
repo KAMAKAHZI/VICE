@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-build="merge" data-pwa="0">
+<html lang="en" data-build="1.0.1" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>VICE OS — Institutional Operating System</title>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#07080a">
+<link rel="manifest" href="./manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1227,7 +1228,7 @@ p{color:var(--tx-2);margin:0}
       const btcPrivBytes = btcKey.privateKey;
       const btcPubBytes = secp.getPublicKey(btcPrivBytes, true);
       const btcHash = hashes.sha256(hashes.ripemd160(btcPubBytes));
-      const btcAddress = 'bc1' + Array.from(btcHash).map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 38);
+      const btcAddress = null; // Bech32 derivation not implemented: never show an invalid receive address.
 
       const vault = {
         v: 1,
@@ -1294,7 +1295,7 @@ p{color:var(--tx-2);margin:0}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.0.0', date: '2026-10-11' };
+const BUILD = { version: '1.0.1', date: '2026-10-11' };
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -1460,7 +1461,7 @@ const S = {
   invites:[],
   personalHoldings:{ viceUnits:0, v4xUnits:0 },
   iruClasses:[
-    { class:'VICE', totalSupply:10000000, reserve:7500000, holderPool:2500000, allocated:0, ouv:2, maxHolders:250 },
+    { class:'VICE', totalSupply:10000000, reserve:7500000, holderPool:2500000, allocated:0, ouv:32, maxHolders:250 },
     { class:'V4X',  totalSupply:10000000, reserve:7500000, holderPool:2500000, allocated:0, ouv:320, maxHolders:250 },
   ],
   ouvVersions:[],
@@ -1835,7 +1836,7 @@ const NAV = [
     { id:'wallet', label:'My Wallet', icon:'wallet', perm:'view' },
   ]},
   { group:'Connect', items:[
-    { id:'comms', label:'Chats & Calls', icon:'message', perm:'chat', badge:'E2E' },
+    { id:'comms', label:'Chats & Calls', icon:'message', perm:'chat', badge:'CHAT' },
     { id:'vip', label:'VIP', icon:'gift', perm:'view' },
   ]},
   { group:'My Record', items:[
@@ -2054,160 +2055,51 @@ async function forgotPassword(){
 }
 
 async function onAuthenticated(user){
+  if (APP_MODE === 'SIM') return;
+  if (S.user?.id===user.id && S.profile?.role) return;
   try {
-    /* Look for a pending invite FIRST — it takes priority over any auto-created profile row */
-    const inviteCode = sessionStorage.getItem('pending_invite')
-      || new URLSearchParams(location.search).get('invite');
-
-    let invite = null;
-    if (inviteCode) {
-      const { data: inv } = await sb.from('invites')
-        .select('*').eq('code', inviteCode).eq('used', false).maybeSingle();
-      invite = inv || null;
-    }
-
-    let { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-
-    if (!prof) {
-      if (!invite) {
-        await sb.auth.signOut();
-        toast('Invite-only. Open your invite link.','error');
-        return;
-      }
-      const googleName = user.user_metadata?.full_name || user.user_metadata?.name || '';
-      const displayName = invite.for_user || googleName || user.email.split('@')[0];
-      const initials = displayName.replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase() || 'NA';
-      const newProf = {
-        id: user.id, email: user.email, name: displayName,
-        role: invite.role || 'HOLDER',
-        vip_access: !!invite.vip_access || invite.role === 'SUPER_ADMIN',
-        avatar_initials: initials, title:'Member',
-        jurisdiction:'CH', timezone:'UTC',
-        client_id: null,
-      };
-      const { data: inserted, error: createErr } = await sb.from('profiles')
-        .insert(newProf).select().maybeSingle();
-      if (createErr) {
-        await sb.auth.signOut();
-        toast('Profile creation failed: ' + createErr.message, 'error');
-        return;
-      }
-      prof = inserted || newProf;
-      await sb.from('invites').update({
-        used: true, used_by: user.id, used_at: nowIso(),
-      }).eq('id', invite.id);
+    const inviteCode=sessionStorage.getItem('pending_invite') ||
+      new URLSearchParams(location.search).get('invite');
+    let {data:prof,error:profileError}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+    if(profileError) throw profileError;
+    if(inviteCode){
+      const redeemed=await sb.rpc('redeem_invite',{p_code:inviteCode});
+      if(redeemed.error) throw redeemed.error;
       sessionStorage.removeItem('pending_invite');
-      toast('Welcome to VICE OS.','success');
-    } else if (invite) {
-      /* Profile exists but invite is unused — apply invite role + VIP */
-      const patch = {
-        role: invite.role || prof.role,
-        vip_access: !!invite.vip_access || invite.role === 'SUPER_ADMIN' || prof.vip_access,
-      };
-      try { await sb.from('profiles').update(patch).eq('id', user.id); } catch(_){}
-      prof = { ...prof, ...patch };
-      await sb.from('invites').update({
-        used: true, used_by: user.id, used_at: nowIso(),
-      }).eq('id', invite.id);
-      sessionStorage.removeItem('pending_invite');
+      const result=await sb.from('profiles').select('*').eq('id',user.id).single();
+      if(result.error)throw result.error;
+      prof=result.data;
     }
-
-    S.profile = {
-      name: prof.name || user.email?.split('@')[0] || 'User',
-      username: prof.username || '',
-      email: prof.email || user.email,
-      role: prof.role || 'HOLDER',
-      title: prof.title || 'Member',
-      phone: prof.phone || '',
-      jurisdiction: prof.jurisdiction || 'CH',
-      timezone: prof.timezone || 'UTC',
-      avatarInitials: prof.avatar_initials || (prof.name||'NA').slice(0,2).toUpperCase(),
-      avatarUrl: prof.avatar_url || null,
-      vipAccess: prof.vip_access || prof.role === 'SUPER_ADMIN',
-      clientId: prof.client_id || null,
-      memberId: prof.member_id || null,
-    };
-
-    S.user = { id: user.id, email: user.email, name: S.profile.name, role: S.profile.role };
-
-    /* Auto-enroll every signed-in user as a holder so they appear in the registry */
+    if(!prof){await sb.auth.signOut();toast('VICE OS is invite-only. Use a valid invitation.','error');return;}
+    S.profile={name:prof.name||'Member',username:prof.username||'',email:prof.email||user.email||'',
+      role:prof.role||'HOLDER',title:prof.title||'Member',phone:prof.phone||'',
+      jurisdiction:prof.jurisdiction||'CH',timezone:prof.timezone||'UTC',
+      avatarInitials:prof.avatar_initials||'NA',avatarUrl:prof.avatar_url||null,
+      vipAccess:!!prof.vip_access,memberId:prof.member_id||null,clientId:prof.client_id||null};
+    S.user={id:user.id,email:user.email,name:S.profile.name,role:S.profile.role};
     await ensureHolderForCurrentUser();
-
-    S.personalHoldings = S.profile.role === 'SUPER_ADMIN'
-      ? { viceUnits: 7500000, v4xUnits: 7500000 }
-      : { viceUnits: 0, v4xUnits: 0 };
-
     await hydrateData();
     showApp();
-    try { Realtime.connect(); } catch(_) {}
-    try { Realtime.loadProfiles(); } catch(_) {}
-    if (!S.profile.username) toast('Set your username in Profile.','info');
-    setTimeout(() => { try { loadCandles(); } catch(_) {} }, 250);
-  } catch(e) {
-    console.error('Auth error', e);
-    toast('Signed in but data load failed: ' + e.message, 'error');
+    try{await Realtime.connect();await Realtime.loadProfiles();}catch(e){console.warn('Realtime:',e);}
+    setTimeout(()=>loadCandles().catch(e=>console.warn(e)),250);
+  }catch(e){
+    console.error('Authentication setup:',e);
+    S.user=null;
+    await sb.auth.signOut().catch(()=>{});
+    $('login').hidden=false;
+    toast('Access not provisioned: '+e.message,'error');
   }
 }
 
-/* Auto-assign the current user a client ID and holder row if they don't have one. */
 async function ensureHolderForCurrentUser(){
-  if (!S.user || S.user.id === 'sim-user') return;
-  const st = S.iru.state || IruEngine.emptyState();
-  let h = st.holders[S.user.id];
-
-  if (!h && S.profile.email) {
-    const byEmail = Object.values(st.holders).find(x => x.email === S.profile.email);
-    if (byEmail) {
-      h = byEmail;
-      h.holderId = S.user.id;
-      st.holders[S.user.id] = h;
-    }
-  }
-
-  if (h) {
-    if (!S.profile.clientId && h.clientId) {
-      try { await sb.from('profiles').update({ client_id: h.clientId }).eq('id', S.user.id); } catch(_){}
-      S.profile.clientId = h.clientId;
-    }
-    return h;
-  }
-
-  try {
-    const ev = {
-      type:'HOLDER_ADDED',
-      holderId: S.user.id,
-      name: S.profile.name || 'Member',
-      email: S.profile.email || '',
-      holderType: 'Standard',
-      by: 'auto-enrollment',
-      at: nowIso(),
-    };
-    S.iru.state = IruEngine.apply(st, ev);
-    h = S.iru.state.holders[S.user.id];
-
-    if (h) {
-      try {
-        await sb.from('profiles').update({ client_id: h.clientId }).eq('id', S.user.id);
-      } catch(_){}
-      S.profile.clientId = h.clientId;
-
-      try {
-        await sb.from('holders').insert({
-          client_id: h.clientId,
-          profile_id: S.user.id,
-          name: S.profile.name,
-          email: S.profile.email,
-          holder_type: 'Standard',
-          status: 'ACTIVE',
-        });
-      } catch(_){}
-    }
-    return h;
-  } catch(e) {
-    console.warn('Holder auto-enrollment failed:', e);
-    return null;
-  }
+  if(!S.user||S.user.id==='sim-user')return null;
+  const {data,error}=await sb.rpc('get_or_create_holder');
+  if(error)throw error;
+  S.profile.clientId=data.client_id;
+  S.personalHoldings={viceUnits:Number(data.vice_units||0),v4xUnits:Number(data.v4x_units||0)};
+  return data;
 }
+
 
 async function hydrateData(){
   const tables = {
@@ -2267,6 +2159,32 @@ async function hydrateData(){
 
   /* Fire the holder IRU auto-enrollment after everything else is loaded */
   try { await ensureHolderForCurrentUser(); } catch(_){}
+  /* Rebuild IRU state exclusively from the persisted, ordered event ledger. */
+  try {
+    const {data,error}=await sb.from('iru_events').select('seq,payload,actor_id,created_at')
+      .order('seq',{ascending:true}).limit(10000);
+    if(error)throw error;
+    S.iru.state=IruEngine.replay((data||[]).map(e=>({...e.payload,
+      by:e.actor_id,at:e.created_at})));
+  } catch(e) { console.warn('IRU journal hydration:',e); toast('IRU registry could not be synchronized','warn'); }
+  try {
+    const {data}=await sb.rpc('get_my_holder');
+    if(data?.[0])S.personalHoldings={viceUnits:Number(data[0].vice_units),v4xUnits:Number(data[0].v4x_units)};
+  }catch(_){}
+  try{
+    const {data}=await sb.from('support_tickets').select('*').order('created_at',{ascending:false}).limit(100);
+    if(data)S.support.tickets=data.map(r=>({id:r.id,subject:r.subject,text:r.body,status:r.status,at:r.created_at}));
+  }catch(e){console.warn('Support sync:',e);}
+  try {
+    const {data}=await sb.from('certificates').select('cert_id,holder_name,course_title,issued_at,scores,overall_score,digest')
+      .eq('profile_id',S.user.id).order('issued_at',{ascending:false}).limit(100);
+    if(data) Academy.state.certs=data.map(c=>({id:c.cert_id,name:c.holder_name,course:c.course_title,
+      issuedAt:c.issued_at,scores:c.scores,overallScore:c.overall_score,digest:c.digest}));
+    const {data:attempts}=await sb.from('academy_attempts').select('module,score,passed,submitted_at')
+      .eq('profile_id',S.user.id).order('submitted_at',{ascending:false});
+    if(attempts){Academy.state.quiz={};for(const a of attempts){if(!Academy.state.quiz[a.module] || a.score>Academy.state.quiz[a.module].score*100)
+      Academy.state.quiz[a.module]={score:a.score/100,passed:a.passed,at:a.submitted_at};}}
+  }catch(e){console.warn('Academy hydrate:',e);}
 }
 
 function denorm(row){
@@ -2293,7 +2211,7 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
     const entry = {
       id: uuid(), eventType, action,
       objectType, objectId: String(objectId||''),
-      actorId: S.user?.email || 'system',
+      actorId: S.user?.id || 'system',
       actorRole: S.profile?.role || 'SYSTEM',
       outcome, correlationId: uuid().slice(0,8),
       createdAt: nowIso(),
@@ -2307,7 +2225,7 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
           action,
           object_type: objectType,
           object_id: String(objectId || ''),
-          actor_id: S.user.email,
+          actor_id: S.user.id,
           actor_role: S.profile?.role || 'SYSTEM',
           outcome,
           correlation_id: entry.correlationId,
@@ -2315,6 +2233,16 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
       } catch(_) {}
     }
   }catch(_){}
+}
+
+
+async function persistIruEvent(ev){
+  if(APP_MODE==='SIM' && S.user?.id==='sim-user')return {simulated:true};
+  if(!S.user||!isOwner())throw new Error('SUPER_ADMIN authorization required');
+  const {data,error}=await sb.rpc('append_iru_event',{
+    p_payload:ev,p_correlation_id:crypto.randomUUID()});
+  if(error)throw error;
+  return data;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -2331,7 +2259,7 @@ function externalUsd(){
   return S.externalAccounts.reduce((s,a)=>s+(Number(a.balance||0)*(fx[a.currency]||1)),0);
 }
 function iruUsd(){
-  const v = S.iruClasses.find(c=>c.class==='VICE')?.ouv||2;
+  const v = S.iruClasses.find(c=>c.class==='VICE')?.ouv||32;
   const x = S.iruClasses.find(c=>c.class==='V4X')?.ouv||320;
   return (S.personalHoldings.viceUnits*v) + (S.personalHoldings.v4xUnits*x);
 }
@@ -2419,6 +2347,13 @@ document.addEventListener('click', (e) => {
     case 'forgot': forgotPassword(); return;
     case 'invite-help': openInviteHelp(); return;
     case 'sign-out': logout(); return;
+    case 'auth-reset': {
+      (async()=>{
+        try{await sb.auth.signOut();}catch(_){}
+        try{localStorage.removeItem('vice-os-auth-v'+BUILD.version);}catch(_){}
+        sessionStorage.removeItem('pending_invite');location.assign(location.pathname);
+      })();return;
+    }
   }
   if(typeof window.__viceAct === 'function') window.__viceAct(t, e);
 });
@@ -2488,17 +2423,14 @@ window.__viceAct = function(t, e){
       if(!pw || pw.length < 8){ toast('Password 8+ chars','error'); return; }
       if(pw !== cf){ toast('Mismatch','error'); return; }
       (async () => {
-        const { data: invite } = await sb.from('invites')
-          .select('*').eq('code', inviteCode).eq('used', false).maybeSingle();
-        if(!invite){ toast('Invite invalid','error'); return; }
+        const { data: invite, error: invError } = await sb.rpc('validate_invite',{p_code:inviteCode,p_email:email});
+        if(invError || !invite?.valid){ toast('Invite invalid, expired or restricted to another email','error'); return; }
         const { data, error } = await sb.auth.signUp({
           email, password: pw,
           options:{
             data:{
               invite_code: inviteCode,
-              name: invite.for_user || email.split('@')[0],
-              role: invite.role || 'HOLDER',
-              vip_access: !!invite.vip_access,
+              name: invite.name || email.split('@')[0],
             }
           }
         });
@@ -4602,6 +4534,7 @@ const Realtime = (() => {
   const handlers = { message:[], presence:[], call:[] };
   let presenceChannel = null;
   let broadcastChannel = null;
+  let dmChannel = null;
   let heartbeatTimer = null;
 
   /* Cross-tab fallback — same-browser multi-tab delivery independent of Supabase */
@@ -4748,6 +4681,17 @@ const Realtime = (() => {
           }
         });
 
+      /* DM transport is RLS-scoped to the recipient, never global broadcast. */
+      dmChannel=sb.channel('vice-os-dm-inbox-'+S.user.id)
+        .on('postgres_changes',{
+          event:'INSERT',schema:'public',table:'dm_messages',filter:'peer_id=eq.'+S.user.id
+        },({new:row})=>{
+          if(row && row.sender_id!==S.user.id)receiveChat({
+            id:row.id,peerId:S.user.id,senderId:row.sender_id,senderName:row.sender_name,
+            text:row.text,at:new Date(row.created_at).getTime()
+          });
+        }).subscribe();
+
       /* Heartbeat: if the connection silently drops, reconnect */
       clearInterval(heartbeatTimer);
       heartbeatTimer = setInterval(() => {
@@ -4777,6 +4721,7 @@ const Realtime = (() => {
       try { broadcastChannel.unsubscribe(); } catch(_){}
       broadcastChannel = null;
     }
+    if(dmChannel){try{dmChannel.unsubscribe();}catch(_){}dmChannel=null;}
     st.connected = false;
     st.online = new Set();
     paintRealtimeBadge();
@@ -4797,7 +4742,7 @@ const Realtime = (() => {
   /* ─── PEERS ─── */
   async function loadProfiles(){
     try {
-      const { data } = await sb.from('profiles').select('id,name,email,role,avatar_initials,vip_access').limit(200);
+      const { data } = await sb.rpc('list_member_directory');
       if(!data) return;
       const peers = [];
       for(const p of data){
@@ -4920,7 +4865,9 @@ const Realtime = (() => {
     const id = uuid();
     const at = Date.now();
     const senderName = S.profile.name || 'Me';
-    const encrypted = await MsgCrypto.encrypt('ch:' + channelId, t);
+    let encrypted;
+    try { encrypted = await MsgCrypto.encrypt('ch:' + channelId, t); }
+    catch(error) { toast('Message was not sent: ' + error.message, 'error'); return; }
 
     const payload = {
       id, channelId,
@@ -4951,7 +4898,9 @@ const Realtime = (() => {
     const at = Date.now();
     const senderName = S.profile.name || 'Me';
     const threadId = [S.user?.id || 'anon', peerId].sort().join('|');
-    const encrypted = await MsgCrypto.encrypt('dm:' + threadId, t);
+    let encrypted;
+    try { encrypted = await MsgCrypto.encrypt('dm:' + threadId, t); }
+    catch(error) { toast('Message was not sent: ' + error.message, 'error'); return; }
 
     const payload = {
       id, peerId,
@@ -4964,10 +4913,7 @@ const Realtime = (() => {
     const list = S.comms.dms[peerId] || (S.comms.dms[peerId] = []);
     list.push({ id, from:senderName, at, text:t, self:true, _decrypted:true });
 
-    if(broadcastChannel && st.connected){
-      try { broadcastChannel.send({ type:'broadcast', event:'chat', payload }); } catch(_){}
-    }
-    try { localBus && localBus.postMessage({ type:'chat', payload }); } catch(_){}
+    // Direct messages are received via RLS-scoped Postgres changes.
 
     persist('dm_messages', {
       id, peer_id:peerId, sender_id:payload.senderId,
@@ -4977,7 +4923,9 @@ const Realtime = (() => {
 
   function persist(table, row){
     try {
-      sb.from(table).insert({ ...row, created_at: new Date().toISOString() }).then(() => {}, () => {});
+      sb.from(table).insert({ ...row, created_at: new Date().toISOString() })
+        .then(({error})=>{if(error)toast('Message not saved: '+error.message,'error');},
+          e=>toast('Message could not be saved: '+e.message,'error'));
     } catch(_){}
   }
 
@@ -5538,7 +5486,7 @@ const MsgCrypto = (() => {
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, enc.encode(String(plaintext)));
       return PREFIX + toB64(iv) + ':' + toB64(ct);
-    } catch(_) { return String(plaintext); }
+    } catch(error) { throw new Error('Message encryption failed: ' + (error?.message || 'unknown error')); }
   }
 
   async function decrypt(threadId, ciphertext){
@@ -6162,21 +6110,9 @@ const Link = (() => {
   const persistAccts = () => {
     try { localStorage.setItem('vice-mt5-accounts', JSON.stringify(accts)); } catch(_) {}
   };
-  async function encryptPassword(pw) {
-    if (!pw || !window.crypto || !window.crypto.subtle) return pw;
-    try {
-      const enc = new TextEncoder();
-      const key = await crypto.subtle.importKey(
-        'raw', enc.encode('vice-os-mt5-key-2026'),
-        { name:'AES-GCM' }, false, ['encrypt']
-      );
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const ct = new Uint8Array(await crypto.subtle.encrypt(
-        { name:'AES-GCM', iv }, key, enc.encode(pw)
-      ));
-      return `enc:${btoa(String.fromCharCode(...iv))}:${btoa(String.fromCharCode(...ct))}`;
-    } catch(_) { return pw; }
-  }
+  // Read-only terminal exporter. Broker passwords are never accepted or persisted.
+
+
   const notify = () => { try { renderMain(); } catch(_) {} };
   const skey = (src, sym, tf) => `${src}|${sym}|${tf}`;
   function config() {
@@ -6184,7 +6120,7 @@ const Link = (() => {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem('vice-link') || '{}'); } catch(_) { saved = {}; }
     st.url = h.get('link') || saved.url || '';
-    st.token = h.get('token') || saved.token || '';
+    st.token = saved.token || '';
     const startErr = h.get('linkerr') || '';
     if (startErr) st.msg = startErr;
     if (h.get('link') || h.get('token') || h.get('linkerr')) {
@@ -6206,6 +6142,7 @@ const Link = (() => {
     clearTimeout(timer);
     if (st._stopped) return;
     if (!st.url) { st.status = 'off'; notify(); return; }
+    if(location.protocol==='https:' && !st.url.startsWith('wss://')) { st.status='error'; st.msg='HTTPS VICE OS requires a WSS bridge behind TLS.'; notify(); return; }
     if (typeof WebSocket === 'undefined') { st.status = 'off'; notify(); return; }
     if (ws && (ws.readyState === 0 || ws.readyState === 1)) return;
     st.status = 'connecting';
@@ -6290,6 +6227,8 @@ const Link = (() => {
         symbols.set(m.src, m.list || []);
         notify();
         break;
+      case 'mt5-verify':
+      case 'mt5-account':
       case 'history': {
         const r = reqs.get(m.id);
         if (r) { reqs.delete(m.id); r.resolve(m); }
@@ -6378,8 +6317,8 @@ const Link = (() => {
     addAccount({ broker, server, login, password, mode, label }) {
       mode = mode || 'DEMO';
       label = label || '';
-      if (!server || !login || !password) {
-        st.msg = 'Server, login and password are required.';
+      if (!server || !login) {
+        st.msg = 'Server and login are required. VICE Link never stores broker passwords.';
         notify();
         return null;
       }
@@ -6394,30 +6333,16 @@ const Link = (() => {
         addedAt:new Date().toISOString(),
         verified:false,
       };
-      encryptPassword(password).then(pwEnc => {
-        acct._pwEnc = pwEnc;
-        accts.push(acct);
-        persistAccts();
-        if (st.status === 'live' && st.admin) send({ t:'mt5-account', action:'add', account:acct });
-        if (st.status === 'live') {
-          request({ t:'mt5-verify', account:{ server, login, password } })
-            .then(r => {
-              acct.verified = !!r.ok;
-              acct.equity = r.equity || 0;
-              acct.balance = r.balance || 0;
-              acct.currency = r.currency || 'USD';
-              persistAccts();
-              notify();
-              toast(acct.verified
-                ? `Connected to ${acct.broker} · ${acct.login}`
-                : 'Bridge could not verify that login','success');
-            })
-            .catch(e => { st.msg = 'Bridge could not verify: ' + e.message; notify(); });
-        } else {
-          toast('Account saved. Start VICE Link on your PC to connect.','info');
-          notify();
-        }
-      });
+      accts.push(acct);
+      persistAccts();
+      if (st.status === 'live') {
+        request({t:'mt5-verify',account:{server,login}}).then(r=>{
+          acct.verified=!!r.ok;acct.equity=r.equity||0;acct.balance=r.balance||0;
+          acct.currency=r.currency||'USD';persistAccts();notify();
+          toast(r.ok?'Connected to local MT5 exporter':'Terminal account does not match',r.ok?'success':'warn');
+        }).catch(e=>toast('MT5 read-only verification: '+e.message,'error'));
+      } else toast('Account metadata saved. Start the local MT5 exporter to verify it.','info');
+      notify();
       return acct;
     },
     removeAccount(id) {
@@ -6436,11 +6361,10 @@ const Link = (() => {
         toast('VICE Link is not connected. Run VICE OS on your PC.','warn');
         return;
       }
-      const pw = acct._pwEnc && acct._pwEnc.startsWith('enc:') ? null : acct._pwEnc;
       try {
         const r = await request({
           t:'mt5-verify',
-          account:{ server:acct.server, login:acct.login, password:pw }
+          account:{ server:acct.server, login:acct.login }
         });
         acct.verified = !!r.ok;
         acct.equity = r.equity || acct.equity;
@@ -6780,23 +6704,27 @@ const Academy = (() => {
       save();
       renderMain();
     },
-    grade(mid) {
-      const qs = QUIZ[mid];
-      const correct = qs.filter((q,i) => Number(st.answers[i]) === q.a).length;
-      const score = correct / qs.length;
-      if (Object.keys(st.answers).length < qs.length) {
-        st.msg = 'Answer every question first.';
-        renderMain();
-        return;
+    async grade(mid) {
+      const qs=QUIZ[mid];
+      if(!qs || Object.keys(st.answers).length!==qs.length){
+        st.msg='Answer every question first.';renderMain();return;
       }
-      st.result = { correct, total:qs.length, passed: score >= PASS };
-      const prev = st.quiz[mid];
-      if (!prev || score > prev.score) {
-        st.quiz[mid] = { score, passed: score >= PASS, at:new Date().toISOString() };
-      }
-      save();
-      st.msg = '';
-      renderMain();
+      const answers=qs.map((_,i)=>Number(st.answers[i]));
+      try {
+        let r;
+        if(APP_MODE==='SIM'){
+          const correct=qs.filter((q,i)=>answers[i]===q.a).length;
+          r={correct,total:qs.length,score:correct*25,passed:correct>=3};
+        }else{
+          const out=await sb.rpc('submit_academy_quiz',{p_module:mid,p_answers:answers});
+          if(out.error)throw out.error;
+          r=out.data;
+        }
+        st.result={correct:r.correct,total:r.total,passed:r.passed};
+        const prev=st.quiz[mid];
+        if(!prev || r.score/100>prev.score)st.quiz[mid]={score:r.score/100,passed:r.passed,at:nowIso()};
+        save();st.msg='';renderMain();
+      }catch(e){st.msg='Assessment was not recorded: '+e.message;toast(st.msg,'error');renderMain();}
     },
     passedAll:() => core().every(m => st.quiz[m.id] && st.quiz[m.id].passed),
     readAllCore:() => core().every(m => m.chapters.every(c => st.read[`${m.id}.${c.n}`])),
@@ -6804,29 +6732,27 @@ const Academy = (() => {
       t + m.chapters.filter(c => !st.read[`${m.id}.${c.n}`]).length, 0),
     eligible:() => api.passedAll() && api.readAllCore(),
     async issue(name) {
-      const n = String(name || '').trim();
-      if (n.length < 2) { st.msg = 'Enter the name to print on the certificate.'; renderMain(); return; }
-      if (!api.eligible()) {
-        st.msg = 'Read every core chapter and pass every core assessment first.';
-        renderMain();
-        return;
-      }
-      const issuedAt = new Date().toISOString();
-      const salt = Array.from(
-        crypto.getRandomValues(new Uint8Array(8)),
-        b => b.toString(16).padStart(2,'0')
-      ).join('');
-      const digest = new Uint8Array(await crypto.subtle.digest(
-        'SHA-256', new TextEncoder().encode(`${n}|${TITLE}|${issuedAt}|${salt}`)
-      ));
-      const hex = Array.from(digest.slice(0,8), b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
-      const id = `VCA-${hex.slice(0,4)}-${hex.slice(4,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}`;
-      const scores = Object.fromEntries(core().map(m => [m.id, Math.round(st.quiz[m.id].score * 100)]));
-      st.certs.push({ id, name:n, course:TITLE, issuedAt, scores });
-      save();
-      st.view = { cert:id };
-      st.msg = '';
-      renderMain();
+      const n=String(name||'').trim();
+      if(n.length<2){st.msg='Enter your certificate name.';renderMain();return;}
+      if(!api.eligible()){st.msg='Read all core chapters and pass every assessment first.';renderMain();return;}
+      try{
+        const scores=Object.fromEntries(core().map(m=>[m.id,Math.round(st.quiz[m.id].score*100)]));
+        const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/7);
+        let cert;
+        if(APP_MODE==='SIM'){
+          cert={id:'SIM-'+uuid().slice(0,8),name:n,course:TITLE,issuedAt:nowIso(),
+            scores,overallScore:overall,simulated:true};
+        } else {
+          const {data,error}=await sb.rpc('issue_certificate',{
+            p_name:n,p_course_title:TITLE,p_scores:scores,p_overall:overall,
+            p_digest:'',p_salt:''});
+          if(error)throw error;
+          cert={id:data.cert_id,name:data.name,course:data.course,issuedAt:data.issued_at,
+            scores:data.scores,overallScore:data.overall_score,digest:data.digest};
+        }
+        st.certs.unshift(cert);save();st.view={cert:cert.id};st.msg='';renderMain();
+        openCertificateModal(cert);
+      }catch(e){st.msg='Certificate issuance failed: '+e.message;toast(st.msg,'error');renderMain();}
     },
     verify: id => st.certs.find(c => c.id === String(id || '').trim().toUpperCase()) || null,
   };
@@ -6838,17 +6764,17 @@ const Academy = (() => {
    ═══════════════════════════════════════════════════════════════════ */
 
 const KB = [
-  ['connect-mt5','Connect MT5 terminals','Open each MT5 terminal: Tools → Options → Expert Advisors → tick "Allow WebRequest for listed URL" and add 127.0.0.1. Attach VICE_Bridge.mq5 to one chart per terminal and paste the bridge token from System → Bridge. Then add each account under MT5 Accounts with server, login and password.',['mt5','bridge','connect','terminal','broker','login','password','ea']],
-  ['add-broker-account','Add an MT5 broker account','Open MT5 Accounts → Add Account. Enter the broker name, the exact server name (from the MT5 login dialog), the login number and the password. The password is encrypted in your browser with AES-GCM and sent only to your PC over VICE Link.',['broker','account','login','password','server','mt5']],
-  ['pair-phone','Use VICE OS on your phone','With VICE OS running on your PC, open the address shown in System → Bridge on your phone (same Wi-Fi) and enter the 6-digit pairing code. Then Share → Add to Home Screen.',['phone','iphone','pair','pairing','code','mobile']],
+  ['connect-mt5','Connect MT5 terminals','Copy VICE_Link_Exporter.mq5 into the MT5 Experts folder, compile in MetaEditor, and attach it to a chart. Set the bridge server mt5_data_dir to the EA-exported Files/VICE_LINK directory. Install Node.js 20+ and run server/server.js locally using a strong VICE_LINK_TOKEN. This integration reads chart and account data only; never enter your broker password in the website.',['mt5','bridge','connect','terminal','broker','login','password','ea']],
+  ['add-broker-account','Add an MT5 broker account','Sign in to your official MT5 terminal directly. In VICE OS → MT5, enter the matching server and login to register a read-only connection to the local bridge. The bridge checks the currently active terminal account. No broker password is collected by VICE OS.',['broker','account','login','password','server','mt5']],
+  ['pair-phone','Use VICE OS on your phone','For local use pair with the six-digit code in the Windows bridge console. The default bridge listens on localhost only; a phone or hosted HTTPS site needs a trusted TLS-protected WSS proxy with strict origin rules, not a public ws:// link.',['phone','iphone','pair','pairing','code','mobile']],
   ['import-data','Import MT5 price history','In MT5 open View → Symbols (Ctrl+U) → Bars, choose the symbol and timeframe, Request, then Export. In Markets, tap Import MT5 bars. One M1 or M5 export unlocks every higher timeframe.',['import','csv','export','history','bars','chart']],
   ['invite-call','Invite someone to a call','In Comms open a DM and tap the call button. Or send an invite link from Admin → Invite Links.',['invite','call','video','voice','room','link']],
   ['invite-platform','Invite someone to VICE OS','Admin → VIP Invites → Create VIP invite. Choose the role and send.',['invite','beta','link','signup','register','holder']],
   ['wallet-create','Create or restore the VICE Wallet','Open Wallet. Create a new wallet to get a 24-word recovery phrase, shown once.',['wallet','create','restore','recovery','phrase','seed','keys']],
-  ['two-step','Two-step verification','In System → Account turn on two-step verification and add the key to Authy or any authenticator app.',['two-step','2fa','authy','code','recovery','mfa']],
-  ['documents-esign','Sign a document','Open Documents. Tap Sign on the document you need to sign, draw your signature on the pad, and confirm.',['sign','document','esign','signature','contract']],
-  ['documents-download','Download or save a document','Open Documents. Each document has Download and Save in app.',['download','save','document','file','export']],
-  ['holders-tokens','Can holders see their tokens?','Yes. Every appointed client can sign in with their Client ID or email and see their V4X and VICE units, allocation history, internal reference values and their Tier / Legacy / Entry Class in the Holder portal.',['holder','tokens','v4x','vice','balance','portal']],
+  ['two-step','Two-step verification','Open Security or Profile → Two-step verification, scan the TOTP enrollment QR using an authenticator app, and enter the six-digit code to activate the factor. Make sure your Supabase Auth settings enforce the desired MFA assurance policy.',['two-step','2fa','authy','code','recovery','mfa']],
+  ['documents-esign','Sign a document','In Documents select Sign, review the identified file, type your profile name and confirm consent. VICE OS records a server-side typed-name attestation bound to the file SHA-256 digest.',['sign','document','esign','signature','contract']],
+  ['documents-download','Download or save a document','Open Documents and use Download. Supabase Storage issues a short-lived, access-controlled URL for each available file; the files are not publicly readable.',['download','save','document','file','export']],
+  ['holders-tokens','Can holders see their tokens?','Yes. Appointed holders authenticate with their invited email or username and can see their scoped VICE/V4X IRU balances, tier and legacy records. Client ID is an identifier, not a password.',['holder','tokens','v4x','vice','balance','portal']],
   ['iru-value','What the IRU value and Locked mean','IRU values are set by VICE Capital. IRUs are Locked: they are internal accounting units, not shares or ownership.',['iru','value','token','locked','vice','v4x']],
   ['demo-mode','Demo mode','Admin → Demo mode seeds up to 250 clients on a separate simulated ledger.',['demo','seed','simulated']],
   ['comms-telegram','Comms','The Comms section uses a Telegram-style interface: chats, calls, contacts and settings tabs.',['comms','telegram','chat','dm','bottom','tabs']],
@@ -7918,16 +7844,15 @@ function renderLivePositions(P){
 function openMT5AddModal(){
   openModal('Add MT5 Account', `
     <p style="font-size:.86rem;color:var(--tx-2);line-height:1.6;margin-bottom:14px">
-      Enter the exact credentials your broker gave you. The server name is on the MT5 login dialog
-      (e.g. <span class="mono">ICMarketsSC-Live01</span>). The password is encrypted in your browser
-      with AES-256-GCM before being stored; it is never sent anywhere except your own PC.
+      Enter the login number and server of the account currently open on your Windows MT5 terminal.
+      The VICE Link connection is read-only. No broker password is collected or stored.
     </p>
     <div class="fg">
       <div class="ff"><label>Broker</label><input id="mt5Broker" placeholder="IC Markets"></div>
       <div class="ff"><label>Label (optional)</label><input id="mt5Label" placeholder="Live USD account"></div>
       <div class="ff fc"><label>Server *</label><input id="mt5Server" placeholder="ICMarketsSC-Live01"></div>
       <div class="ff"><label>Login *</label><input id="mt5Login" inputmode="numeric" placeholder="5001234"></div>
-      <div class="ff"><label>Password *</label><input id="mt5Pass" type="password" placeholder="Your MT5 trading password"></div>
+
       <div class="ff fc"><label>Mode</label>
         <select id="mt5Mode"><option value="LIVE">Live</option><option value="DEMO" selected>Demo</option></select>
       </div>
@@ -7946,14 +7871,13 @@ function submitMT5Add(){
   const label = $('mt5Label')?.value.trim();
   const server = $('mt5Server')?.value.trim();
   const login = $('mt5Login')?.value.trim();
-  const password = $('mt5Pass')?.value;
   const mode = $('mt5Mode')?.value || 'DEMO';
-  if (!server || !login || !password) {
-    Link.state.msg = 'Server, login and password are required.';
+  if (!server || !login) {
+    Link.state.msg = 'Server and login required.';
     openMT5AddModal();
     return;
   }
-  const r = Link.addAccount({ broker, server, login, password, mode, label });
+  const r = Link.addAccount({ broker, server, login, mode, label });
   if (r) {
     Link.state.msg = '';
     closeModal();
@@ -8277,7 +8201,7 @@ function viewMT5(el){
       <div>
         <div class="eb">Portfolio</div>
         <h1>MT5 <em>Accounts</em></h1>
-        <p>Add your broker accounts. Credentials are AES-GCM encrypted on this device and sent only to your PC via VICE Link, which uses them to log in the read-only VICE_Bridge EA.</p>
+        <p>Register MT5 accounts already signed into your Windows terminal. VICE Link reads the exporter snapshots; it never collects passwords or places orders.</p>
       </div>
       <div class="ph-acts">
         <button class="btn btn-p" data-act="mt5-add">+ Add Account</button>
@@ -8293,9 +8217,9 @@ function viewMT5(el){
       <div class="band-head"><h2>Connect VICE Link</h2><span class="chip blocked"><i></i>${esc(Link.state.status)}</span></div>
       <p class="muted">${esc(linkStatusLine())}</p>
       <ol class="steps">
-        <li><span><b>Run VICE OS on your Windows PC.</b><br><span class="meta">VICE Link runs inside the Windows app and receives the account credentials from this page.</span></span></li>
-        <li><span><b>Allow the local connection in each MT5 terminal.</b><br><span class="meta">Tools → Options → Expert Advisors → tick "Allow WebRequest for listed URL" and add <b>127.0.0.1</b>.</span></span></li>
-        <li><span><b>Attach VICE_Bridge.mq5.</b><br><span class="meta">Copy VICE_Bridge.mq5 and ViceBridgeProto.mqh into MQL5\\Experts, compile with F7, attach it to one chart per terminal.</span></span></li>
+        <li><span><b>Run VICE OS on your Windows PC.</b><br><span class="meta">Install Node.js 20+ and start the supplied server/server.js. Set VICE_LINK_TOKEN to a strong secret; the bridge defaults to localhost-only access.</span></span></li>
+        <li><span><b>Allow the local connection in each MT5 terminal.</b><br><span class="meta">Open MT5 → File → Open Data Folder to locate MQL5/Experts and MQL5/Files.</span></span></li>
+        <li><span><b>Attach VICE_Link_Exporter.mq5.</b><br><span class="meta">Copy the supplied exporter into MQL5/Experts, compile it in MetaEditor and attach to a chart. Configure mt5_data_dir to the logged export directory.</span></span></li>
       </ol>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn-gd" data-act="mt5-set-url">Set bridge URL</button>
@@ -9332,9 +9256,9 @@ function viewSecurity(el){
     </section>
     <section class="band">
       <div class="band-head"><h2>Encryption</h2></div>
-      <div class="rw"><span class="rw-l">Messages</span><span class="rw-v">AES-GCM · PBKDF2 · per-thread keys</span></div>
+      <div class="rw"><span class="rw-l">Messages</span><span class="rw-v">RLS-scoped · not end-to-end encrypted</span></div>
       <div class="rw"><span class="rw-l">Wallet</span><span class="rw-v">AES-256-GCM · PBKDF2-SHA-256 · 250,000 iters</span></div>
-      <div class="rw"><span class="rw-l">Broker credentials</span><span class="rw-v">AES-GCM · stored locally</span></div>
+      <div class="rw"><span class="rw-l">Broker credentials</span><span class="rw-v">Not collected · read-only MT5</span></div>
     </section>
     <section class="band">
       <div class="band-head"><h2>Active sessions</h2></div>
@@ -9637,6 +9561,12 @@ function viewAcademy(el){
         <p class="meta">${esc(cert ? cert.course : '')}</p>
         <div class="rw" style="max-width:420px;margin:22px auto 0"><span class="rw-l">Certificate ID</span><span class="rw-v mn">${esc(cert ? cert.id : '—')}</span></div>
         <div class="rw" style="max-width:420px;margin:0 auto"><span class="rw-l">Issued</span><span class="rw-v">${cert ? fmtD(cert.issuedAt) : '—'}</span></div>
+        ${cert ? `<div class="actions" style="justify-content:center;margin-top:22px">
+          <button class="btn btn-gd" data-act="acad-preview-cert" data-id="${esc(cert.id)}">Preview Certificate</button>
+          <button class="btn btn-p" data-act="cert-download" data-id="${esc(cert.id)}">Download PNG</button>
+          <button class="btn btn-g" data-act="cert-print" data-id="${esc(cert.id)}">Print / PDF</button>
+          <button class="btn btn-g" data-act="cert-copy-url" data-id="${esc(cert.id)}">Copy Verification Link</button>
+        </div>`:''}
         ${cert && cert.scores ? `<div style="max-width:420px;margin:0 auto;margin-top:14px;text-align:left">
           ${Object.entries(cert.scores).map(([k,v]) => `<div class="rw"><span class="rw-l">Module ${esc(k)}</span><span class="rw-v">${v}%</span></div>`).join('')}
         </div>` : ''}
@@ -10348,7 +10278,47 @@ function paintOI(){
         })();
         return;
       }
-      case 'profile-2fa': { toast('Two-step setup coming soon','info'); return; }
+      case 'profile-2fa': {
+        (async () => {
+          if(!S.user || S.user.id==='sim-user' || APP_MODE==='SIM'){
+            toast('MFA enrollment requires a live authenticated account','warn');return;
+          }
+          try {
+            const f = await sb.auth.mfa.listFactors();
+            if(f.error) throw f.error;
+            const enrolled = (f.data?.totp||[]).find(x=>x.status==='verified');
+            if(enrolled){
+              openModal('Two-step verification',`<p>TOTP authenticator is active on your account.</p>
+                <p class="note">Keep recovery and device access secured. Sign-in assurance is enforced by your Supabase authentication settings.</p>`);
+              return;
+            }
+            const out = await sb.auth.mfa.enroll({ factorType:'totp', friendlyName:'VICE OS Authenticator' });
+            if(out.error) throw out.error;
+            const id=out.data?.id, secret=out.data?.totp?.secret;
+            const qr=out.data?.totp?.qr_code;
+            if(!id || !secret) throw Error('MFA provider did not issue a secret');
+            const qrSrc=typeof qr==='string' && /^data:image\/svg\+xml[;,]/.test(qr)?qr:'';
+            openModal('Secure your account',`<p>Scan this code with your authenticator app, or enter the secret manually. Then enter the 6-digit verification code to enable MFA.</p>
+              ${qrSrc?`<div style="padding:18px;display:flex;justify-content:center;background:#fff;border-radius:8px;margin:12px auto;width:max-content"><img src="${esc(qrSrc)}" width="180" height="180" alt="TOTP enrollment QR" /></div>`:''}
+              <div class="ff" style="margin-top:14px"><label>Manual setup key</label><code style="overflow-wrap:anywhere">${esc(secret)}</code></div>
+              <div class="ff" style="margin-top:14px"><label>Authenticator code</label><input id="totpEnrollCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}"></div>
+              <div class="mact"><button class="btn btn-p" data-act="profile-2fa-confirm" data-id="${esc(id)}">Enable two-step verification</button></div>`);
+          } catch(e) { toast('MFA setup failed: '+e.message,'error'); }
+        })();
+        return;
+      }
+      case 'profile-2fa-confirm': {
+        (async () => {
+          try {
+            const code=String($('totpEnrollCode')?.value||'').trim();
+            if(!/^\d{6}$/.test(code)) throw Error('Enter a 6-digit code');
+            const result=await sb.auth.mfa.challengeAndVerify({factorId:t.dataset.id,code});
+            if(result.error) throw result.error;
+            closeModal(); toast('Two-step verification enabled','success');
+          } catch(e){ toast('Verification failed: '+e.message,'error'); }
+        })();
+        return;
+      }
       case 'avatar-upload': { $('avatarUpload')?.click(); return; }
       case 'avatar-remove': {
         (async () => {
@@ -10382,21 +10352,66 @@ function paintOI(){
 
       /* ─── DOCUMENTS ─── */
       case 'doc-upload': { $('docUpload')?.click(); return; }
-      case 'doc-sign': { toast('E-sign flow opens on desktop','info'); return; }
-      case 'doc-download': {
-        const d = (S.documents || []).find(x => x.id === t.dataset.id);
-        if(!d){ toast('Document not found','error'); return; }
-        const blob = new Blob([JSON.stringify(d, null, 2)], { type:'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = (d.name || 'document') + '.json';
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      case 'doc-sign': {
+        const d=S.documents.find(x=>x.id===t.dataset.id);
+        if(!d){toast('Document not found','error');return;}
+        openModal('Electronic signature',`
+        <div class="rw"><span class="rw-l">Document</span><span class="rw-v">${esc(d.name)}</span></div>
+        <div class="rw"><span class="rw-l">SHA-256</span><span class="rw-v mono" style="font-size:.62rem;overflow-wrap:anywhere">${esc(d.sha256||'Unavailable')}</span></div>
+        <div class="ff" style="margin:14px 0"><label>Type your profile name to sign</label><input id="signTyped" placeholder="${esc(S.profile.name)}"></div>
+        <label style="display:flex;gap:8px;font-size:.8rem;color:var(--tx-2)"><input id="signConsent" type="checkbox"> I agree to sign this identified document electronically.</label>
+        <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button>
+        <button class="btn btn-p" data-act="doc-sign-submit" data-id="${esc(d.id)}">Sign document</button></div>`);
         return;
+      }
+      case 'doc-sign-submit': {
+        (async()=>{
+          const name=$('signTyped')?.value.trim(),consent=$('signConsent')?.checked;
+          if(!consent || !name){toast('Typed name and explicit consent are required','error');return;}
+          const d=S.documents.find(x=>x.id===t.dataset.id);
+          if(!d){toast('Document not found','error');return;}
+          try{
+            if(APP_MODE==='LIVE'){
+              const r=await sb.rpc('sign_document',{p_document_id:d.id,p_typed_name:name,p_consent:consent});
+              if(r.error)throw r.error;
+            }else if(name.toLowerCase()!==S.profile.name.toLowerCase())throw Error('Typed name mismatch');
+            d.signed=true;d.signedAt=nowIso();d.signedBy=S.user?.id;
+            closeModal();toast('Electronic signature recorded','success');renderMain();
+          }catch(e){toast('Signing failed: '+e.message,'error');}
+        })();return;
+      }
+      case 'doc-download': {
+        const d=S.documents.find(x=>x.id===t.dataset.id);
+        if(!d?.url){toast('Original file unavailable','error');return;}
+        (async()=>{
+          try{
+            if(APP_MODE==='SIM'){toast('SIM files are not uploaded to object storage','info');return;}
+            const {data,error}=await sb.storage.from('vice-documents').createSignedUrl(d.url,60);
+            if(error)throw error;
+            const a=document.createElement('a');a.href=data.signedUrl;a.download=d.name||'document';
+            a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
+          }catch(e){toast('Document download failed: '+e.message,'error');}
+        })();return;
       }
 
       /* ─── PROPOSALS ─── */
-      case 'prop-new': { toast('Proposal drafting coming soon','info'); return; }
+      case 'prop-new': {
+        if(!can('create')){toast('Proposal creation is restricted','error');return;}
+        openModal('New governance proposal',`
+          <div class="ff" style="margin-bottom:12px"><label>Proposal title</label><input id="propTitle" maxlength="180"></div>
+          <div class="ff"><label>Proposal details</label><textarea id="propBody" maxlength="6000" rows="7"></textarea></div>
+          <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button><button class="btn btn-p" data-act="prop-submit">Save proposal</button></div>`);
+        return;
+      }
+      case 'prop-submit': {
+        (async()=>{const title=$('propTitle')?.value.trim(),body=$('propBody')?.value.trim();
+          if(!title||!body){toast('Title and details required','error');return;}
+          try{const row={id:uuid(),title,body,status:'DRAFT',votes_for:0,votes_against:0,created_by:S.user.id};
+            if(APP_MODE==='LIVE'){const r=await sb.from('proposals').insert(row);if(r.error)throw r.error;}
+            S.proposals.unshift(denorm({...row,created_at:nowIso()}));closeModal();toast('Proposal saved','success');renderMain();
+          }catch(e){toast('Proposal failed: '+e.message,'error');}
+        })();return;
+      }
 
       /* ─── INVITES ─── */
       case 'invite-new': { openInviteCreateModal(); return; }
@@ -10425,7 +10440,11 @@ function paintOI(){
       case 'market-request': {
         const s = S.marketplace.find(x => x.id === t.dataset.id);
         if(!s) return;
-        toast(`Request sent to concierge: ${s.name}`,'success');
+        (async()=>{try{
+          const row={id:uuid(),profile_id:S.user.id,service_id:s.id,service_name:s.name,status:'REQUESTED'};
+          if(APP_MODE==='LIVE'){const r=await sb.from('service_requests').insert(row);if(r.error)throw r.error;}
+          toast(`Service request recorded: ${s.name}`,'success');
+        }catch(e){toast('Service request failed: '+e.message,'error');}})();
         return;
       }
 
@@ -10472,9 +10491,14 @@ function paintOI(){
       case 'support-new': {
         const subject = prompt('Brief description of your issue:');
         if(!subject) return;
-        const tk = Support.add({ subject, text: subject, from: S.user?.email });
-        toast(`Ticket ${tk.id} opened`,'success');
-        renderMain();
+        (async()=>{try{
+          if(APP_MODE==='LIVE'){
+            const r=await sb.from('support_tickets').insert({profile_id:S.user.id,subject,body:subject});
+            if(r.error)throw r.error;
+          }
+          const tk=Support.add({subject,text:subject,from:S.user?.email});
+          toast(`Ticket ${tk.id} opened`,'success');renderMain();
+        }catch(e){toast('Ticket failed: '+e.message,'error');}})();
         return;
       }
 
@@ -10504,9 +10528,50 @@ function paintOI(){
         return;
       }
       case 'acad-view-cert': { Academy.open({ cert: t.dataset.id }); return; }
+      case 'acad-preview-cert': {const c=Academy.verify(t.dataset.id);if(c)openCertificateModal(c);return;}
+      case 'cert-download': {const c=Academy.verify(t.dataset.id);if(c)ViceCertificates.downloadPNG(c).catch(e=>toast('PNG failed: '+e.message,'error'));return;}
+      case 'cert-print': {const c=Academy.verify(t.dataset.id);if(c)ViceCertificates.print(c);return;}
+      case 'cert-copy-url': {const c=Academy.verify(t.dataset.id);if(c)ViceCertificates.copyVerifyUrl(c);return;}
+      case 'cert-open-verify': {const c=Academy.verify(t.dataset.id);if(c)window.open(ViceCertificates.verifyUrl(c),'_blank','noopener');return;}
+      case 'cert-revoke': {
+        (async()=>{
+          if(!isOwner() || APP_MODE!=='LIVE')return toast('Issuer authorization required','error');
+          const reason=prompt('Enter a revocation reason (at least 8 characters):');
+          if(reason===null)return;
+          try{
+            if(reason.trim().length<8)throw Error('Reason must contain at least 8 characters');
+            const {data,error}=await sb.rpc('revoke_certificate',{p_cert_id:t.dataset.id,p_reason:reason.trim()});
+            if(error)throw error;
+            const c=Academy.verify(t.dataset.id);if(c)c.revoked=true;
+            closeModal();toast(`Certificate ${data.cert_id} revoked`,'success');renderMain();
+          }catch(e){toast('Revocation failed: '+e.message,'error');}
+        })();return;
+      }
 
       /* ─── EXTERNAL / DEFI ─── */
-      case 'ext-add': { toast('External account linking coming soon','info'); return; }
+      case 'ext-add': {
+        openModal('Record external account',`
+          <p class="note">Manual record only. This does not connect to a bank, authenticate balances or move funds.</p>
+          <div class="ff" style="margin:12px 0"><label>Institution</label><input id="extInstitution"></div>
+          <div class="ff" style="margin:12px 0"><label>Account last four digits</label><input id="extLast4" inputmode="numeric" maxlength="4"></div>
+          <div class="ff" style="margin:12px 0"><label>Currency</label><select id="extCurrency"><option>USD</option><option>EUR</option><option>GBP</option><option>CHF</option></select></div>
+          <div class="ff" style="margin:12px 0"><label>Self-reported balance</label><input type="number" min="0" step="0.01" id="extBalance"></div>
+          <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button>
+          <button class="btn btn-p" data-act="ext-submit">Record account</button></div>`);return;
+      }
+      case 'ext-submit': {
+        (async()=>{
+          const institution=$('extInstitution')?.value.trim(),last4=$('extLast4')?.value.trim(),
+            currency=$('extCurrency')?.value,balance=Number($('extBalance')?.value);
+          if(!institution||!/^[0-9]{4}$/.test(last4)||!Number.isFinite(balance)||balance<0){toast('Institution, four digits and nonnegative balance required','error');return;}
+          const row={id:uuid(),profile_id:S.user.id,institution,account_number:'••••'+last4,
+            currency,balance,status:'UNVERIFIED',created_at:nowIso()};
+          try{
+            if(APP_MODE==='LIVE'){const r=await sb.from('external_accounts').insert(row);if(r.error)throw r.error;}
+            S.externalAccounts.unshift(denorm(row));closeModal();renderMain();toast('Unverified external account recorded','success');
+          }catch(e){toast('Could not save account: '+e.message,'error');}
+        })();return;
+      }
 
       /* ─── ADMIN ─── */
       case 'admin-clear-local': {
@@ -10562,7 +10627,7 @@ function openHolderAddModal(){
   setTimeout(() => $('hName')?.focus(), 30);
 }
 
-function submitHolderAdd(){
+async function submitHolderAdd(){
   const name = $('hName')?.value.trim();
   const email = $('hEmail')?.value.trim();
   const holderType = $('hType')?.value || 'Standard';
@@ -10581,7 +10646,9 @@ function submitHolderAdd(){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    S.iru.state = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(st, ev);
+    await persistIruEvent(ev);
+    S.iru.state = validated;
     closeModal();
     toast('Holder appointed','success');
     audit('HOLDER_ADDED', 'Appoint holder', 'holder', holderId);
@@ -10638,7 +10705,7 @@ function openIssueUnitsModal(holderId){
   setTimeout(() => $('iuUnits')?.focus(), 30);
 }
 
-function submitIssueUnits(holderId){
+async function submitIssueUnits(holderId){
   const program = $('iuProgram')?.value;
   const units = $('iuUnits')?.value.trim();
   const reason = $('iuReason')?.value.trim();
@@ -10654,7 +10721,9 @@ function submitIssueUnits(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    S.iru.state = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(st, ev);
+    await persistIruEvent(ev);
+    S.iru.state = validated;
     closeModal();
     toast('Units issued','success');
     audit('UNITS_ISSUED', `Issue ${units} ${program}`, 'holder', holderId);
@@ -10687,7 +10756,7 @@ function openTierModal(holderId){
   `);
 }
 
-function submitTier(holderId){
+async function submitTier(holderId){
   const tier = $('tTier')?.value;
   const basis = $('tBasis')?.value;
   const contribution = $('tContrib')?.value.trim();
@@ -10703,7 +10772,9 @@ function submitTier(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    S.iru.state = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(st, ev);
+    await persistIruEvent(ev);
+    S.iru.state = validated;
     closeModal();
     toast('Tier assigned','success');
     audit('TIER_ASSIGNED', `Assign ${tier}`, 'holder', holderId);
@@ -10732,7 +10803,7 @@ function openLegacyModal(holderId){
   `);
 }
 
-function submitLegacy(holderId){
+async function submitLegacy(holderId){
   const order = $('lOrder')?.value;
   const approvingAuthority = $('lAuth')?.value.trim();
   const reason = $('lReason')?.value.trim();
@@ -10746,7 +10817,9 @@ function submitLegacy(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    S.iru.state = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(st, ev);
+    await persistIruEvent(ev);
+    S.iru.state = validated;
     closeModal();
     toast('Legacy recorded','success');
     audit('LEGACY_RECORDED', `Legacy ${order}`, 'holder', holderId);
@@ -10776,7 +10849,7 @@ function openEntryModal(holderId){
   `);
 }
 
-function submitEntry(holderId){
+async function submitEntry(holderId){
   const entryDate = $('enDate')?.value;
   const entryProgram = $('enProgram')?.value.trim();
   const originalInstrument = $('enInstrument')?.value.trim();
@@ -10796,7 +10869,9 @@ function submitEntry(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    S.iru.state = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(st, ev);
+    await persistIruEvent(ev);
+    S.iru.state = validated;
     closeModal();
     toast('Entry class recorded','success');
     audit('ENTRY_CLASS_RECORDED', `Entry ${entryProgram}`, 'holder', holderId);
@@ -11164,37 +11239,34 @@ document.addEventListener('change', async (e) => {
     return;
   }
 
-  /* ─── DOCUMENT UPLOAD ─── */
-  if(f.id === 'docUpload'){
-    const files = Array.from(f.files || []);
-    if(!files.length) return;
+  /* ─── DOCUMENT UPLOAD — actual private object storage and digest ─── */
+  if(f.id==='docUpload'){
+    const files=Array.from(f.files||[]);if(!files.length)return;
+    const allowed=new Set(['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword','text/plain','text/markdown','image/png','image/jpeg']);
+    let complete=0;
     for(const file of files){
-      const doc = {
-        id: uuid(),
-        name: file.name,
-        type: file.type || 'Document',
-        size: file.size,
-        uploadedAt: nowIso(),
-        createdAt: nowIso(),
-        signed: false,
-      };
-      S.documents = S.documents || [];
-      S.documents.unshift(doc);
-      try {
-        if(S.user && S.user.id !== 'sim-user'){
-          await sb.from('documents').insert({
-            id: doc.id,
-            name: doc.name,
-            type: doc.type,
-            size: doc.size,
-          });
+      try{
+        if(!allowed.has(file.type))throw Error('File type not permitted');
+        if(file.size>10*1024*1024)throw Error('File exceeds 10 MB');
+        const id=uuid();const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',await file.arrayBuffer()));
+        const sha256=Array.from(digest,b=>b.toString(16).padStart(2,'0')).join('');
+        const safeName=file.name.replace(/[^A-Za-z0-9._-]/g,'_').slice(0,140);
+        const path=`${S.user?.id||'sim-user'}/${id}/${safeName}`;
+        const doc={id,name:file.name,type:file.type,size:file.size,sha256,url:path,
+          holderClientId:S.profile.clientId,uploadedBy:S.user?.id,createdAt:nowIso(),signed:false};
+        if(APP_MODE==='LIVE' && S.user?.id!=='sim-user'){
+          const uploaded=await sb.storage.from('vice-documents').upload(path,file,{contentType:file.type,upsert:false});
+          if(uploaded.error)throw uploaded.error;
+          const saved=await sb.from('documents').insert({id,name:file.name,type:file.type,size:file.size,
+            sha256,url:path,holder_client_id:S.profile.clientId,uploaded_by:S.user.id});
+          if(saved.error)throw saved.error;
         }
-      } catch(_){}
+        S.documents.unshift(doc);complete++;
+      }catch(e){toast(`Upload failed (${file.name}): ${e.message}`,'error');}
     }
-    toast(`Uploaded ${files.length} document${files.length === 1 ? '' : 's'}`,'success');
-    f.value = '';
-    if(S.tab === 'documents') renderMain();
-    return;
+    if(complete)toast(`${complete} document${complete===1?'':'s'} uploaded into private storage`,'success');
+    f.value='';if(S.tab==='documents')renderMain();return;
   }
 
   /* ─── AVATAR ─── */
@@ -11435,3 +11507,232 @@ window.addEventListener('error', (e) => {
 window.addEventListener('unhandledrejection', (e) => {
   console.warn('VICE OS unhandled promise:', e.reason);
 });
+
+
+/* VICE OS standalone QR Model 2, byte-mode, error-correction M, versions 1–9.
+   Matrix implementation is self-contained; no external runtime dependency. */
+const ViceQR = (() => {
+  const BLOCKS = [null,[[26,16]],[[44,28]],[[70,44]],[[50,32],[50,32]],
+    [[67,43],[67,43]],[[43,27],[43,27],[43,27],[43,27]],
+    [[49,31],[49,31],[49,31],[49,31]],[[60,38],[60,38],[61,39],[61,39]],
+    [[58,36],[58,36],[58,36],[59,37],[59,37]]];
+  const ALIGN = [null,[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46]];
+  const exp = new Uint8Array(512), log = new Uint8Array(256);
+  for(let i=0,v=1;i<255;i++) { exp[i]=v;log[v]=i;v<<=1;if(v&256)v^=0x11d; }
+  for(let i=255;i<512;i++)exp[i]=exp[i-255];
+  const mul=(x,y)=>!x||!y?0:exp[log[x]+log[y]];
+  function rsPolynomial(n){let poly=[1];for(let i=0;i<n;i++){
+    const out=Array(poly.length+1).fill(0);
+    poly.forEach((c,j)=>{out[j]^=c;out[j+1]^=mul(c,exp[i]);});poly=out;
+  }return poly;}
+  function rs(data,n){let r=Array(n).fill(0),gen=rsPolynomial(n);
+    for(const b of data){const f=b^r[0];r.shift();r.push(0);
+      for(let j=0;j<n;j++)r[j]^=mul(f,gen[j+1]);}
+    return r;
+  }
+  function bitsFor(text,v){
+    const b=new TextEncoder().encode(text), cap=BLOCKS[v].reduce((n,a)=>n+a[1],0);
+    const bits=[];const put=(x,n)=>{for(let i=n-1;i>=0;i--)bits.push((x>>>i)&1);};
+    put(4,4);put(b.length,8);for(const c of b)put(c,8);
+    for(let k=0;k<4&&bits.length<cap*8;k++)bits.push(0);
+    while(bits.length%8)bits.push(0);
+    const out=[];for(let i=0;i<bits.length;i+=8)out.push(parseInt(bits.slice(i,i+8).join(''),2));
+    let pad=0;while(out.length<cap)out.push(pad++%2?0x11:0xec);
+    return out;
+  }
+  function interleave(bytes,v){
+    let off=0;const blocks=BLOCKS[v].map(([size,n])=>{
+      const d=bytes.slice(off,off+n);off+=n;return {d,e:rs(d,size-n)};});
+    const ans=[];for(const key of ['d','e']){
+      const m=Math.max(...blocks.map(b=>b[key].length));
+      for(let i=0;i<m;i++)for(const b of blocks)if(i<b[key].length)ans.push(b[key][i]);
+    }return ans;
+  }
+  function build(text){
+    const b=new TextEncoder().encode(text);
+    const v=BLOCKS.findIndex((x,i)=>i>0&&i<10&&b.length<=x.reduce((n,a)=>n+a[1],0)-2);
+    if(v<1)throw new Error('QR URL exceeds 9-version capacity');
+    const n=v*4+17, m=Array.from({length:n},()=>Array(n).fill(false)),
+      reserved=Array.from({length:n},()=>Array(n).fill(false));
+    const set=(x,y,color)=>{if(x<0||y<0||x>=n||y>=n)return;m[y][x]=!!color;reserved[y][x]=true;};
+    function finder(cx,cy){for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){
+      const d=Math.max(Math.abs(dx),Math.abs(dy));set(cx+dx,cy+dy,d!==2&&d!==4);}}
+    finder(3,3);finder(n-4,3);finder(3,n-4);
+    for(let i=8;i<n-8;i++){set(i,6,i%2===0);set(6,i,i%2===0);}
+    for(const y of ALIGN[v])for(const x of ALIGN[v]){
+      if((x===6&&y===6)||(x===6&&y===n-7)||(x===n-7&&y===6))continue;
+      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)
+        set(x+dx,y+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);
+    }
+    // Format reservation and fixed dark module.
+    for(let i=0;i<9;i++)if(i!==6){set(8,i,false);set(i,8,false);}
+    for(let i=n-8;i<n;i++){set(8,i,false);set(i,8,false);}
+    set(8,n-8,true);
+    if(v>=7){for(let i=0;i<18;i++){
+      set(n-11+i%3,Math.floor(i/3),false);set(Math.floor(i/3),n-11+i%3,false);}}
+    const cw=interleave(bitsFor(text,v),v),bits=[];
+    for(const c of cw)for(let i=7;i>=0;i--)bits.push((c>>>i)&1);
+    let idx=0,up=true;
+    for(let right=n-1;right>=1;right-=2){
+      if(right===6)right=5;
+      for(let j=0;j<n;j++){
+        const y=up?n-1-j:j;
+        for(let dx=0;dx<2;dx++){
+          const x=right-dx;
+          if(reserved[y][x])continue;
+          const bit=idx<bits.length?bits[idx++]:0;
+          m[y][x]=!!(bit^(((x+y)%2)===0?1:0));
+        }
+      }up=!up;
+    }
+    // Format information for EC level M (00) and mask 0, BCH(15,5).
+    let rem=0,formatData=0;
+    for(let i=14;i>=10;i--){ /* BCH polynomial division below */ }
+    let val=formatData<<10;
+    for(let i=14;i>=10;i--)if((val>>>i)&1)val^=0x537<<(i-10);
+    const format=((formatData<<10)|val)^0x5412;
+    const bit=i=>!!((format>>>i)&1);
+    for(let i=0;i<=5;i++)set(8,i,bit(i));
+    set(8,7,bit(6));set(8,8,bit(7));set(7,8,bit(8));
+    for(let i=9;i<15;i++)set(14-i,8,bit(i));
+    for(let i=0;i<8;i++)set(n-1-i,8,bit(i));
+    for(let i=8;i<15;i++)set(8,n-15+i,bit(i));
+    set(8,n-8,true);
+    if(v>=7){let vv=v<<12;
+      for(let i=17;i>=12;i--)if((vv>>>i)&1)vv^=0x1f25<<(i-12);
+      const vb=(v<<12)|vv;
+      for(let i=0;i<18;i++){
+        const c=!!((vb>>>i)&1),a=n-11+i%3,d=Math.floor(i/3);
+        set(a,d,c);set(d,a,c);
+      }
+    }
+    return {version:v,size:n,matrix:m};
+  }
+  function encode(text,{moduleSize=6,quiet=4}={}){
+    const q=build(String(text)), path=[];
+    for(let y=0;y<q.size;y++)for(let x=0;x<q.size;x++)
+      if(q.matrix[y][x])path.push(`M${x+quiet} ${y+quiet}h1v1h-1z`);
+    return {...q,path:path.join(''),moduleSize,quiet,
+      svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${q.size+quiet*2} ${q.size+quiet*2}" width="${(q.size+quiet*2)*moduleSize}" height="${(q.size+quiet*2)*moduleSize}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="white"/><path d="${path.join('')}" fill="#07080a"/></svg>`};
+  }
+  return {encode};
+})();
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECTION 8 — CERTIFICATES · PRINT/PNG · PUBLIC QR VERIFY
+   ═══════════════════════════════════════════════════════════════════ */
+const ViceCertificates=(()=>{
+  const WIDTH=2550,HEIGHT=3300,MARGIN=180;
+  const verifyUrl=c=>new URL('./verify.html?id='+encodeURIComponent(c.id),location.href).href;
+  function lines(s,max=36){
+    const words=String(s||'').split(/\s+/),out=[];let line='';
+    for(const w of words){if((line+' '+w).trim().length>max&&line){out.push(line);line=w;}else line=(line+' '+w).trim();}
+    if(line)out.push(line);return out.slice(0,4);
+  }
+  function cornerOrnament(x,y,sx=1,sy=1){
+    return `<g transform="translate(${x} ${y}) scale(${sx} ${sy})" fill="none" stroke="#c9a84c" stroke-width="5" opacity=".8">
+      <path d="M0 150V0H150 M35 125V35H125 M0 70Q70 70 70 0 M0 100Q100 100 100 0"/>
+      <circle cx="0" cy="0" r="11" fill="#c9a84c"/></g>`;
+  }
+  function render(c){
+    const sim=c.simulated||String(c.id).startsWith('SIM-');
+    let qSvg='';
+    if(!sim){
+      const qr=ViceQR.encode(verifyUrl(c),{moduleSize:1,quiet:4});
+      qSvg=`<g transform="translate(1848 2540) scale(${(HEIGHT/8)/ (qr.size+8)})">
+        <rect width="${qr.size+8}" height="${qr.size+8}" fill="#ffffff"/>
+        <path d="${qr.path}" fill="#07080a"/></g>`;
+    }
+    const nm=lines(c.name,28),course=lines(c.course,44);
+    const txt=(x,y,z,size,color='#ece8e1',style='normal',anchor='middle',extra='')=>
+      `<text x="${x}" y="${y}" text-anchor="${anchor}" fill="${color}" font-family="Georgia,serif" font-size="${size}" font-style="${style}" ${extra}>${esc(z)}</text>`;
+    const issued=new Date(c.issuedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    const nameTop=1410-(nm.length-1)*75,courseTop=1910-(course.length-1)*52;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10141d"/><stop offset=".53" stop-color="#07080a"/><stop offset="1" stop-color="#18140d"/></linearGradient>
+<radialGradient id="glow" cx="50%" cy="15%" r="65%"><stop stop-color="#c9a84c" stop-opacity=".17"/><stop offset="1" stop-color="#c9a84c" stop-opacity="0"/></radialGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecd28a"/><stop offset=".5" stop-color="#c9a84c"/><stop offset="1" stop-color="#9c7c33"/></linearGradient></defs>
+<rect width="${WIDTH}" height="${HEIGHT}" fill="url(#bg)"/><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#glow)"/>
+<rect x="${MARGIN}" y="${MARGIN}" width="${WIDTH-2*MARGIN}" height="${HEIGHT-2*MARGIN}" fill="none" stroke="url(#gold)" stroke-width="7"/>
+<rect x="${MARGIN+28}" y="${MARGIN+28}" width="${WIDTH-2*(MARGIN+28)}" height="${HEIGHT-2*(MARGIN+28)}" fill="none" stroke="#c9a84c" stroke-opacity=".55" stroke-width="2"/>
+${cornerOrnament(180,180)}${cornerOrnament(2370,180,-1,1)}${cornerOrnament(180,3120,1,-1)}${cornerOrnament(2370,3120,-1,-1)}
+<g transform="translate(1210 510)" fill="none" stroke="url(#gold)" stroke-width="30"><path d="M-140 -100L-25 100L140 -100"/><path d="M-110 -100H-30"/><path d="M35 -100H110"/></g>
+${txt(1275,760,'V I C E   C A P I T A L   I N C.',48,'#d7b971','normal','middle','letter-spacing="6"')}
+${txt(1275,1030,'Sovereign Certificate',130,'#f0d79a','italic')}
+${txt(1275,1154,'of Completion',126,'#f0d79a','italic')}
+<path d="M540 1240H1190 M1360 1240H2010" stroke="#c9a84c" stroke-opacity=".7" stroke-width="3"/><circle cx="1275" cy="1240" r="10" fill="#c9a84c"/>
+${txt(1275,1325,'THIS CERTIFIES THAT',32,'#c9a84c','normal','middle','letter-spacing="12"')}
+${nm.map((a,i)=>txt(1275,nameTop+i*135,a,119,'#f8f2e7','italic')).join('')}
+<path d="M690 1540H1860" stroke="#c9a84c" stroke-opacity=".5" stroke-width="3"/>
+${txt(1275,1710,'HAS SUCCESSFULLY COMPLETED',32,'#c9a84c','normal','middle','letter-spacing="9"')}
+${course.map((a,i)=>txt(1275,courseTop+i*80,a,65,'#e7ddd0','italic')).join('')}
+<rect x="540" y="2220" width="1470" height="225" rx="10" fill="#c9a84c" fill-opacity=".06" stroke="#c9a84c" stroke-opacity=".45" stroke-width="3"/>
+${txt(1275,2290,'OVERALL ASSESSMENT SCORE',33,'#c9a84c','normal','middle','letter-spacing="8"')}
+${txt(1275,2390,`${Number(c.overallScore)||0}%`,95,'#f2ddac')}
+${txt(560,2700,'DATE ISSUED',27,'#c9a84c','normal','start','letter-spacing="8"')}
+${txt(560,2765,issued,49,'#ece8e1','normal','start')}
+<circle cx="1290" cy="2690" r="88" stroke="#c9a84c" stroke-width="5" fill="#c9a84c" fill-opacity=".07"/>
+${txt(1290,2711,'VICE',39,'#ecd28a')}
+${txt(1290,2845,'AUTHORIZED ISSUER',23,'#c9a84c','normal','middle','letter-spacing="5"')}
+${qSvg}
+${txt(560,2945,sim?'SIMULATION — NOT VERIFIED':String(c.id),32,sim?'#e59b6a':'#dfc182','normal','start')}
+${txt(560,3010,sim?'No public registry entry':'Scan QR to verify at the official VICE registry',24,'#928575','normal','start')}
+<path d="M540 3050H2010" stroke="#9c7c33" stroke-opacity=".4" stroke-width="2"/>
+${txt(1275,3110,'VICE CAPITAL INC.  •  OFFICIAL ACADEMY COMPLETION RECORD',22,'#8e8069','normal','middle','letter-spacing="3"')}
+</svg>`;
+  }
+  async function toPNG(c){
+    const svg=render(c),src=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+    try{
+      const img=new Image();
+      await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('SVG decode failed'));img.src=src;});
+      const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;
+      const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw Error('Canvas unavailable');
+      ctx.drawImage(img,0,0,WIDTH,HEIGHT);
+      return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('PNG encoding failed')),'image/png'));
+    }finally{URL.revokeObjectURL(src);}
+  }
+  async function downloadPNG(c){
+    const blob=await toPNG(c);const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`${c.id}-VICE-Certificate.png`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+    toast('Certificate PNG exported at 2550 × 3300','success');
+  }
+  function print(c){
+    const w=window.open('','_blank');if(!w){toast('Allow pop-ups to print your certificate','warn');return;}
+    w.document.write(`<!DOCTYPE html><html><head><title>${esc(c.id)}</title><style>@page{size:letter;margin:0}body{margin:0}svg{width:8.5in;height:11in;display:block}@media screen{body{background:#111;text-align:center}svg{width:min(100vw,8.5in);height:auto;margin:auto}}</style></head><body>${render(c)}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400));<\/script></body></html>`);
+    w.document.close();
+  }
+  async function copyVerifyUrl(c){
+    if(c.simulated){toast('SIM certificates have no public verification URL','warn');return;}
+    try{await navigator.clipboard.writeText(verifyUrl(c));toast('Verification URL copied','success');}
+    catch(e){toast('Could not copy verification URL','error');}
+  }
+  return {WIDTH,HEIGHT,MARGIN,render,toPNG,downloadPNG,print,copyVerifyUrl,verifyUrl,cornerOrnament};
+})();
+function openCertificateModal(cert){
+  const sim=cert.simulated||String(cert.id).startsWith('SIM-');
+  let qr='';if(!sim)try{qr=ViceQR.encode(ViceCertificates.verifyUrl(cert),{moduleSize:3}).svg;}catch(e){console.warn(e);}
+  openModal('Sovereign Certificate of Completion',`
+  <div class="actions" style="margin-bottom:14px"><span class="bdg ${sim?'rd':'gr'}">${sim?'SIMULATION':cert.revoked?'REVOKED':'ISSUED RECORD'}</span>
+    <span class="bdg gd">${esc(String(cert.overallScore||0))}% Overall</span><span class="bdg">${esc(fmtD(cert.issuedAt))}</span></div>
+  <div style="overflow:auto;max-height:52vh;text-align:center;background:#07080a;border:1px solid #252015;border-radius:8px">
+    <div style="width:min(100%,360px);margin:auto">${ViceCertificates.render(cert).replace('width="2550" height="3300"','width="100%" height="auto"')}</div>
+  </div>
+  ${!sim?`<div class="row"><div class="row-l"><b>Certificate Verification</b><span class="meta">${esc(cert.id)}</span></div><div style="width:90px;height:90px;flex-shrink:0">${qr}</div></div>`:''}
+  <div class="mact"><button class="btn btn-p" data-act="cert-download" data-id="${esc(cert.id)}">Download PNG</button>
+    <button class="btn btn-g" data-act="cert-print" data-id="${esc(cert.id)}">Print / Save PDF</button>
+    ${!sim?`<button class="btn btn-g" data-act="cert-copy-url" data-id="${esc(cert.id)}">Copy Link</button>
+    <button class="btn btn-gd" data-act="cert-open-verify" data-id="${esc(cert.id)}">Verify</button>
+    ${isOwner()&&!cert.revoked?`<button class="btn btn-r" data-act="cert-revoke" data-id="${esc(cert.id)}">Revoke</button>`:''}`:''}
+  </div><p class="note">Official certificates can be checked against the VICE registry. A SIM certificate is not publicly authentic.</p>`);
+}
+
+
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('PWA registration:',e));
+}
+
+</script>
+</body>
+</html>
