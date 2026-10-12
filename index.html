@@ -1295,14 +1295,14 @@ p{color:var(--tx-2);margin:0}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.0.1', date: '2026-10-11' };
+const BUILD = { version: '1.0.2', date: '2026-10-12' };
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storageKey: `vice-os-auth-v${BUILD.version}`,
+    storageKey: 'vice-os-auth-v1.0.1',
     flowType: 'pkce',
   }
 });
@@ -1598,7 +1598,7 @@ const S = {
   chain: { report:null, busy:false, msg:'' },
   support: { tickets:[], msg:'' },
   iru: {
-    mode:'local', demo:false, events:[], state:null, msg:'', preview:null, busy:false,
+    mode:'local', demo:false, events:[], state:null, registryReady:false, registryError:null, msg:'', preview:null, busy:false,
     draft:{ program:'V4X', value:'', reason:'', basis:'INTERNAL_REFERENCE' },
     appoint:null, viewHolder:null, query:'', inviteFor:null, inviteOut:null,
     importMsg:'', vipMsg:'', vipQuery:'', mine:null, mineLoading:false
@@ -2054,9 +2054,18 @@ async function forgotPassword(){
   }catch(e){ toast('Reset failed: ' + e.message,'error'); }
 }
 
-async function onAuthenticated(user){
-  if (APP_MODE === 'SIM') return;
-  if (S.user?.id===user.id && S.profile?.role) return;
+// Both getSession() and SIGNED_IN can fire on startup. Share one initialization
+// operation so the second callback never resets a successful session.
+let authSetupTask = null;
+function onAuthenticated(user){
+  if(APP_MODE === 'SIM') return Promise.resolve();
+  if(!user?.id) return Promise.reject(new Error('Missing authenticated user'));
+  if(S.user?.id === user.id && $('login')?.hidden === true) return Promise.resolve();
+  if(authSetupTask) return authSetupTask;
+  authSetupTask = completeAuthenticatedSetup(user).finally(() => { authSetupTask = null; });
+  return authSetupTask;
+}
+async function completeAuthenticatedSetup(user){
   try {
     const inviteCode=sessionStorage.getItem('pending_invite') ||
       new URLSearchParams(location.search).get('invite');
@@ -2077,9 +2086,23 @@ async function onAuthenticated(user){
       avatarInitials:prof.avatar_initials||'NA',avatarUrl:prof.avatar_url||null,
       vipAccess:!!prof.vip_access,memberId:prof.member_id||null,clientId:prof.client_id||null};
     S.user={id:user.id,email:user.email,name:S.profile.name,role:S.profile.role};
-    await ensureHolderForCurrentUser();
-    await hydrateData();
+    // A holder-registry RPC failure must not hide every other module.
+    // The server still enforces IRU permissions; do not invent a holder balance.
+    try {
+      await ensureHolderForCurrentUser();
+    } catch(e) {
+      console.error('Holder initialization failed:',e);
+      toast('Holder initialization: ' + (e.message || 'server error'), 'warn');
+    }
+    // Show the authenticated interface immediately; optional data can hydrate
+    // afterward and a failed IRU read should not blank the sidebar.
     showApp();
+    try { await hydrateData(); } catch(e) {
+      console.error('Data hydration failed:',e);
+      toast('Some records could not load. Check browser Console.','warn');
+    }
+    // Refresh current view with hydrated records while preserving navigation.
+    try { renderMain(); paintUserBadges(); } catch(e) { console.warn('Refresh after hydrate:',e); }
     try{await Realtime.connect();await Realtime.loadProfiles();}catch(e){console.warn('Realtime:',e);}
     setTimeout(()=>loadCandles().catch(e=>console.warn(e)),250);
   }catch(e){
@@ -2110,9 +2133,10 @@ async function hydrateData(){
   };
   for(const [key, table] of Object.entries(tables)){
     try{
-      const { data } = await sb.from(table).select('*').order('created_at',{ascending:false}).limit(500);
+      const { data, error } = await sb.from(table).select('*').order('created_at',{ascending:false}).limit(500);
+      if(error) throw error;
       if(data) S[key] = data.map(denorm);
-    }catch(_){}
+    }catch(e){ console.warn('VICE OS table load failed [' + table + ']:', e); }
   }
 
   /* Distributions keep the enriched shape we write */
@@ -2164,9 +2188,19 @@ async function hydrateData(){
     const {data,error}=await sb.from('iru_events').select('seq,payload,actor_id,created_at')
       .order('seq',{ascending:true}).limit(10000);
     if(error)throw error;
+    // Do not silently truncate an event-sourced financial ledger.
+    if((data||[]).length===10000) throw new Error('IRU registry reached the 10,000-event page limit; pagination required');
     S.iru.state=IruEngine.replay((data||[]).map(e=>({...e.payload,
       by:e.actor_id,at:e.created_at})));
-  } catch(e) { console.warn('IRU journal hydration:',e); toast('IRU registry could not be synchronized','warn'); }
+    S.iru.registryReady=true;
+    S.iru.registryError=null;
+  } catch(e) {
+    S.iru.state=null;
+    S.iru.registryReady=false;
+    S.iru.registryError=e.message||'IRU read failed';
+    console.error('IRU registry fetch/replay failed:',e);
+    toast('IRU registry: ' + S.iru.registryError, 'warn');
+  }
   try {
     const {data}=await sb.rpc('get_my_holder');
     if(data?.[0])S.personalHoldings={viceUnits:Number(data[0].vice_units),v4xUnits:Number(data[0].v4x_units)};
@@ -2239,6 +2273,7 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
 async function persistIruEvent(ev){
   if(APP_MODE==='SIM' && S.user?.id==='sim-user')return {simulated:true};
   if(!S.user||!isOwner())throw new Error('SUPER_ADMIN authorization required');
+  if(!S.iru.registryReady) throw new Error('IRU registry not synchronized. No changes were made: ' + (S.iru.registryError || 'reload and inspect Console'));
   const {data,error}=await sb.rpc('append_iru_event',{
     p_payload:ev,p_correlation_id:crypto.randomUUID()});
   if(error)throw error;
@@ -10646,7 +10681,7 @@ async function submitHolderAdd(){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    const validated = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(structuredClone(st), ev);
     await persistIruEvent(ev);
     S.iru.state = validated;
     closeModal();
@@ -10721,7 +10756,7 @@ async function submitIssueUnits(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    const validated = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(structuredClone(st), ev);
     await persistIruEvent(ev);
     S.iru.state = validated;
     closeModal();
@@ -10772,7 +10807,7 @@ async function submitTier(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    const validated = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(structuredClone(st), ev);
     await persistIruEvent(ev);
     S.iru.state = validated;
     closeModal();
@@ -10817,7 +10852,7 @@ async function submitLegacy(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    const validated = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(structuredClone(st), ev);
     await persistIruEvent(ev);
     S.iru.state = validated;
     closeModal();
@@ -10869,7 +10904,7 @@ async function submitEntry(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    const validated = IruEngine.apply(st, ev);
+    const validated = IruEngine.apply(structuredClone(st), ev);
     await persistIruEvent(ev);
     S.iru.state = validated;
     closeModal();
@@ -10928,7 +10963,8 @@ function openDistributionModal(){
   setTimeout(() => $('distPeriod')?.focus(), 30);
 }
 
-function submitDistribution(){
+async function submitDistribution(){
+  if(!isOwner() || APP_MODE!=='LIVE') return toast('Issuer authorization required in LIVE mode','error');
   const period = $('distPeriod')?.value.trim();
   const sel = $('distHolder');
   const holderId = sel?.value;
@@ -10939,71 +10975,60 @@ function submitDistribution(){
   const perUnit = Number($('distPerUnit')?.value || 0);
   const status = $('distStatus')?.value || 'DRAFT';
   const note = $('distNote')?.value.trim() || '';
-  if(!period || !holderId || !total){ toast('Period, holder, and total required','error'); return; }
+  if(!period || !holderId || !Number.isFinite(total) || total<=0 || !Number.isFinite(perUnit) || perUnit<0){
+    return toast('Period, holder and valid positive total required','error');
+  }
   const rec = {
-    id: uuid(),
-    period, holderId, holderName, holderClientId, program,
-    total, perUnit, status, note,
-    createdAt: nowIso(),
+    id:uuid(), period, holderId, holderName, holderClientId, program,
+    total, perUnit, status, note, createdAt:nowIso(),
   };
-  S.distributions.unshift(rec);
-  (async () => {
-    try {
-      if(S.user && S.user.id !== 'sim-user'){
-        await sb.from('distributions').insert({
-          id: rec.id,
-          period: rec.period,
-          holder_id: rec.holderId,
-          holder_name: rec.holderName,
-          holder_client_id: rec.holderClientId,
-          program: rec.program,
-          total: rec.total,
-          per_unit: rec.perUnit,
-          status: rec.status,
-          note: rec.note,
-        });
-      }
-    } catch(_) {}
-    try {
-      if(holderId && window.Realtime && Realtime.emit){
-        Realtime.emit('notify', {
-          kind:'distribution',
-          period: rec.period,
-          total: rec.total,
-          program: rec.program,
-          status: rec.status,
-        }, holderId);
-      }
-    } catch(_){}
+  try {
+    const {data,error}=await sb.from('distributions').insert({
+      id:rec.id, period:rec.period, holder_id:rec.holderId,
+      holder_name:rec.holderName, holder_client_id:rec.holderClientId,
+      program:rec.program, total:rec.total, per_unit:rec.perUnit,
+      status:rec.status, note:rec.note, created_by:S.user.id,
+    }).select('id,period,holder_id,holder_name,holder_client_id,program,total,per_unit,status,note,created_at').single();
+    if(error)throw error;
+    S.distributions.unshift({
+      ...rec,id:data.id,period:data.period,holderId:data.holder_id,
+      holderName:data.holder_name,holderClientId:data.holder_client_id,
+      program:data.program,total:Number(data.total),perUnit:Number(data.per_unit),
+      status:data.status,note:data.note,createdAt:data.created_at,
+    });
     closeModal();
-    toast('Distribution created','success');
-    audit('DISTRIBUTION_CREATED', `${period} · ${fmtMoney(total,'USD')}`, 'distribution', rec.id);
+    toast('Distribution saved to Supabase','success');
+    try{ audit('DISTRIBUTION_CREATED', `${period} · ${fmtMoney(total,'USD')}`, 'distribution', data.id); }catch(e){console.warn('Distribution audit:',e);}
+    try{ if(holderId && window.Realtime?.emit) Realtime.emit('notify', {
+      kind:'distribution',period,total,program,status,
+    },holderId); }catch(e){console.warn('Distribution notification:',e);}
     renderMain();
-  })();
+  }catch(e){
+    console.error('Distribution save failed:',e);
+    toast('Distribution NOT saved: ' + (e.message||'request failed'),'error');
+  }
 }
 
-function advanceDistribution(id){
-  const d = S.distributions.find(x => x.id === id);
-  if(!d) return;
-  const next = d.status === 'DRAFT' ? 'AUDITED' : d.status === 'AUDITED' ? 'PAID' : d.status;
-  if(next === d.status) return;
-  d.status = next;
-  (async () => {
-    try { if(S.user && S.user.id !== 'sim-user') await sb.from('distributions').update({ status: next }).eq('id', id); } catch(_){}
-    try {
-      if(d.holderId && window.Realtime && Realtime.emit){
-        Realtime.emit('notify', {
-          kind:'distribution',
-          period: d.period,
-          total: d.total,
-          program: d.program,
-          status: next,
-        }, d.holderId);
-      }
-    } catch(_){}
-    toast(`Status → ${next}`,'success');
+async function advanceDistribution(id){
+  if(!isOwner() || APP_MODE!=='LIVE')return toast('Issuer authorization required in LIVE mode','error');
+  const d = S.distributions.find(x=>x.id===id);
+  if(!d)return;
+  const next=d.status==='DRAFT'?'AUDITED':d.status==='AUDITED'?'PAID':d.status;
+  if(next===d.status)return;
+  try{
+    const {data,error}=await sb.from('distributions').update({status:next})
+      .eq('id',id).select('id,status').single();
+    if(error)throw error;
+    d.status=data.status;
+    toast(`Distribution saved: ${next}`,'success');
+    try{ if(d.holderId && window.Realtime?.emit) Realtime.emit('notify',{
+      kind:'distribution',period:d.period,total:d.total,program:d.program,status:next,
+    },d.holderId); }catch(e){console.warn('Distribution notification:',e);}
     renderMain();
-  })();
+  }catch(e){
+    console.error('Distribution status failed:',e);
+    toast('Status NOT saved: '+(e.message||'request failed'),'error');
+  }
 }
 
 function openInviteCreateModal(){
@@ -11045,26 +11070,23 @@ function submitInviteCreate(){
     note,
     createdAt: nowIso(),
   };
-  S.invites.unshift(inv);
   const url = location.origin + location.pathname + '?invite=' + code;
   (async () => {
+    if(!isOwner() || APP_MODE!=='LIVE') return toast('Issuer authorization required in LIVE mode','error');
+    if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Invite email is required','error');
     try {
-      if(S.user && S.user.id !== 'sim-user'){
-        await sb.from('invites').insert({
-          code,
-          for_user: forUser || null,
-          email: email || null,
-          role,
-          vip_access: vip,
-          used: false,
-          note,
-          created_by: S.user.id,
-        });
-      }
-    } catch(_){}
-    try { await navigator.clipboard.writeText(url); } catch(_){}
+      const {data,error}=await sb.from('invites').insert({
+        code,for_user:forUser||null,email,role,vip_access:vip,
+        used:false,note,created_by:S.user.id,
+      }).select('id').single();
+      if(error)throw error;
+      inv.id=data.id;
+      S.invites.unshift(inv);
+    }catch(e){ console.error('Invite insert:',e); toast('Invite NOT saved: '+(e.message||'request failed'),'error');return; }
+    let copied=false;
+    try { await navigator.clipboard.writeText(url); copied=true; } catch(_) {}
     closeModal();
-    toast('Invite created & link copied','success');
+    toast(copied ? 'Invite saved; link copied' : 'Invite saved; copy link manually','success');
     audit('INVITE_CREATED', `${role}${vip ? ' + VIP' : ''}`, 'invite', code);
     if(email){
       setTimeout(() => {
@@ -11358,7 +11380,7 @@ sb.auth.onAuthStateChange((event, session) => {
       $('cmTabs')?.classList.remove('on');
     } else if(event === 'SIGNED_IN' && session && session.user){
       if(!S.user){
-        onAuthenticated(session.user).catch(e => console.warn('Auth state sync failed:', e));
+        setTimeout(() => onAuthenticated(session.user).catch(e => console.warn('Auth state sync failed:', e)), 0);
       }
     } else if(event === 'TOKEN_REFRESHED'){
       /* silent */
@@ -11730,7 +11752,7 @@ function openCertificateModal(cert){
 
 
 if('serviceWorker' in navigator && location.protocol==='https:'){
-  navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('PWA registration:',e));
+  navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'}).then(r=>r.update()).catch(e=>console.warn('PWA registration:',e));
 }
 
 </script>
