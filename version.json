@@ -2,7 +2,7 @@
   "version": "1.3.6.9-ACCESS-CONTROL",
   "date": "2026-10-13",
   "status": "SOURCE_AND_SUPABASE_UPDATED_NETLIFY_DEPLOYMENT_NOT_PUBLISHED",
-  "release_summary": "Private media and recipient-scoped direct messages, RLS-backed staff channel streaming, no message body global broadcast, protected certificate and issuer records, resilient sign-in. GitHub/Supabase updated; Netlify release remains blocked by missing deployment authorization.",
+  "release_summary": "Core VICE OS source and Supabase backend enhanced: login recovery, private chat media, iOS-capable voice note recorder, RLS-gated realtime DMs and channels, invite-only profile and VIP restrictions, issuer/Academy/security hardening. Production Netlify publication still blocked by unavailable deployment authorization.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -24,7 +24,9 @@
       "vice_1371_private_chat_media_bucket_storage_acl",
       "vice_1372_dm_media_storage_correlated_acl_fix",
       "vice_1373_realtime_direct_message_replication",
-      "vice_1374_authorized_channel_postgres_realtime"
+      "vice_1374_authorized_channel_postgres_realtime",
+      "vice_1375_invite_only_chat_media_membership_acl",
+      "vice_1376_vip_channel_membership_acl"
     ],
     "required_rpc_coverage_checked": true,
     "role_admin_rpc_authorization": "SUPER_ADMIN only; no SUPER_ADMIN promotion",
@@ -49,7 +51,11 @@
       ],
       "sender_id_guard": "SERVER_TRIGGER_AND_RLS",
       "sender_display_name_guard": "SERVER_TRIGGER",
-      "end_to_end_encryption_verified": false
+      "end_to_end_encryption_verified": false,
+      "profile_required_for_messages": true,
+      "profile_required_for_media": true,
+      "vip_channels_require_vip_or_staff": true,
+      "staff_channel_transport": "RLS-protected Postgres INSERT events, never global message broadcast"
     },
     "chat_media": {
       "bucket": "vice-chat-media",
@@ -81,7 +87,8 @@
       "transport": "Supabase postgres_changes INSERT on public.messages",
       "global_broadcast_message_contents": false,
       "real_member_device_tested": false
-    }
+    },
+    "real_authenticated_channel_tested": false
   },
   "provider": {
     "name": "MetaApi",
@@ -147,7 +154,9 @@
     "Cross-device DM delivery through Supabase Realtime in authenticated browser",
     "Native browser tests with production Netlify bundle after new deploy",
     "Live cross-role channel Postgres Realtime acceptance with two real accounts",
-    "Netlify production broadcast deprecation only takes effect when current version is deployed"
+    "Netlify production broadcast deprecation only takes effect when current version is deployed",
+    "Netlify production still running old 1.3.6.1 in latest observed smoke",
+    "Real cross-role messages and private media access acceptance before user launch"
   ],
   "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
   "not_yet_certified": [
