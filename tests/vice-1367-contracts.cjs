@@ -4,7 +4,7 @@ const fs=require('node:fs'), assert=require('node:assert/strict'),vm=require('no
 const read=p=>fs.readFileSync(p,'utf8');
 const html=read('index.html'),manifest=JSON.parse(read('version.json'));
 assert.equal((html.match(/data-build="([^"]+)"/)||[])[1],manifest.version);
-assert.match(manifest.version,/^1\.3\.6\.10-/);
+assert.match(manifest.version,/^1\.3\.6\.\d+-/);
 assert.match(html,/if\(APP_MODE==='LIVE'\)return 0;\s*const fx=/, 'Unverified external manual balances must not be in LIVE totals');
 assert.match(html,/owner_id:S\.user\.id,institution/, 'Owner-scoped external account insert');
 assert.match(html,/sb\.rpc\('vice_cast_proposal_vote'/, 'Ballot must be sent to database RPC');
