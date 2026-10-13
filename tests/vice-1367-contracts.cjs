@@ -1,0 +1,22 @@
+'use strict';
+/** Release 1.3.6.7 static/contract gates. No substitute for production acceptance. */
+const fs=require('node:fs'), assert=require('node:assert/strict'),vm=require('node:vm');
+const read=p=>fs.readFileSync(p,'utf8');
+const html=read('index.html'),manifest=JSON.parse(read('version.json'));
+assert.equal((html.match(/data-build="([^"]+)"/)||[])[1],manifest.version);
+assert.match(manifest.version,/^1\.3\.6\.7-/);
+assert.match(html,/if\(APP_MODE==='LIVE'\)return 0;\s*const fx=/, 'Unverified external manual balances must not be in LIVE totals');
+assert.match(html,/owner_id:S\.user\.id,institution/, 'Owner-scoped external account insert');
+assert.match(html,/sb\.rpc\('vice_cast_proposal_vote'/, 'Ballot must be sent to database RPC');
+assert.match(html,/sb\.rpc\('submit_academy_quiz'/, 'Academy scores must use database grading');
+assert.match(html,/function safeResetCloudMt5Session\(\)/, 'CloudMT5 must not crash login');
+assert.match(html,/function viceServiceDiagnostics\(\)/, 'Application diagnostics missing');
+assert.match(html,/if\(inviteCode && !prof\)/,'Returning member invite must not invalidate existing profile');
+assert(!html.includes("from('proposals').update({votes_for"),'Do not mutate voting totals in browser');
+assert(read('supabase/migrations/20261013030938_vice_1366_governance_votes_distribution_fields.sql').includes('vice_cast_proposal_vote'),'Ballot RPC migration absent');
+assert(read('supabase/migrations/20261013030015_vice_1366_verified_academy_certificate_awards.sql').includes('FROM public.academy_answer_keys'),'Server grade verification missing');
+assert(read('guide.html').includes('APPLICATION MANUAL'),'User guide not present');
+const large=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(x=>x.length>100000);
+assert(large.length===1,'Preserve exactly one canonical app runtime inline script');
+new vm.Script(large[0]);
+console.log('PASS '+manifest.version+' — release 1367 contracts and runtime syntax');
