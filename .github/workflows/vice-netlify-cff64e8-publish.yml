@@ -1,0 +1,178 @@
+# One-release control only. Application main remains at the authorized SHA.
+# Commits to this control branch must include [skip netlify].
+name: VICE OS pinned cff64e8 production publish
+on:
+  push:
+    branches: [vice-netlify-cff64e8-publish]
+    paths: [.github/workflows/vice-netlify-cff64e8-publish.yml]
+permissions:
+  contents: read
+concurrency:
+  group: vice-netlify-prod
+  cancel-in-progress: false
+env:
+  RELEASE_SHA: cff64e8e2ca898c2291e3b28da58f18ae0998137
+  RELEASE_VERSION: 1.3.8.0-IRU-CERTIFICATES
+jobs:
+  publish-pinned-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check credentials before any deployment or package build
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        shell: bash
+        run: |
+          missing=0
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
+            echo "::error::Missing GitHub Actions secret NETLIFY_AUTH_TOKEN. No Netlify build or deploy was started."
+            missing=1
+          fi
+          if [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "::error::Missing GitHub Actions secret NETLIFY_SITE_ID. No Netlify build or deploy was started."
+            missing=1
+          fi
+          exit "$missing"
+      - uses: actions/checkout@v4
+        with:
+          ref: cff64e8e2ca898c2291e3b28da58f18ae0998137
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm exact source and create strict public package
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$RELEASE_SHA"
+          node -e 'if(JSON.parse(require("fs").readFileSync("version.json","utf8")).version!==process.env.RELEASE_VERSION)process.exit(1)'
+          bash scripts/vice-publish-netlify.sh
+          node tests/vice-deploy-privacy.cjs
+      - name: Reconcile existing project and prevent duplicate publication
+        id: reconcile
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          const { NETLIFY_AUTH_TOKEN: token, NETLIFY_SITE_ID: siteId, RELEASE_SHA: sha, RELEASE_VERSION: version } = process.env;
+          const sitePath = '/sites/' + encodeURIComponent(siteId);
+          const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+          const api = async (path, method = 'GET') => {
+            const r = await fetch('https://api.netlify.com/api/v1' + path, {
+              method, headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+              redirect: 'error', signal: AbortSignal.timeout(20000)
+            });
+            if (!r.ok) throw new Error('Netlify API HTTP ' + r.status + '; no automatic retry or alternate project.');
+            return r.json();
+          };
+          const expectedFiles = new Map(readdirSync('dist/site').map(name => ['/' + name,
+            createHash('sha1').update(readFileSync('dist/site/' + name)).digest('hex')]));
+          const exactFiles = async () => {
+            const files = await api(sitePath + '/files');
+            const actual = new Map(files.map(file => [file.path || file.id, file.sha]));
+            return actual.size === expectedFiles.size && [...expectedFiles].every(([path, digest]) => actual.get(path) === digest);
+          };
+          const sourceMatches = deploy => deploy && (deploy.commit_ref === sha || String(deploy.title || '').includes(sha));
+          const production = deploy => deploy.context === 'production' || deploy.branch === 'main';
+          const active = new Set(['new', 'pending', 'building', 'enqueued', 'preparing', 'prepared', 'uploading', 'uploaded', 'processing']);
+          const site = await api(sitePath);
+          if (site.name !== 'vice4x' || site.id !== siteId) throw new Error('Configured Netlify project does not match existing vice4x.');
+          const rollbackId = site.published_deploy?.id || null;
+          let deployments = await api(sitePath + '/deploys?per_page=100');
+          for (let i = 0; i < 18 && deployments.some(d => production(d) && active.has(d.state)); i++) {
+            console.log('Waiting for existing production deployment; no duplicate started.');
+            await pause(10000);
+            deployments = await api(sitePath + '/deploys?per_page=100');
+          }
+          if (deployments.some(d => production(d) && active.has(d.state))) throw new Error('Existing production deployment remains active; refusing a second deployment.');
+          const current = await api(sitePath);
+          let chosen = null;
+          if (sourceMatches(current.published_deploy) && await exactFiles()) {
+            chosen = current.published_deploy;
+            console.log('Matching source is already published; reusing production.');
+          } else {
+            const reusable = deployments.find(d => sourceMatches(d) && production(d) && ['ready', 'old'].includes(d.state));
+            if (reusable) {
+              const u = new URL(reusable.deploy_ssl_url || reusable.deploy_url);
+              if (u.protocol !== 'https:' || !u.hostname.endsWith('--vice4x.netlify.app')) throw new Error('Unexpected deploy verification origin.');
+              const response = await fetch(u.origin + '/version.json', { signal: AbortSignal.timeout(15000), redirect: 'error' });
+              if (!response.ok || (await response.json()).version !== version) throw new Error('Existing deploy failed version acceptance; no rebuild started.');
+              chosen = await api(sitePath + '/deploys/' + encodeURIComponent(reusable.id) + '/restore', 'POST');
+              if (chosen.id !== reusable.id) throw new Error('Restore did not return the selected deployment.');
+              let verified = false;
+              for (let i = 0; i < 6; i++) {
+                if ((await api(sitePath)).published_deploy?.id === chosen.id && await exactFiles()) { verified = true; break; }
+                await pause(2000);
+              }
+              if (!verified) throw new Error('Restored deploy failed exact public file verification; no new deploy started.');
+              console.log('Published an existing matching deploy without rebuilding.');
+            }
+          }
+          const receipt = { site: 'vice4x', release_sha: sha, version, prior_deploy_id: rollbackId,
+            deploy_id: chosen?.id || null, action: chosen ? 'REUSED' : 'ONE_CLI_DEPLOY_REQUIRED', timestamp: new Date().toISOString() };
+          writeFileSync('netlify-pinned-release-receipt.json', JSON.stringify(receipt, null, 2) + '\n');
+          appendFileSync(process.env.GITHUB_OUTPUT, 'needs_deploy=' + (!chosen) + '\n');
+          NODE
+      - name: Publish the prepared source once, including Netlify Functions
+        if: steps.reconcile.outputs.needs_deploy == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        shell: bash
+        run: |
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$RELEASE_SHA"
+          npx --yes netlify-cli@latest deploy --prod --no-build --dir=dist/site --functions=netlify/functions --site="$NETLIFY_SITE_ID" --message="VICE OS $RELEASE_SHA - verified exact main source and functions" --json > netlify-deploy-result.json
+      - name: Verify deployment identity and exact original public assets
+        if: steps.reconcile.outputs.needs_deploy == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          const { NETLIFY_AUTH_TOKEN: token, NETLIFY_SITE_ID: siteId } = process.env;
+          const result = JSON.parse(readFileSync('netlify-deploy-result.json', 'utf8'));
+          const receipt = JSON.parse(readFileSync('netlify-pinned-release-receipt.json', 'utf8'));
+          if (!result.deploy_id) throw new Error('Netlify CLI did not return a deploy identifier; do not retry automatically.');
+          const api = async path => {
+            const response = await fetch('https://api.netlify.com/api/v1/sites/' + encodeURIComponent(siteId) + path, {
+              headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+              redirect: 'error', signal: AbortSignal.timeout(20000)
+            });
+            if (!response.ok) throw new Error('Netlify verification HTTP ' + response.status);
+            return response.json();
+          };
+          const site = await api('');
+          if (site.name !== 'vice4x' || site.published_deploy?.id !== result.deploy_id) throw new Error('Published deploy identifier does not match this single CLI deployment.');
+          const actual = new Map((await api('/files')).map(file => [file.path || file.id, file.sha]));
+          const names = readdirSync('dist/site');
+          if (actual.size !== names.length || names.some(name => actual.get('/' + name) !== createHash('sha1').update(readFileSync('dist/site/' + name)).digest('hex'))) throw new Error('Production public files differ from the pinned source package.');
+          receipt.deploy_id = result.deploy_id;
+          receipt.action = 'ONE_CLI_DEPLOY_PUBLISHED';
+          receipt.public_assets_verified = names.length;
+          receipt.timestamp = new Date().toISOString();
+          writeFileSync('netlify-pinned-release-receipt.json', JSON.stringify(receipt, null, 2) + '\n');
+          console.log('Verified deployment ' + result.deploy_id + ' and all ' + names.length + ' original public files.');
+          NODE
+      - name: Verify the public version and application routes
+        env:
+          VICE_SMOKE_ATTEMPTS: '5'
+          VICE_SMOKE_DELAY_MS: '7000'
+        shell: bash
+        run: GITHUB_SHA="$RELEASE_SHA" node tests/vice-production-smoke.mjs
+      - name: Retain the safe deployment receipt and public acceptance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_OS_PINNED_CFF64E8_PRODUCTION_ACCEPTANCE
+          path: |
+            netlify-pinned-release-receipt.json
+            production-smoke-report.json
+          if-no-files-found: ignore
