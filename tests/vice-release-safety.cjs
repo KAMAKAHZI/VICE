@@ -53,8 +53,11 @@ for(const file of ['netlify/functions/yahoo.js','netlify/functions/yahoo-search.
  const src=read(file); new vm.Script(src,{filename:file});
  assert(src.includes('AbortController'),'market source timeout missing');
 }
-const retired=read('supabase-setup.sql');
-assert(retired.includes('RAISE EXCEPTION'),'legacy insecure schema must be disabled');
+// Legacy bootstrap was physically removed from the production source root.
+// Keep its historical audit snapshot in the docs archive; never reintroduce it.
+assert(!fs.existsSync(path.join(root,'supabase-setup.sql')),'unsafe legacy SQL file must not exist at repository root');
+const retired=read('docs/legacy/supabase-setup-LEGACY-INSECURE-DO-NOT-RUN.sql');
+assert(retired.includes('DO NOT EXECUTE')&&retired.includes('UNSAFE HISTORICAL BOOTSTRAP'),'archived SQL must remain clearly nondeployable');
 const patch=read('supabase/migrations/20261013025843_vice_1366_high_priority_row_security_hardening.sql');
 assert(patch.includes('REVOKE INSERT, UPDATE, DELETE ON TABLE public.profiles'),'role escalation fix must remain');
 const award=read('supabase/migrations/20261013030015_vice_1366_verified_academy_certificate_awards.sql');
