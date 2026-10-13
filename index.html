@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.6.7-GOVERNANCE-PORTFOLIO" data-pwa="1">
+<html lang="en" data-build="1.3.6.8-BACKEND-INTEGRITY" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1348,7 +1348,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.6.7-GOVERNANCE-PORTFOLIO', date: '2026-10-13' };
+const BUILD = { version: '1.3.6.8-BACKEND-INTEGRITY', date: '2026-10-13' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -2179,6 +2179,19 @@ async function viceServiceDiagnostics(){
       try{const r=await check[1]();write(check[0],r.error?'WARN':'PASS',r.error?r.error.message:'Database read path available; detailed workflow test still required.')}
       catch(e){write(check[0],'WARN',String(e.message||'Read failed'))}
     }
+  }
+  if(S.profile?.role==='SUPER_ADMIN'){
+    try {
+      const result=await sb.rpc('vice_operational_health');
+      if(result.error)throw result.error;
+      const d=result.data||{},ok=d.status==='PASS';
+      write('Issuer backend integrity',ok?'PASS':'WARN',
+        'Public tables without RLS '+Number(d.public_tables_without_rls??-1)
+        +' · Holder capacity '+(d.holder_capacity_ok?'OK':'CHECK')
+        +' · Orphan records '+Number(d.holder_profile_orphans??-1)
+        +' · Canonical references '+String(d.canonical_reference_vice??'?')+'/'+String(d.canonical_reference_v4x??'?')
+        +' (internal management only).');
+    }catch(e){write('Issuer backend integrity','WARN',String(e.message||'Backend health unavailable'))}
   }
   return rows;
 }
@@ -11519,7 +11532,7 @@ function paintOI(){
 
 function openOuvModal(){
   if(!isOwner())return;
-  openModal('Publish IRU OUV version',`<p class="note">Issuer internal reference only. No guaranteed market value, personal ownership, or collateral eligibility.</p>
+  openModal('Publish IRU OUV version',`<p class="note">Issuer internal reference only. Current approved reference policy is $2 VICE / $320 V4X (1:160). Changing these numbers requires a separate approved policy migration. No guaranteed market value, personal ownership, or collateral eligibility.</p>
    <div class="fields">
     <label class="field">VICE public OUV (USD)<input id="ouvVice" type="number" min="0.0001" step="0.0001" value="${S.iruClasses[0].ouv}"></label>
     <label class="field">V4X private OUV (USD)<input id="ouvV4x" type="number" min="0.0001" step="0.0001" value="${S.iruClasses[1].ouv}"></label>
@@ -11571,7 +11584,7 @@ async function saveRole(){
     const r=await sb.rpc('vice_assign_member_role',{p_member_id:id,p_role:role,p_reason:reason});
     if(r.error)throw r.error;
     closeModal();toast('Member role changed','success');renderMain();
-  }catch(e){toast('Role update failed (requires v1.0.3 SQL): '+e.message,'error');}
+  }catch(e){toast('Role update failed: '+e.message,'error');}
 }
 
 // Release gate: require server-attested canonical 2/320 allocation and issuance functions.
