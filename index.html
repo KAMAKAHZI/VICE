@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.5-DASHBOARD-CHART-UX" data-pwa="1">
+<html lang="en" data-build="1.3.6-MT5-CLOUD-SAFE-CONNECT" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1346,7 +1346,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.5-DASHBOARD-CHART-UX', date: '2026-10-12' };
+const BUILD = { version: '1.3.6-MT5-CLOUD-SAFE-CONNECT', date: '2026-10-12' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -2524,7 +2524,11 @@ function iruUsd(){
        + ((Number(S.personalHoldings.v4xUnits||0)+Number(estate.V4X||0))*x);
 }
 function totalPersonalUsd(){
-  return iruUsd() + defiUsd() + mt5Usd() + externalUsd();
+  // Cloud MT5 equity is counted only after a fresh, broker-verified USD read.
+  // Other currencies are displayed in their original denomination until an
+  // independently sourced conversion rate is available. Never duplicate
+  // an account already represented in the existing ledger or local bridge.
+  return iruUsd() + defiUsd() + mt5Usd() + externalUsd() + (typeof CloudMT5 !== 'undefined' ? CloudMT5.verifiedUsd() : 0);
 }
 // The owner sees the estate-administered IRU reserve within their ACCOUNT portfolio.
 // It remains a policy-designated ESTATE ledger account, NOT verified custody,
@@ -6414,7 +6418,8 @@ const Link = (() => {
   const persistAccts = () => {
     try { localStorage.setItem('vice-mt5-accounts', JSON.stringify(accts)); } catch(_) {}
   };
-  // Read-only terminal exporter. Broker passwords are never accepted or persisted.
+  // Optional Windows connector: only account metadata is collected here.
+  // Credentials must not traverse an arbitrary browser-configured WebSocket.
 
 
   const notify = () => { try { renderMain(); } catch(_) {} };
@@ -6480,6 +6485,7 @@ const Link = (() => {
   }
   function ready(m) {
     st.status = 'live';
+    if(S.integrations?.['broker.mt5']) S.integrations['broker.mt5'].status='CONNECTED';
     st.msg = '';
     st.admin = !!m.admin;
     st.device = m.device || '';
@@ -6619,6 +6625,10 @@ const Link = (() => {
     state:st, onChange:() => {},
     accounts:accts,
     addAccount({ broker, server, login, password, mode, label }) {
+      if(password){
+        st.msg='Password entry is disabled for browser-configured bridges. Use secure cloud handoff or sign into your own MT5 terminal.';
+        notify();return null;
+      }
       mode = mode || 'DEMO';
       label = label || '';
       if (!server || !login) {
@@ -6637,20 +6647,15 @@ const Link = (() => {
         addedAt:new Date().toISOString(),
         verified:false,
       };
-      if(password && (st.status!=='live'||!st.url.startsWith('wss://'))){
-        st.msg='Secure WSS VICE Link required for password login. No account details were saved.';
-        notify();return null;
-      }
       accts.push(acct);
       persistAccts();
       if (st.status === 'live') {
-        request(password ? {t:'mt5-account',action:'login',account:{server,login,password}} :
-                         {t:'mt5-verify',account:{server,login}}).then(r=>{
+        request({t:'mt5-verify',account:{server,login}}).then(r=>{
           acct.verified=!!r.ok;acct.equity=r.equity||0;acct.balance=r.balance||0;
           acct.currency=r.currency||'USD';persistAccts();notify();
           toast(r.ok?'MT5 terminal account authenticated':'MT5 account was not verified',r.ok?'success':'warn');
         }).catch(e=>toast('MT5 read-only verification: '+e.message,'error'));
-      } else toast('Account metadata saved. Start the local MT5 exporter to verify it.','info');
+      } else toast('Account details saved, not verified. Cloud MT5 is available without a PC.','info');
       notify();
       return acct;
     },
@@ -6682,7 +6687,7 @@ const Link = (() => {
         persistAccts();
         toast(acct.verified
           ? `Connected · equity ${fmtMoney(acct.equity, acct.currency)}`
-          : 'Verification failed','success');
+          : 'Verification failed',acct.verified?'success':'warn');
       } catch(e) { toast('Verification failed: ' + e.message,'error'); }
       notify();
     },
@@ -6736,6 +6741,150 @@ const Link = (() => {
   };
   return api;
 })();
+
+/* ================================================================
+   VICE CLOUD MT5 — provider-hosted credential handoff (no PC)
+   Requires an authenticated VICE session and configured MetaApi token
+   in Supabase Edge secrets. No broker passwords enter this website.
+   All broker reads are server-side and are read-only. No trade routes.
+   ================================================================ */
+const CloudMT5 = (() => {
+  const state={accounts:[],configured:null,loaded:false,busy:false,error:'',lastRefresh:0,
+               secureUrl:null,pendingNonce:null,pendingForm:null,ownerId:null};
+  function ensureOwner(){
+    const id=APP_MODE==='LIVE'?S.user?.id||null:null;
+    if(id!==state.ownerId){
+      Object.assign(state,{ownerId:id,accounts:[],configured:null,loaded:false,error:'',
+       lastRefresh:0,secureUrl:null,pendingNonce:null,pendingForm:null});
+    }
+  }
+  async function request(action,args={}){
+    if(APP_MODE!=='LIVE'||!S.user)throw new Error('Sign in to VICE OS LIVE before using cloud connections.');
+    const {data,error}=await sb.functions.invoke('vice-mt5-cloud',{body:{action,...args}});
+    if(error){
+      let message=error.message||'Cloud connector unavailable';
+      try{const j=await error.context?.clone()?.json();if(j?.error)message=j.error}catch(_){ }
+      throw new Error(message);
+    }
+    if(data?.error)throw new Error(data.error);
+    return data||{};
+  }
+  async function refresh(){
+    ensureOwner();
+    if(APP_MODE!=='LIVE'||!S.user){state.accounts=[];state.loaded=false;state.configured=null;return;}
+    if(state.busy)return;
+    state.busy=true;state.error='';
+    try{
+      const result=await request('list');
+      state.accounts=Array.isArray(result.accounts)?result.accounts:[];
+      state.configured=result.configured===true;
+      if(S.integrations?.['broker.mt5']) S.integrations['broker.mt5'].status=
+        (state.accounts.some(a=>a.verified===true)||Link.state.status==='live')?'CONNECTED':
+        (state.configured?'READY':'BLOCKED');
+      state.loaded=true;state.lastRefresh=Date.now();
+    }catch(e){state.error=e.message;state.loaded=true;state.configured=false;state.accounts=[];state.lastRefresh=0;}
+    finally{state.busy=false;try{renderMain()}catch(_){}}
+  }
+  function verifiedUsd(){
+    // Never include stale, unverified, or non-USD values in a USD total.
+    ensureOwner();
+    if(APP_MODE==='LIVE'&&S.user&&!state.loaded&&!state.busy&&!state._queued){
+      state._queued=true;
+      setTimeout(()=>{state._queued=false;if(APP_MODE==='LIVE'&&S.user&&!state.loaded)refresh();},250);
+    }
+    if(APP_MODE!=='LIVE'||!S.user||!state.lastRefresh||Date.now()-state.lastRefresh>120000)return 0;
+    const accounted=new Set();
+    const record=(a)=>String(a.server||'').trim().toLowerCase()+'|'+String(a.login||'').trim();
+    for(const a of S.mt5||[])if(a.server&&a.login)accounted.add(record(a));
+    for(const a of Link.state.portfolio?.accounts||[])if(a.server&&a.login)accounted.add(record(a));
+    let total=0;
+    for(const a of state.accounts){
+      const id=record(a);
+      if(!a.verified||a.currency!=='USD'||!Number.isFinite(Number(a.equity))||a.equity===null||a.login===undefined)continue;
+      if(accounted.has(id))continue;
+      accounted.add(id);total+=Number(a.equity);
+    }
+    return total;
+  }
+  async function prepare(){
+    if(state.busy)return;
+    const label=($('cloudMt5Label')?.value||'').trim();
+    const server=($('cloudMt5Server')?.value||'').trim();
+    const mode=$('cloudMt5Mode')?.value||'DEMO';
+    if(label.length<2||server.length<2){toast('Enter an account label and the exact MT5 broker server name','warn');return;}
+    if(!confirm('Create a MetaApi-hosted MT5 cloud connection? MetaApi may charge for account hosting.'))return;
+    const form=JSON.stringify({label,server,mode});
+    if(!state.pendingNonce||state.pendingForm!==form){state.pendingNonce=crypto.randomUUID();state.pendingForm=form;}
+    state.busy=true;state.error='';
+    try{
+      const result=await request('prepare',{label,server,mode,nonce:state.pendingNonce});
+      if(result.pending){toast('Broker settings detection is processing. Click Retry setup in approximately one minute.','info');return;}
+      if(!result.configurationUrl?.startsWith('https://app.metaapi.cloud/'))throw new Error('Provider link failed validation.');
+      state.secureUrl=result.configurationUrl;state.pendingNonce=null;state.pendingForm=null;
+      closeModal();
+      toast('Cloud connection prepared. Click Open secure sign-in to enter credentials directly with MetaApi.','success');
+    }catch(e){state.error=e.message;toast('Cloud setup: '+e.message,'error');}
+    finally{state.busy=false;await refresh();}
+  }
+  async function configure(id){
+    if(state.busy)return;state.busy=true;
+    try{const x=await request('configuration-link',{id});
+      if(!x.configurationUrl?.startsWith('https://app.metaapi.cloud/'))throw new Error('Invalid provider URL');
+      state.secureUrl=x.configurationUrl;toast('Secure provider link ready. Open it to authenticate.','success');
+    }catch(e){toast('Provider handoff: '+e.message,'error')}
+    finally{state.busy=false;try{renderMain()}catch(_){}}
+  }
+  function openSecure(){
+    if(!state.secureUrl)return toast('Prepare a cloud connection first','warn');
+    const u=new URL(state.secureUrl);
+    if(u.protocol!=='https:'||u.hostname!=='app.metaapi.cloud')return toast('Untrusted provider link','error');
+    window.open(u.href,'_blank','noopener,noreferrer');
+    state.secureUrl=null;try{renderMain()}catch(_){}
+  }
+  async function deploy(id){
+    if(!confirm('Ask MetaApi to start the hosted MT5 session? Provider usage may incur charges.'))return;
+    try{await request('deploy',{id});toast('Cloud terminal startup requested. Refresh after authentication.','success');await refresh()}
+    catch(e){toast('Cloud terminal: '+e.message,'error')}
+  }
+  async function remove(id){
+    if(!confirm('REMOVE this MT5 cloud connection from VICE AND the hosted MetaApi service? Provider history may be deleted.'))return;
+    try{await request('remove',{id,confirm:'DELETE_CLOUD_ACCOUNT'});toast('Cloud connection removed','success');await refresh()}
+    catch(e){toast('Remove cloud connection: '+e.message,'error')}
+  }
+  setInterval(()=>{
+    ensureOwner();
+    if(APP_MODE==='LIVE'&&S.user&&state.loaded&&!state.busy&&state.configured===true&&
+       Date.now()-state.lastRefresh>65000&&['command','portfolio','mt5'].includes(S.tab))refresh();
+  },65000);
+  return {state,request,refresh,verifiedUsd,prepare,configure,deploy,remove,openSecure,ensureOwner};
+})();
+
+function openCloudMt5Modal(){
+  if(APP_MODE!=='LIVE'||!S.user){toast('Sign into your LIVE account before connecting MT5','warn');return;}
+  if(CloudMT5.state.configured!==true){toast('Hosted MT5 requires METAAPI_TOKEN configured in Supabase Edge Function secrets','warn');return;}
+  openModal('Connect MT5 — Cloud (no PC required)',`
+    <p class="note">VICE creates a cloud terminal session with MetaApi. Your broker login and <b>investor/read-only password</b> are entered on MetaApi's official secure page — never in VICE. Provider fees may apply. No live trading permission is enabled in VICE.</p>
+    <div class="fg">
+      <div class="ff"><label>Account label *</label><input id="cloudMt5Label" placeholder="Primary MT5 account" maxlength="120" autocomplete="off"></div>
+      <div class="ff"><label>Broker MT5 server *</label><input id="cloudMt5Server" placeholder="YourBroker-Live01" maxlength="160" autocomplete="off"></div>
+      <div class="ff fc"><label>Account environment</label><select id="cloudMt5Mode"><option value="DEMO">Demo</option><option value="LIVE">Live</option></select></div>
+    </div>
+    <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button><button class="btn btn-p" data-act="cloud-mt5-prepare">Prepare secure connection</button></div>`);
+}
+
+function openBrokerPortal(){
+  openModal('Open Official Broker Portal',`
+    <p class="note">Open your broker's verified HTTPS website or official MT5 web terminal. Login stays on your broker's domain. This is an external handoff, NOT an automatic account link or portfolio synchronization.</p>
+    <div class="ff"><label>Official broker HTTPS web terminal</label><input type="url" id="officialBrokerPortal" placeholder="https://your-broker.example" inputmode="url" autocomplete="off"></div>
+    <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button><button class="btn btn-p" data-act="cloud-mt5-open-portal">Open official website</button></div>`);
+}
+function submitBrokerPortal(){
+  const raw=($('officialBrokerPortal')?.value||'').trim();let u;
+  try{u=new URL(raw);if(u.protocol!=='https:'||!u.hostname||u.username||u.password)throw Error()}
+  catch(_){toast('Use the exact official HTTPS address provided by your broker','error');return;}
+  if(!confirm(`Verify that ${u.hostname} is your broker's OFFICIAL domain before entering credentials. Open externally?`))return;
+  window.open(u.href,'_blank','noopener,noreferrer');closeModal();
+}
 
 function brokerShort(x) {
   const p = String((x && x.server) || '').split('-')[0];
@@ -8165,7 +8314,7 @@ function openMT5AddModal(){
   openModal('Add MT5 Account', `
     <p style="font-size:.86rem;color:var(--tx-2);line-height:1.6;margin-bottom:14px">
       Connect through the official Windows MetaTrader 5 terminal using a secure WSS VICE Link.
-      Login/password or investor password is sent directly to your authenticated connector and never saved in VICE OS. If the connector is offline, sign in to MT5 on your PC first and reconnect.
+      The optional Windows bridge stores only account labels and numbers. Sign into your own MT5 terminal first, then verify through the bridge. Never enter a broker password into a custom bridge URL.
     </p>
     <div class="fg">
       <div class="ff"><label>Broker</label><input id="mt5Broker" placeholder="IC Markets"></div>
@@ -8173,7 +8322,6 @@ function openMT5AddModal(){
       <div class="ff fc"><label>Server *</label><input id="mt5Server" placeholder="ICMarketsSC-Live01"></div>
       <div class="ff"><label>Login *</label><input id="mt5Login" inputmode="numeric" placeholder="5001234" autocomplete="off"></div>
       <div class="ff fc"><label>Broker website (for reference/search)</label><input id="mt5BrokerUrl" type="url" placeholder="https://broker.example"></div>
-      <div class="ff fc"><label>MT5 trading or investor password (never saved)</label><input id="mt5Password" type="password" placeholder="Only sent to connected secure Windows terminal" autocomplete="off"></div>
 
       <div class="ff fc"><label>Mode</label>
         <select id="mt5Mode"><option value="LIVE">Live</option><option value="DEMO" selected>Demo</option></select>
@@ -8194,7 +8342,6 @@ function submitMT5Add(){
   const server = $('mt5Server')?.value.trim();
   const login = $('mt5Login')?.value.trim();
   const mode = $('mt5Mode')?.value || 'DEMO';
-  const password = $('mt5Password')?.value || '';
   const brokerUrl=($('mt5BrokerUrl')?.value||'').trim();
   if(brokerUrl){try{const u=new URL(brokerUrl);if(u.protocol!=='https:')throw Error();}catch(_){toast('Broker website must use https://','error');return;}}
   if (!server || !login) {
@@ -8202,8 +8349,7 @@ function submitMT5Add(){
     openMT5AddModal();
     return;
   }
-  const r = Link.addAccount({ broker:broker||(() => {try{return new URL(brokerUrl).hostname;}catch(_){return '';}})(), server, login, password, mode, label });
-  if($('mt5Password'))$('mt5Password').value='';
+  const r = Link.addAccount({ broker:broker||(() => {try{return new URL(brokerUrl).hostname;}catch(_){return '';}})(), server, login, mode, label });
   if (r) {
     Link.state.msg = '';
     closeModal();
@@ -8358,7 +8504,7 @@ function viewCommand(el){
         ${can('exec') || isOwner() ? `
         <button class="row" data-go="mt5">
           <span class="row-l"><b>MT5 Accounts</b><span class="meta">Log into broker accounts · live equity</span></span>
-          <span class="row-r num"><b>${Link.accounts.length}</b><span class="meta">linked</span></span>
+          <span class="row-r num"><b>${Link.accounts.length}</b><span class="meta">saved</span></span>
         </button>
         <button class="row" data-go="desk">
           <span class="row-l"><b>Trade Desk</b><span class="meta">Tighten · Hyper Precision · Risk Kernel · paper</span></span>
@@ -8625,59 +8771,66 @@ function viewPortfolio(el){
 function viewMT5(el){
   const live = Link.state.status === 'live';
   const accts = Link.accounts;
+  CloudMT5.ensureOwner();
+  const cloud=CloudMT5.state;
+  if(APP_MODE==='LIVE'&&S.user&&!cloud.loaded&&!cloud.busy){cloud.loaded=true;setTimeout(()=>CloudMT5.refresh(),100)}
+  const cloudVerified=cloud.accounts.filter(a=>a.verified===true);
+  const displayNum=a=>a?.equity!=null&&Number.isFinite(Number(a.equity))?fmtMoney(a.equity,a.currency||'USD'):'—';
   el.innerHTML = `
-    <div class="ph">
-      <div>
-        <div class="eb">Portfolio</div>
-        <h1>MT5 <em>Accounts</em></h1>
-        <p>Authenticate via MetaTrader 5's Windows terminal. VICE Link provides read-only account, trade, price and candle data; password login requires a connected WSS bridge.</p>
-      </div>
-      <div class="ph-acts">
-        <button class="btn btn-p" data-act="mt5-add">+ Add Account</button>
-        <button class="btn btn-g" data-act="mt5-refresh">${live ? 'Refresh' : 'Reconnect bridge'}</button>
-      </div>
-    </div>
+    <div class="ph"><div><div class="eb">Accounts · Secure connectivity</div><h1>MT5 <em>Connection Center</em></h1>
+      <p>Link MetaTrader 5 without installing software using a provider-hosted secure login, open the broker's own web terminal, or keep the optional Windows bridge. Passwords are never requested by VICE's cloud or broker-portal forms.</p></div>
+      <div class="ph-acts"><button class="btn btn-g" data-act="cloud-mt5-refresh">Refresh connections</button></div></div>
+    <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px">
+      <section class="band"><div class="band-head"><h2>Cloud MT5</h2><span class="chip ${cloud.configured?'live':'blocked'}"><i></i>${cloud.configured?'SERVICE READY':'SETUP REQUIRED'}</span></div>
+        <p class="muted" style="margin-bottom:14px">No computer or local MT5 terminal required. Secure investor-password handoff hosted by MetaApi. Live portfolio read-only.</p>
+        <button class="btn btn-gd" data-act="cloud-mt5-open" ${cloud.configured?'':'disabled'}>Connect via cloud</button>
+        ${!cloud.configured?'<p class="note warn" style="margin-top:10px">Service operator must configure METAAPI_TOKEN in Supabase secrets. No account can connect until enabled.</p>':''}
+      </section>
+      <section class="band"><div class="band-head"><h2>Broker Web Terminal</h2><span class="chip file"><i></i>EXTERNAL</span></div>
+        <p class="muted" style="margin-bottom:14px">Visit the official broker portal without installing anything. Sign-in stays with the broker; this does not connect balances to VICE.</p>
+        <button class="btn btn-g" data-act="cloud-mt5-portal">Open broker website</button>
+      </section>
+      <section class="band"><div class="band-head"><h2>VICE Link — Optional</h2><span class="chip ${live?'live':'blocked'}"><i></i>${live?'CONNECTED':'OFFLINE'}</span></div>
+        <p class="muted" style="margin-bottom:14px">Existing WSS bridge to a user-managed Windows MetaTrader terminal. Not required for cloud or broker web access.</p>
+        <button class="btn btn-g" data-act="mt5-add">Add bridge account</button>
+        <button class="btn btn-g" data-act="mt5-set-url">Configure WSS bridge</button>
+      </section>
+    </section>
+    ${cloud.secureUrl?`<section class="band" style="border-color:var(--gd)"><div class="band-head"><h2>Secure sign-in ready</h2><span class="chip file"><i></i>ONE-TIME LINK</span></div>
+      <p class="note">Open MetaApi's official HTTPS page and enter your MT5 account number and investor password there. Never paste credentials into VICE.</p>
+      <button class="btn btn-gd" data-act="cloud-mt5-open-link">Open secure MetaApi sign-in</button></section>`:''}
+    ${cloud.error?`<section class="band"><p class="note warn">${esc(cloud.error)}</p></section>`:''}
     <div class="stats">
-      <div class="st"><span class="l">Linked accounts</span><div class="v gd">${accts.length}</div><div class="n">${live ? 'Bridge connected' : 'Bridge offline'}</div></div>
-      <div class="st"><span class="l">Live equity</span><div class="v sm">${live && Link.state.portfolio ? fmtMoney(Link.state.portfolio.accounts.reduce((s,a) => s + (+a.equity || 0), 0), 'USD') : '—'}</div></div>
-      <div class="st"><span class="l">Open positions</span><div class="v">${live && Link.state.portfolio ? Link.state.portfolio.accounts.reduce((s,a) => s + (a.positions || []).length, 0) : 0}</div></div>
+      <div class="st"><span class="l">Cloud accounts</span><div class="v gd">${cloud.accounts.length}</div><div class="n">${cloud.busy?'Refreshing…':`${cloudVerified.length} broker verified`}</div></div>
+      <div class="st"><span class="l">Verified cloud USD equity</span><div class="v sm">${fmtMoney(CloudMT5.verifiedUsd(),'USD')}</div><div class="n">Only current USD-equity accounts; avoids duplicates</div></div>
+      <div class="st"><span class="l">Windows bridge</span><div class="v">${live?'LIVE':'OFFLINE'}</div><div class="n">${accts.length} saved account${accts.length===1?'':'s'} · not automatically verified</div></div>
     </div>
-    ${!live ? `<section class="band">
-      <div class="band-head"><h2>Connect VICE Link</h2><span class="chip blocked"><i></i>${esc(Link.state.status)}</span></div>
-      <p class="muted">${esc(linkStatusLine())}</p>
-      <ol class="steps">
-        <li><span><b>Run VICE OS on your Windows PC.</b><br><span class="meta">Install Node.js 20+ and start the supplied server/server.js. Set VICE_LINK_TOKEN to a strong secret; the bridge defaults to localhost-only access.</span></span></li>
-        <li><span><b>Allow the local connection in each MT5 terminal.</b><br><span class="meta">Open MT5 → File → Open Data Folder to locate MQL5/Experts and MQL5/Files.</span></span></li>
-        <li><span><b>Attach VICE_Link_Exporter.mq5.</b><br><span class="meta">Copy the supplied exporter into MQL5/Experts, compile it in MetaEditor and attach to a chart. Configure mt5_data_dir to the logged export directory.</span></span></li>
-      </ol>
-      <div class="actions" style="margin-top:12px">
-        <button class="btn btn-gd" data-act="mt5-set-url">Set bridge URL</button>
-        ${Link.state.status === 'pair' ? '<span class="chip file"><i></i>Pairing required — see System</span>' : ''}
-      </div>
-    </section>` : ''}
-    ${accts.length ? `<section class="band">
-      <div class="band-head"><h2>Your MT5 accounts</h2><span class="meta">${accts.length} linked</span></div>
-      <div class="scroll-x"><table class="pos"><thead><tr>
-        <th>Label</th><th>Broker</th><th>Server</th><th>Login</th>
-        <th>Mode</th><th>Status</th><th class="right">Equity</th><th></th>
-      </tr></thead><tbody>
-      ${accts.map(a => `<tr>
-        <td><b>${esc(a.label || a.broker)}</b></td>
-        <td class="mn">${esc(a.broker)}</td>
-        <td class="mn">${esc(a.server)}</td>
-        <td class="mn">${esc(a.login)}</td>
-        <td><span class="bdg ${a.mode === 'LIVE' ? 'gd' : 'nt'}">${esc(a.mode)}</span></td>
-        <td>${a.verified ? '<span class="chip live"><i></i>Verified</span>' : '<span class="chip file"><i></i>Saved</span>'}</td>
-        <td class="mn right">${a.equity ? fmtMoney(a.equity, a.currency || 'USD') : '—'}</td>
-        <td class="acts">
-          <button class="btn btn-xs btn-g" data-act="mt5-test" data-id="${esc(a.id)}">Test</button>
-          <button class="btn btn-xs btn-r" data-act="mt5-remove" data-id="${esc(a.id)}">Remove</button>
-        </td>
-      </tr>`).join('')}
+    ${cloud.accounts.length?`<section class="band"><div class="band-head"><h2>Cloud MT5 accounts</h2><span class="meta">Investor-mode recommended · broker verification required</span></div>
+      <div class="scroll-x"><table class="pos"><thead><tr><th>Label</th><th>Server</th><th>Connection</th><th>Broker Equity</th><th>Access</th></tr></thead><tbody>
+      ${cloud.accounts.map(a=>`<tr><td><b>${esc(a.label)}</b></td><td class="mn">${esc(a.server)}</td>
+        <td><span class="chip ${a.verified?'live':'file'}"><i></i>${a.verified?'VERIFIED':esc(a.connectionState||'PENDING')}</span></td>
+        <td class="mn">${displayNum(a)} ${a.verified?esc(a.currency||''):''}${a.verified&&a.investorMode===false?'<br><span class="note warn">Investor mode not confirmed</span>':''}<br><span class="meta">${a.positionsAvailable?`${(a.positions||[]).length} open position(s)`:'Positions unavailable'}</span></td>
+        <td class="acts"><button class="btn btn-xs btn-g" data-act="cloud-mt5-configure" data-id="${esc(a.id)}">Sign-in</button>
+        <button class="btn btn-xs btn-g" data-act="cloud-mt5-deploy" data-id="${esc(a.id)}">Start</button>
+        <button class="btn btn-xs btn-r" data-act="cloud-mt5-remove" data-id="${esc(a.id)}">Remove</button></td></tr>`).join('')}
       </tbody></table></div>
-    </section>` : ''}
-    ${live && Link.state.portfolio ? renderLivePositions(Link.state.portfolio) : ''}
-  `;
+      ${cloud.accounts.some(a=>a.verified&&Array.isArray(a.positions)&&a.positions.length)?`<details style="margin-top:14px"><summary><b>Cloud MT5 open positions</b> — live, read only</summary>
+       <div class="scroll-x"><table class="pos"><thead><tr><th>Broker account</th><th>Symbol</th><th>Side</th><th>Volume</th><th>Open</th><th>Current</th><th>Floating P/L</th></tr></thead><tbody>
+        ${cloud.accounts.filter(a=>a.verified).flatMap(a=>(a.positions||[]).map(p=>`<tr><td>${esc(a.label)}</td><td>${esc(p.symbol||'')}</td><td>${esc(p.side||'')}</td><td class="mn">${p.volume==null?'—':Number(p.volume)}</td><td>${p.open==null?'—':Number(p.open)}</td><td>${p.current==null?'—':Number(p.current)}</td><td class="mn">${p.profit==null?'—':fmtMoney(p.profit,a.currency||'USD')}</td></tr>`)).join('')}
+       </tbody></table></div></details>`:''}
+      </section>`:''}
+    <details class="band"><summary><b>Optional Windows terminal setup and saved bridge accounts</b></summary>
+    <div style="padding-top:16px"><p class="note">An independent WSS bridge service and terminal exporter must be installed before terminal authentication is possible. Saving a login number does not authenticate it. Windows is optional.</p>
+      <p class="muted">${esc(linkStatusLine())}</p>
+      <div class="actions"><button class="btn btn-g" data-act="mt5-refresh">Refresh bridge</button><button class="btn btn-g" data-act="mt5-set-url">Set secure bridge URL</button></div>
+      ${accts.length?`<div class="scroll-x"><table class="pos"><thead><tr><th>Label</th><th>Server</th><th>Login</th><th>Status</th><th>Equity</th><th></th></tr></thead><tbody>
+       ${accts.map(a=>`<tr><td>${esc(a.label||a.broker)}</td><td>${esc(a.server)}</td><td>${esc(a.login)}</td>
+         <td>${a.verified&&live?'VERIFIED':'SAVED ONLY'}</td><td>${a.verified&&live?displayNum(a):'—'}</td>
+         <td><button class="btn btn-xs btn-g" data-act="mt5-test" data-id="${esc(a.id)}">Test</button>
+          <button class="btn btn-xs btn-r" data-act="mt5-remove" data-id="${esc(a.id)}">Remove</button></td></tr>`).join('')}
+       </tbody></table></div>`:''}
+      ${live && Link.state.portfolio ? renderLivePositions(Link.state.portfolio) : ''}
+    </div></details>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -10612,6 +10765,15 @@ function paintOI(){
       case 'call-mute': { Realtime.toggleMute(); return; }
 
       /* ─── MT5 ─── */
+      case 'cloud-mt5-open': { openCloudMt5Modal(); return; }
+      case 'cloud-mt5-prepare': { CloudMT5.prepare(); return; }
+      case 'cloud-mt5-open-link': { CloudMT5.openSecure(); return; }
+      case 'cloud-mt5-refresh': { CloudMT5.refresh(); return; }
+      case 'cloud-mt5-configure': { CloudMT5.configure(t.dataset.id); return; }
+      case 'cloud-mt5-deploy': { CloudMT5.deploy(t.dataset.id); return; }
+      case 'cloud-mt5-remove': { CloudMT5.remove(t.dataset.id); return; }
+      case 'cloud-mt5-portal': { openBrokerPortal(); return; }
+      case 'cloud-mt5-open-portal': { submitBrokerPortal(); return; }
       case 'mt5-add': { openMT5AddModal(); return; }
       case 'mt5-add-submit': { submitMT5Add(); return; }
       case 'mt5-remove': {
@@ -10622,7 +10784,7 @@ function paintOI(){
       case 'mt5-test': { Link.testAccount(t.dataset.id); return; }
       case 'mt5-refresh': {
         if(Link.state.status === 'live'){ Link.send({ t:'portfolio', on:true }); toast('Refreshing…','info'); }
-        else { toast('Bridge not connected — start VICE OS on your PC','warn'); }
+        else { toast('Optional Windows bridge is offline. Use Cloud MT5 for a PC-free connection.','warn'); }
         return;
       }
       case 'mt5-set-url': {
@@ -12546,7 +12708,7 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 
 </script>
-<link rel="stylesheet" href="vice-mega.css?v=135">
-<script src="vice-mega.js?v=135"></script>
+<link rel="stylesheet" href="vice-mega.css?v=136">
+<script src="vice-mega.js?v=136"></script>
 </body>
 </html>

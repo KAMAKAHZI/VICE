@@ -1,26 +1,25 @@
 {
-  "version": "1.3.5-DASHBOARD-CHART-UX",
+  "version": "1.3.6-MT5-CLOUD-SAFE-CONNECT",
   "date": "2026-10-12",
-  "category": "source-preserving engineering candidate",
-  "status": "UNVERIFIED_END_TO_END",
-  "release_status": "ENGINEERING_CANDIDATE_PENDING_BROWSER_AUTH_ACCEPTANCE",
-  "source_baseline": "1.3.3-DUAL-SOURCE-SAFE-GATE",
-  "canonical_reference_policy": "2026-10-12-1-160",
-  "features_not_certified": [
-    "Authenticated distribution E2E and rollback",
-    "Role-based frontend login acceptance",
-    "On-chain proof of issuance and custody",
-    "Production Netlify deployment",
-    "Communications media and MT5 execution"
-  ],
-  "live_status": "pricing_pool_policy_estate_rpcs_strategic_price_and_release_capability_installed",
-  "changes": [
-    "Founder estate reserve included in consolidated internal management reference",
-    "Private estate accounting moved behind Treasury SUPER_ADMIN disclosure",
-    "Portfolio exact/compact toggle",
-    "Modal and O.I. close buttons reachable by event delegation",
-    "Chart immersive fullscreen fallback for unsupported browsers",
-    "Toggleable HUD legend and stats",
-    "Presence badge docked in top bar without overlapping username"
-  ]
+  "status": "ENGINEERING_RELEASE_CLOUD_PROVIDER_CONFIGURATION_REQUIRED",
+  "release_summary": "No-PC cloud MT5 connection handoff, broker web portal, optional terminal bridge, guarded broker-equity aggregation",
+  "backend": {
+    "supabase_project": "sdsaewumabzjjvsmqqsl",
+    "edge_function": "vice-mt5-cloud",
+    "edge_function_deployed": true,
+    "edge_function_verify_jwt": true,
+    "registry_table": "vice_mt5_cloud_accounts",
+    "registry_migration_applied": true
+  },
+  "provider": {
+    "name": "MetaApi",
+    "requires_server_secret": "METAAPI_TOKEN",
+    "configured_and_authenticated": false,
+    "mt5_passwords_accepted_by_vice": false,
+    "cloud_login_required_for_end_to_end_testing": true,
+    "browser_broker_handoff_does_not_sync_equity": true
+  },
+  "verified_offline": ["frontend_syntax", "cloud_ui", "optional_bridge", "no_browser_password_field", "CORS_and_JWT_failure_tests", "owner_state_reset", "verified_equity_guard", "existing_v1_3_5_UI_regression"],
+  "not_yet_certified": ["live_MetaApi_token", "real_MT5_broker_authentication", "live_equity_and_position_provider_responses", "Netlify_production_published", "automated_live_trade_execution"],
+  "reference_policy": "VICE_2_USD_V4X_320_USD_internal_management_reference_not_FMV"
 }
