@@ -24,10 +24,15 @@ export async function handler(event){
     membershipUrl.searchParams.set('select','id');
     membershipUrl.searchParams.set('id','eq.'+user.id);
     membershipUrl.searchParams.set('limit','1');
-    const member=await fetch(membershipUrl,{
-      headers:{'Authorization':'Bearer '+token,'apikey':anon,'Accept':'application/json'},
-      signal:controller.signal
-    });
+    const memberController=new AbortController();
+    const memberTimeout=setTimeout(()=>memberController.abort(),6000);
+    let member;
+    try{
+      member=await fetch(membershipUrl,{
+        headers:{'Authorization':'Bearer '+token,'apikey':anon,'Accept':'application/json'},
+        signal:memberController.signal
+      });
+    }finally{clearTimeout(memberTimeout)}
     if(!member.ok)return json(503,{error:'Membership verification unavailable'});
     const rows=await member.json();
     if(!Array.isArray(rows)||rows.length!==1||rows[0]?.id!==user.id)
