@@ -67,4 +67,7 @@ assert(code.includes("sb.rpc('vice_record_client_activity'"),'Client activity mu
 assert(!code.includes("sb.from('audit_log').insert("),'Browser may not forge authoritative audit entry');
 const turn=read('netlify/functions/turn-credentials.mjs');
 assert(turn.includes("+'/rest/v1/profiles'")&&turn.includes("return json(403,{error:'Approved VICE membership required'});"),'TURN credentials require provisioned membership');
+const docsGate=read('supabase/migrations/20261013045400_vice_1378_provisioned_signatures_directory_academy.sql');
+for(const marker of ['public.sign_document','public.list_member_directory','public.submit_academy_quiz','Provisioned member identity required','public.is_super()'])
+  assert(docsGate.includes(marker),'Missing issuer/document/membership ACL: '+marker);
 console.log('PASS',manifest.version,'— backend RBAC, private media, signed playback, recorder controls and realtime DMs.');
