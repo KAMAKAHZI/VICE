@@ -23,11 +23,8 @@
 @keyframes vice-record{from{opacity:1}to{opacity:.65}}
 .vice-media-img{max-width:100%;max-height:360px;border-radius:8px;display:block;object-fit:contain}
 .vice-media-audio{width:min(100%,315px);min-width:150px}
-/* Avoid floating ONLINE badge covering menus or charts: dock it in top navbar. */
-.rt-badge{position:fixed!important;left:auto!important;right:245px!important;top:12px!important;bottom:auto!important;z-index:105!important;max-width:125px;pointer-events:none}
-@media(max-width:1050px){.rt-badge{right:132px!important}}
-@media(max-width:760px){.vice-comms-shell{grid-template-columns:1fr}.vice-chat-list{max-height:210px}.vice-chat-thread .cm-msgs{max-height:52vh}.rt-badge{right:68px!important;top:11px!important;max-width:95px!important;font-size:.48rem}}
-@media(max-width:450px){.vice-chat-list{max-height:170px}.vice-chat-thread{padding:4px}.vice-chat-thread .band{padding:10px}.vice-attach,.vice-voice{min-width:32px;padding:7px}.rt-badge{right:60px!important;max-width:72px!important}}
+@media(max-width:760px){.vice-comms-shell{grid-template-columns:1fr}.vice-chat-list{max-height:210px}.vice-chat-thread .cm-msgs{max-height:52vh}}
+@media(max-width:450px){.vice-chat-list{max-height:170px}.vice-chat-thread{padding:4px}.vice-chat-thread .band{padding:10px}.vice-attach,.vice-voice{min-width:32px;padding:7px}}
 .vice-peer-dock{display:flex;align-items:center;gap:13px;overflow:auto;padding:8px 9px 15px;border-bottom:1px solid rgba(201,168,76,.12);margin-bottom:9px;scrollbar-width:thin}
 .vice-peer-bubble{width:38px;height:38px;flex:0 0 38px;border-radius:50%;font-size:.64rem;color:#f6edda;background:#292c35;display:flex;align-items:center;justify-content:center;position:relative;border:2px solid rgba(218,183,94,.8);cursor:pointer}
 .vice-peer-bubble.online{box-shadow:0 0 9px 2px rgba(225,186,90,.65),0 0 22px rgba(196,145,38,.25)}

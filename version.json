@@ -1,9 +1,9 @@
 {
-  "version": "1.3.4-LIVE-BACKEND-SYNC",
+  "version": "1.3.5-DASHBOARD-CHART-UX",
   "date": "2026-10-12",
   "category": "source-preserving engineering candidate",
   "status": "UNVERIFIED_END_TO_END",
-  "release_status": "RELEASE_CANDIDATE_LIVE_BACKEND_INSTALLED_UI_NOT_DEPLOYED",
+  "release_status": "ENGINEERING_CANDIDATE_PENDING_BROWSER_AUTH_ACCEPTANCE",
   "source_baseline": "1.3.3-DUAL-SOURCE-SAFE-GATE",
   "canonical_reference_policy": "2026-10-12-1-160",
   "features_not_certified": [
@@ -13,5 +13,14 @@
     "Production Netlify deployment",
     "Communications media and MT5 execution"
   ],
-  "live_status": "pricing_pool_policy_estate_rpcs_strategic_price_and_release_capability_installed"
+  "live_status": "pricing_pool_policy_estate_rpcs_strategic_price_and_release_capability_installed",
+  "changes": [
+    "Founder estate reserve included in consolidated internal management reference",
+    "Private estate accounting moved behind Treasury SUPER_ADMIN disclosure",
+    "Portfolio exact/compact toggle",
+    "Modal and O.I. close buttons reachable by event delegation",
+    "Chart immersive fullscreen fallback for unsupported browsers",
+    "Toggleable HUD legend and stats",
+    "Presence badge docked in top bar without overlapping username"
+  ]
 }

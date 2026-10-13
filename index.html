@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.4-LIVE-BACKEND-SYNC" data-pwa="1">
+<html lang="en" data-build="1.3.5-DASHBOARD-CHART-UX" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1035,6 +1035,54 @@ p{color:var(--tx-2);margin:0}
   #view{display:block!important}
   .band{border:1px solid #ccc}
 }
+
+/* VICE OS 1.3.5 — consolidated portfolio + functional overlays */
+.portfolio-hero{position:relative;padding:26px clamp(18px,3.2vw,40px);margin:0 0 18px;
+  border:1px solid rgba(201,168,76,.38);border-radius:14px;
+  background:linear-gradient(115deg,rgba(201,168,76,.115),rgba(11,12,16,.9) 55%,rgba(201,168,76,.055));
+  overflow:hidden;box-shadow:0 14px 54px rgba(0,0,0,.12)}
+.portfolio-hero:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,#c9a84c,transparent)}
+.portfolio-hero-label{font:600 .7rem/1.5 var(--mn);letter-spacing:.22em;color:var(--gdl)}
+.portfolio-hero-number{font:500 clamp(2.15rem,5.2vw,4.25rem)/1.16 var(--font);font-variant-numeric:tabular-nums;
+  letter-spacing:-.055em;color:var(--tx);margin:12px 0 8px;overflow-wrap:anywhere;cursor:zoom-in;user-select:none}
+.portfolio-hero-number:focus-visible{outline:2px solid var(--gd);outline-offset:5px}
+.portfolio-hero-actions{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  font:500 .64rem var(--mn);letter-spacing:.04em;color:var(--tx2)}
+.portfolio-hero-note{color:var(--tx3);font-size:.68rem;line-height:1.55;margin-top:14px;max-width:900px}
+.treasury-toggle{cursor:pointer;color:var(--gdl);font-size:.78rem;font-weight:600;padding:5px 0}
+.treasury-admin:not([open]){padding:12px 16px}
+/* Dock presence next to, never over, the account name. */
+.tbr{display:flex;align-items:center;gap:7px;min-width:0;max-width:min(60vw,520px)}
+.tbr .rt-badge{position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  z-index:auto!important;max-width:unset!important;flex:0 0 auto!important;margin:0!important;transform:none!important;
+  white-space:nowrap;font-size:.48rem}
+.tbr .upill{min-width:0;flex:0 1 auto;max-width:240px}
+.tbr .upill>div:last-child{min-width:0}
+.tbr .un,.tbr .ur{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:190px}
+.chart-floating-controls{position:absolute;right:12px;top:12px;z-index:7;display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap;
+  max-width:min(92%,480px);padding:5px;border:1px solid rgba(201,168,76,.2);border-radius:8px;
+  background:rgba(7,8,10,.84);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.chart-floating-controls .btn{font-size:.58rem;padding:5px 7px;min-height:30px;white-space:nowrap}
+.cwrap:fullscreen,.cwrap.vice-immersive{width:100vw!important;height:100dvh!important;min-height:100dvh!important;
+  max-height:none!important;border:0!important;border-radius:0!important;margin:0!important;background:#07080a}
+.cwrap.vice-immersive{position:fixed!important;inset:0!important;z-index:9995!important}
+body.chart-fullscreen-fallback{overflow:hidden!important}
+.cwrap:fullscreen .chart-floating-controls,.cwrap.vice-immersive .chart-floating-controls{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right))}
+.cwrap:fullscreen .hud,.cwrap.vice-immersive .hud{top:55px}
+@media(max-width:900px){
+ .tb{gap:6px;padding:0 8px}
+ .brand{flex-shrink:1;min-width:0}
+ .tbr{max-width:calc(100vw - 166px);min-width:0;flex-shrink:1;margin-left:auto}
+ .tbr #userBadges{display:none!important}
+ .tbr .rt-badge{padding:4px 6px!important;font-size:0!important;min-width:20px}
+ .tbr .rt-dot{width:7px;height:7px}
+ .tbr .upill{max-width:calc(100vw - 196px);min-width:0;overflow:hidden}
+ .tbr .un,.tbr .ur{max-width:calc(100vw - 236px)}
+ .chart-floating-controls{right:7px;top:7px;max-width:calc(100% - 12px)}
+ .chart-floating-controls .btn{padding:4px 6px;font-size:.53rem;min-height:28px}
+ .portfolio-hero{padding:20px 18px}
+}
+
 </style>
 </head>
 <body>
@@ -1106,7 +1154,7 @@ p{color:var(--tx-2);margin:0}
   <main class="mn"><div class="mni" id="view" tabindex="-1"></div></main>
 </div>
 
-<div class="mb" id="modal" data-act="modal-close"><div class="mdl" id="modalContent" onclick="event.stopPropagation()"></div></div>
+<div class="mb" id="modal" data-act="modal-close"><div class="mdl" id="modalContent"></div></div>
 <div id="sheet-root"></div>
 <div id="oi-root"></div>
 <div id="lock-root"></div>
@@ -1298,7 +1346,7 @@ p{color:var(--tx-2);margin:0}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.4-LIVE-BACKEND-SYNC', date: '2026-10-12' };
+const BUILD = { version: '1.3.5-DASHBOARD-CHART-UX', date: '2026-10-12' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -1326,16 +1374,30 @@ const fmtK = n => {
 };
 let viceShowExactMoney = (()=>{try{return localStorage.getItem('vice-exact-money')==='1';}catch(_){return false;}})();
 function viceMoneyView(n){return viceShowExactMoney?fmtUsd(n):fmtK(n);}
-document.addEventListener('dblclick', e=>{
-  const target=e.target.closest('[data-money-value]');
-  if(!target||!S.user)return;
+function togglePortfolioAmountPrecision(){
   viceShowExactMoney=!viceShowExactMoney;
   try{localStorage.setItem('vice-exact-money',viceShowExactMoney?'1':'0');}catch(_){}
   document.querySelectorAll('[data-money-value]').forEach(el=>{
     const amount=Number(el.dataset.moneyValue);
     el.textContent=viceMoneyView(amount);
-    el.title=viceShowExactMoney?'Double-click to show compact value':'Double-click to show exact cents';
+    el.title=viceShowExactMoney?'Show rounded amount':'Show exact amount';
+    el.setAttribute('aria-label',viceShowExactMoney?'Portfolio value shown exactly. Activate to abbreviate.':'Portfolio value abbreviated. Activate to show exact amount.');
   });
+  document.querySelectorAll('[data-money-precision-toggle]').forEach(el=>{
+    el.textContent=viceShowExactMoney?'Show compact':'Show full amount';
+    el.setAttribute('aria-pressed',String(viceShowExactMoney));
+  });
+}
+document.addEventListener('dblclick',e=>{
+  if(e.target.closest('[data-money-value]')){
+    e.preventDefault();
+    togglePortfolioAmountPrecision();
+  }
+});
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-money-precision-toggle]')){
+    e.preventDefault();togglePortfolioAmountPrecision();
+  }
 });
 const fmtMoney = (v, cur) => {
   if (v == null || !Number.isFinite(Number(v))) return '—';
@@ -1558,7 +1620,8 @@ const S = {
   chart: {
     preset:'vice-gold', type:'hollow', colors:null,
     show:{ grid:true, zones:true, history:true, events:true, lastPrice:true,
-           watermark:true, poles:true, internal:true, choch:true, trades:true, vol:true, labels:true },
+           watermark:true, poles:true, internal:true, choch:true, trades:true, vol:true, labels:true,
+           legend:false, hud:false, stats:true },
     levelWidth:1.6
   },
   sets: {},
@@ -1967,6 +2030,14 @@ function paintUserBadges(){
   if (holder && holder.tier) badges.push({ label: holder.tier.tier, cls:'nt' });
   slot.innerHTML = badges.map(b => `<span class="bdg ${b.cls}">${esc(b.label)}</span>`).join('');
 }
+
+// The presence badge belongs to the normal topbar flow; fixed positioning
+// previously placed it over the signed-in user's name on narrow screens.
+(function dockRealtimeBadge(){
+  const rt=document.getElementById('rtBadge');
+  const nav=document.querySelector('.tbr');
+  if(rt && nav)nav.insertBefore(rt,nav.firstChild);
+})();
 
 /* ═══════════════════════════════════════════════════════════════════
    ROUTER
@@ -2476,9 +2547,24 @@ function managedReserveUsd(){
   return managedReserveUnits('VICE')*v+managedReserveUnits('V4X')*x;
 }
 function totalAccountPortfolioUsd(){
-  // Do not present undistributed issuer reserve as the founder's personal net worth.
-  // Display the administered policy reference separately below.
-  return totalPersonalUsd();
+  // Founder view ATTRIBUTES the still-unassigned estate reserve to the
+  // founder-controlled IRU portfolio REFERENCE. Accounting remains separate:
+  // transferred units leave the unassigned reserve and enter recipient ledgers.
+  // This display is NOT independent FMV, liquid net worth, on-chain custody,
+  // corporate shares, or collateral acceptance.
+  return totalPersonalUsd() + (isOwner() ? managedReserveUsd() : 0);
+}
+function accountIruUnits(program){
+  const p=program==='VICE'?'VICE':'V4X';
+  const personal=Number(S.personalHoldings[p==='VICE'?'viceUnits':'v4xUnits']||0);
+  const transferred=Number(S.estateHolderBalances?.[p]||0);
+  return personal+transferred+(isOwner()?managedReserveUnits(p):0);
+}
+function accountIruReferenceUsd(){
+  return iruUsd()+(isOwner()?managedReserveUsd():0);
+}
+function portfolioReliabilityNote(){
+  return 'Combined IRU management reference, broker equity and connected account estimates. IRU reference values are not independently appraised assets, cash, on-chain custody, or guaranteed collateral.';
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -5483,7 +5569,7 @@ const Realtime = (() => {
     const mm = String(Math.floor(elapsed / 60)).padStart(2,'0');
     const ss = String(elapsed % 60).padStart(2,'0');
     root.innerHTML = `
-      <div class="call-card" onclick="event.stopPropagation()">
+      <div class="call-card">
         <div class="call-av">${esc(initial)}</div>
         <div class="call-name">${esc(c.peerName)}</div>
         <div class="call-status ${statusCls}">${esc(statusText)}</div>
@@ -8243,38 +8329,19 @@ function viewCommand(el){
       </div>
     </div>
     ${holderStrip}
+    <section class="portfolio-hero" aria-label="Total portfolio management reference">
+      <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
+      <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
+      <div class="portfolio-hero-actions"><span>Combined portfolio · ${APP_MODE==='SIM'?'Demonstration data':isOwner()?'Founder-attributed IRUs + linked balances':'Personal IRUs + linked balances'}</span>
+        <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
+      <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
+    </section>
     <div class="stats">
-      <div class="st">
-        <span class="l">Personal Portfolio Reference Estimate</span>
-        <div class="v gd" data-money-value="${total}" title="Double-click to switch between compact and exact cents">${viceMoneyView(total)}</div>
-        <div class="n">Excludes unassigned issuer reserve · Internal IRU reference values are not cash · Double-click for cents</div>
-      </div>
-      <div class="st">
-        <span class="l">VICE · Personal IRUs</span>
-        <div class="v">${fmtNum(Number(S.personalHoldings.viceUnits||0)+Number(S.estateHolderBalances?.VICE||0))}</div>
-        <div class="n">Excludes undistributed issuer reserve · OUV $${S.iruClasses[0].ouv}</div>
-      </div>
-      <div class="st">
-        <span class="l">V4X · Personal IRUs</span>
-        <div class="v">${fmtNum(Number(S.personalHoldings.v4xUnits||0)+Number(S.estateHolderBalances?.V4X||0))}</div>
-        <div class="n">Excludes undistributed issuer reserve · OUV $${S.iruClasses[1].ouv}</div>
-      </div>
-      <div class="st">
-        <span class="l">Mode</span>
-        <div class="v ${APP_MODE === 'SIM' ? 'sm' : 'gr'}">${APP_MODE}</div>
-      </div>
+      <div class="st"><span class="l">VICE · IRU Portfolio</span><div class="v">${fmtNum(accountIruUnits('VICE'))}</div><div class="n">Management reference $${S.iruClasses[0].ouv} / unit</div></div>
+      <div class="st"><span class="l">V4X · IRU Portfolio</span><div class="v">${fmtNum(accountIruUnits('V4X'))}</div><div class="n">Management reference $${S.iruClasses[1].ouv} / unit</div></div>
+      <div class="st"><span class="l">Combined IRU Reference</span><div class="v gd" data-money-value="${accountIruReferenceUsd()}" tabindex="0">${viceMoneyView(accountIruReferenceUsd())}</div></div>
+      <div class="st"><span class="l">Mode</span><div class="v ${APP_MODE==='SIM'?'sm':'gr'}">${APP_MODE}</div></div>
     </div>
-    ${isOwner()?`<section class="band">
-      <div class="band-head"><h2>Estate Reserve and Administrative Reserve</h2><span class="bdg gd">FOUNDER · CEO ADMINISTRATION</span></div>
-      <div class="stats">
-        <div class="st"><span class="l">VICE · ${S.estateAdminLedger?'unassigned internal book':'designated capacity'}</span><div class="v">${fmtNum(managedVice)}</div></div>
-        <div class="st"><span class="l">V4X · ${S.estateAdminLedger?'unassigned internal book':'designated capacity'}</span><div class="v">${fmtNum(managedV4x)}</div></div>
-        <div class="st"><span class="l">Reserve internal reference (not verified custody)</span><div class="v">${fmtK(managedReserveUsd())}</div></div>
-      </div>
-      <p class="note">Issuer reserve is excluded from personal portfolio totals. ${S.estateAdminLedger?'Internal reserve book loaded; internal transfers are not on-chain settlement.':'No synchronized reserve balance: amounts above are policy-designated capacities only.'} Neither source establishes verified blockchain custody, legal corporate stock, spendable cash, independent appraisal, or lender-accepted collateral. Do not treat a book entry as an on-chain token transfer.</p>
-      ${APP_MODE==='LIVE'?'<button class="btn btn-g" data-act="strategic-manager">Manage strategic-holder allocations</button>':''}
-      ${APP_MODE==='LIVE' && S.estateAdminLedger?'<button class="btn btn-gd" data-act="estate-manager">Manage internal estate IRU allocations</button>':'<span class="meta">Estate allocation controls await the verified database migration.</span>'}
-    </section>`:''}
     ${isOwner() && (S.proposals||[]).some(p=>p.status==='OPEN' && (!p.closesAt||new Date(p.closesAt)>new Date()))?`<section class="band"><div class="band-head"><h2>Governance in progress</h2><button class="btn btn-gd" data-go="governance">Review votes</button></div><p class="meta">Open proposals are synchronized for eligible authenticated members.</p></section>`:''}
     ${myDistributions}
     <div class="grid cols-2">
@@ -8325,6 +8392,57 @@ function viewCommand(el){
   `;
 }
 
+// Private per-device chart overlay preferences. Default to an uncluttered chart.
+(function initChartOverlayPrefs(){
+  try {
+    const x=JSON.parse(localStorage.getItem('vice-chart-overlay-v135')||'null');
+    if(x && typeof x==='object')for(const k of ['legend','hud','stats']){
+      if(typeof x[k]==='boolean')S.chart.show[k]=x[k];
+    }
+  }catch(_){}
+})();
+function refreshChartOverlayVisibility(){
+  const layers={legend:'clg',hud:'hud',stats:'cstat'};
+  for(const [k,id] of Object.entries(layers)){
+    const el=$(id);
+    if(el)el.hidden=S.chart.show[k]===false;
+  }
+  document.querySelectorAll('[data-act="toggle-chart-overlay"]').forEach(b=>{
+    const enabled=S.chart.show[b.dataset.overlay]!==false;
+    b.setAttribute('aria-pressed',String(enabled));
+    b.classList.toggle('on',enabled);
+    b.textContent=b.dataset.overlay==='legend'?(enabled?'Hide legend':'Show legend'):
+      b.dataset.overlay==='hud'?(enabled?'Hide info':'Show info'):(enabled?'Hide stats':'Show stats');
+  });
+}
+let chartImmersive=false;
+async function exitChartFullscreen(){
+  chartImmersive=false;
+  const w=$('cwrap');
+  w?.classList.remove('vice-immersive');
+  document.body.classList.remove('chart-fullscreen-fallback');
+  if(document.fullscreenElement){try{await document.exitFullscreen()}catch(e){console.warn('Fullscreen exit failed',e)}}
+  document.querySelectorAll('[data-act="toggle-fullscreen"]').forEach(b=>b.textContent='Fullscreen');
+  setTimeout(()=>{if($('cv')){resizeCanvas();drawAll()}},100);
+}
+async function toggleChartFullscreen(){
+  const w=$('cwrap');
+  if(!w){toast('Open the chart first','warn');return;}
+  if(document.fullscreenElement || chartImmersive){await exitChartFullscreen();return;}
+  try {
+    if(typeof w.requestFullscreen!=='function')throw new Error('No native Fullscreen API');
+    await w.requestFullscreen();
+  }catch(e){
+    // iOS Safari does not support fullscreen for arbitrary elements.
+    // Keep the chart full viewport with an explicit Exit button.
+    chartImmersive=true;
+    w.classList.add('vice-immersive');
+    document.body.classList.add('chart-fullscreen-fallback');
+  }
+  document.querySelectorAll('[data-act="toggle-fullscreen"]').forEach(b=>b.textContent='Exit fullscreen');
+  setTimeout(()=>{if($('cv')){resizeCanvas();drawAll()}},110);
+}
+
 /* Chart appearance is a per-device preference, never a financial record. */
 const VICE_COLOR_FIELDS = [
   ['bg','Background'],['bull','Bull candle'],['bear','Bear candle'],
@@ -8359,6 +8477,8 @@ function initChartPreferences(){
 }
 initChartPreferences();
 document.addEventListener('fullscreenchange',()=>{
+  const active=!!document.fullscreenElement||chartImmersive;
+  document.querySelectorAll('[data-act="toggle-fullscreen"]').forEach(b=>b.textContent=active?'Exit fullscreen':'Fullscreen');
   if(document.getElementById('cv'))setTimeout(()=>{resizeCanvas();drawAll();},80);
 });
 window.addEventListener('resize',()=>{
@@ -8417,9 +8537,15 @@ function viewMarkets(el){
       ${S.ch.candles.length
         ? '<canvas id="cv"></canvas>'
         : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--tx3);text-align:center;padding:20px">No data. Tap <b style="color:var(--gd)">Import MT5 bars</b> or <b style="color:var(--gd)">Search</b> above.</div>'}
-      <div class="hud" id="hud"></div>
-      <div class="clg" id="clg"></div>
-      <div class="cstat" id="cstat"></div>
+      <div class="chart-floating-controls" aria-label="Chart overlay and full-screen controls">
+        <button type="button" class="btn btn-xs btn-g" data-act="toggle-chart-overlay" data-overlay="legend" aria-pressed="${S.chart.show.legend!==false}">${S.chart.show.legend===false?'Show legend':'Hide legend'}</button>
+        <button type="button" class="btn btn-xs btn-g" data-act="toggle-chart-overlay" data-overlay="hud" aria-pressed="${S.chart.show.hud!==false}">${S.chart.show.hud===false?'Show info':'Hide info'}</button>
+        <button type="button" class="btn btn-xs btn-g" data-act="toggle-chart-overlay" data-overlay="stats" aria-pressed="${S.chart.show.stats!==false}">${S.chart.show.stats===false?'Show stats':'Hide stats'}</button>
+        <button type="button" class="btn btn-xs btn-gd" data-act="toggle-fullscreen">Fullscreen</button>
+      </div>
+      <div class="hud" id="hud" ${S.chart.show.hud===false?'hidden':''}></div>
+      <div class="clg" id="clg" ${S.chart.show.legend===false?'hidden':''}></div>
+      <div class="cstat" id="cstat" ${S.chart.show.stats===false?'hidden':''}></div>
     </div>
     <div class="chart-foot">
       <button class="btn btn-sm btn-g" data-act="zoom-out">−</button>
@@ -8429,7 +8555,7 @@ function viewMarkets(el){
       ${S.ch.ltfTf ? `<span class="meta">Internal poles from ${S.ch.ltfTf.toUpperCase()}</span>` : ''}
     </div>
   `;
-  setTimeout(() => { initCanvas(); updateClg(); updateCstat(); }, 20);
+  setTimeout(() => { initCanvas(); updateClg(); updateCstat(); refreshChartOverlayVisibility(); }, 20);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -8438,7 +8564,7 @@ function viewMarkets(el){
 
 function viewPortfolio(el){
   const iru = iruUsd(), reserve=managedReserveUsd(), df = defiUsd(), mt = mt5Usd(), ex = externalUsd();
-  const total = iru + df + mt + ex; // reserve is separately administered, NOT personal portfolio
+  const total = totalAccountPortfolioUsd(); // Founder-designated reserve included in consolidated management reference
   const live = Link.state.status === 'live' && Link.state.portfolio;
   const accts = live ? Link.state.portfolio.accounts : [];
   el.innerHTML = `
@@ -8449,24 +8575,27 @@ function viewPortfolio(el){
         : '<span class="chip blocked"><i></i>Bridge off</span>'}</div>
     </div>
     ${S.daoPriceSyncStatus!=='CANONICAL' && APP_MODE==='LIVE'?`<p class="note warn">Management reference policy sync: ${esc(S.daoPriceSyncStatus)}. Confirm the 2/320 policy in the live registry before relying on account reference calculations.</p>`:''}
+    <section class="portfolio-hero" aria-label="Total portfolio reference value">
+      <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
+      <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
+      <div class="portfolio-hero-actions"><span>VICE OS · All portfolio components</span>
+        <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
+      <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
+    </section>
     <div class="stats">
-      <div class="st"><span class="l">Portfolio estimate (issuer reserve excluded)</span><div class="v gd" data-money-value="${total}" title="Double-click for exact cents">${viceMoneyView(total)}</div></div>
-      <div class="st"><span class="l">IRU · Personal</span><div class="v">${fmtK(iru)}</div></div>
-      ${isOwner()?`<div class="st"><span class="l">CEO Reserve · Designated Reference (Unverified)</span><div class="v">${fmtK(reserve)}</div></div>`:''}
+      <div class="st"><span class="l">VICE + V4X IRUs</span><div class="v gd">${fmtK(accountIruReferenceUsd())}</div></div>
       <div class="st"><span class="l">DeFi</span><div class="v">${fmtK(df)}</div></div>
       <div class="st"><span class="l">MT5</span><div class="v">${fmtK(mt)}</div></div>
       <div class="st"><span class="l">External</span><div class="v">${fmtK(ex)}</div></div>
     </div>
     <div class="pnl">
-      <div class="pnl-h"><h3>Breakdown</h3></div>
+      <div class="pnl-h"><h3>Portfolio components</h3></div>
       <div class="pnl-b fl">
-        <div class="rw" style="padding:12px 18px"><span class="rw-l">Personal IRU Holdings</span><span class="rw-v">${fmtUsd(iru)}</span></div>
-        ${isOwner()?`<div class="rw" style="padding:12px 18px"><span class="rw-l">Separate issuer administration · Estate Reserve and Administrative Reserve</span><span class="rw-v">${fmtUsd(reserve)}</span></div>`:''}
+        <div class="rw" style="padding:12px 18px"><span class="rw-l">Combined IRU reference</span><span class="rw-v">${fmtUsd(accountIruReferenceUsd())}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">DeFi Wallet</span><span class="rw-v">${fmtUsd(df)}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">MT5 Accounts</span><span class="rw-v">${fmtUsd(mt)}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">External Accounts</span><span class="rw-v">${fmtUsd(ex)}</span></div>
       </div>
-      ${isOwner()?`<p class="note" style="padding:0 18px 16px">The issuer-designated reserve reference is displayed separately and excluded from personal portfolio totals. An internal book entitlement is not proof of minted on-chain token custody, liquidity, corporate equity, or lender-recognized collateral.</p>`:''}
     </div>
     ${live && accts.length ? `<section class="band">
       <div class="band-head"><h2>Live MT5</h2><span class="meta">${ageText(Date.now() - Link.state.portfolioAt)}</span></div>
@@ -9448,6 +9577,16 @@ function viewTreasury(el){
   const tx = S.treasuryTx || [];
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Records</div><h1><em>Treasury</em></h1></div></div>
+    ${isOwner()?`<details class="band treasury-admin" id="treasuryInternalBook">
+      <summary class="treasury-toggle">Private administrative accounting · SUPER_ADMIN</summary>
+      <p class="note">Internal reserve ledger only. Balances are founder-attributed management references, not independently verified custody, corporate shares, or cash.</p>
+      <div class="stats">
+        <div class="st"><span class="l">VICE · unassigned internal ledger</span><div class="v">${fmtNum(managedReserveUnits('VICE'))}</div></div>
+        <div class="st"><span class="l">V4X · unassigned internal ledger</span><div class="v">${fmtNum(managedReserveUnits('V4X'))}</div></div>
+        <div class="st"><span class="l">Outstanding reserved units</span><div class="v">${fmtNum(Number(S.estateAdminLedger?.programs?.VICE?.reserved_units||0)+Number(S.estateAdminLedger?.programs?.V4X?.reserved_units||0))}</div></div>
+      </div>
+      ${APP_MODE==='LIVE'?`<div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button class="btn btn-gd" data-act="estate-manager" ${!S.estateAdminLedger?'disabled':''}>Estate allocations</button><button class="btn btn-g" data-act="strategic-manager">Strategic allocations</button></div>`:''}
+    </details>`:''}
     <section class="band">
       <div class="band-head"><h2>Transactions</h2><span class="meta">${tx.length}</span></div>
       ${tx.length ? `<div class="scroll-x"><table class="pos"><thead><tr>
@@ -10204,7 +10343,7 @@ function paintOI(){
   const st = OI.state;
   const title = st.mode === 'support' ? 'VICE Support' : 'VICE O.I.';
   root.innerHTML = `
-    <div class="oi-panel" onclick="event.stopPropagation()">
+    <div class="oi-panel">
       <div class="oi-head">
         <div>
           <h3>${esc(title)}</h3>
@@ -10338,12 +10477,15 @@ function paintOI(){
       case 'zoom-in':  { zoomChart(0.8); return; }
       case 'zoom-out': { zoomChart(1.25); return; }
       case 'chart-reset': { S.view2.count = 140; S.view2.end = null; drawAll(); return; }
-      case 'toggle-fullscreen': {
-        const w = document.getElementById('cwrap');
-        if(!w){ toast('Open the Chart tab first','warn'); return; }
-        const p = document.fullscreenElement ? document.exitFullscreen() : w.requestFullscreen?.();
-        Promise.resolve(p).then(()=>setTimeout(()=>{ resizeCanvas(); drawAll(); },120))
-          .catch(e=>toast('Fullscreen unavailable: '+e.message,'error'));
+      case 'toggle-fullscreen': { toggleChartFullscreen(); return; }
+      case 'toggle-chart-overlay': {
+        const k=t.dataset.overlay;
+        if(!['legend','hud','stats'].includes(k))return;
+        S.chart.show[k]=S.chart.show[k]===false;
+        try{localStorage.setItem('vice-chart-overlay-v135',JSON.stringify({
+          legend:S.chart.show.legend,hud:S.chart.show.hud,stats:S.chart.show.stats
+        }))}catch(_){}
+        refreshChartOverlayVisibility();
         return;
       }
       case 'chart-style': { openChartStyleModal(); return; }
@@ -11800,6 +11942,20 @@ function syncLabInputs(){
   });
 }
 
+// Close overlay layers without interrupting typed inputs or submitting forms.
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(document.fullscreenElement || document.getElementById('cwrap')?.classList.contains('vice-immersive')){
+    e.preventDefault();exitChartFullscreen();return;
+  }
+  if($('modal')?.classList.contains('on')){e.preventDefault();closeModal();return;}
+  if($('sheet-root')?.classList.contains('on')){e.preventDefault();closeSheet();return;}
+  if($('oi-root')?.classList.contains('on')){e.preventDefault();OI.state.open=false;paintOI();return;}
+});
+document.addEventListener('click',e=>{
+  if(e.target===$('oi-root')){OI.state.open=false;paintOI();}
+});
+
 /* ═══════════════════════════════════════════════════════════════════
    MODAL CLICK HARDENING — verify hardening survived the extension
    ═══════════════════════════════════════════════════════════════════ */
@@ -12390,7 +12546,7 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 
 </script>
-<link rel="stylesheet" href="vice-mega.css?v=134">
-<script src="vice-mega.js?v=134"></script>
+<link rel="stylesheet" href="vice-mega.css?v=135">
+<script src="vice-mega.js?v=135"></script>
 </body>
 </html>
