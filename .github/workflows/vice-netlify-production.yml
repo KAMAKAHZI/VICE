@@ -1,0 +1,59 @@
+name: VICE OS secure Netlify publish
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'netlify.toml'
+      - 'scripts/vice-publish-netlify.sh'
+      - '.github/workflows/vice-netlify-production.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: vice-netlify-prod
+  cancel-in-progress: true
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate complete application
+        run: |
+          node tests/vice-release-safety.cjs
+          node tests/vice-1367-contracts.cjs
+          node --check tests/vice-production-smoke.mjs
+      - name: Prepare strict public web root
+        run: |
+          bash scripts/vice-publish-netlify.sh
+          node tests/vice-deploy-privacy.cjs
+      - name: Confirm deployment authorization
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "::error::Netlify deployment not authorized yet. Create GitHub repository secrets NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID in repository Settings > Secrets and variables > Actions. Never put these values in chat, SQL, source, or public artifacts."
+            exit 1
+          fi
+      - name: Publish validated VICE OS to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          npx --yes netlify-cli@latest deploy --prod --dir=dist/site --functions=netlify/functions --site="$NETLIFY_SITE_ID" --message="VICE OS ${{ github.sha }} — verified frontend + cloud functions" 
+      - name: Run independent live smoke
+        run: |
+          node tests/vice-production-smoke.mjs
+        env:
+          VICE_SMOKE_ATTEMPTS: '5'
+          VICE_SMOKE_DELAY_MS: '7000'
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_OS_NETLIFY_PRODUCTION_ACCEPTANCE
+          path: production-smoke-report.json
+          if-no-files-found: warn
