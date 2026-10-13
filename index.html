@@ -997,7 +997,8 @@ p{color:var(--tx-2);margin:0}
 
 /* ═══════════════════════════════════════════════════════════════════
    UNITS PREVIEW
-   ═══════════════════════════════════════════════════════════════════ */.units-preview{
+   ═══════════════════════════════════════════════════════════════════ */
+.units-preview{
   margin-top:12px;padding:12px;border-radius:8px;
   background:rgba(139,122,255,.06);border:1px solid rgba(139,122,255,.2);
   font-family:var(--mn);font-size:.7rem;color:var(--tx2);line-height:1.7;
@@ -1996,6 +1997,7 @@ function renderNav(){
       const badgeCls = it.badge==='LIVE'?'lv':it.badge==='OWNER'?'gd':it.badge==='ADMIN'?'rd':it.badge==='18'?'vi':'';
       const openGov=it.id==='governance'?(S.proposals||[]).filter(p=>p.status==='OPEN' && (!p.closesAt||new Date(p.closesAt)>new Date()) && !(S.proposalVotes||[]).some(v=>v.proposal_id===p.id)).length:0;
       const badge = openGov ? `<span class="sbdg gd" title="Proposals awaiting your vote">${openGov}</span>` : (it.badge ? `<span class="sbdg ${badgeCls}">${it.badge}</span>` : '');
+
       let label = it.label;
       if(isHolder){
         if(it.id === 'markets')  label = 'My Chart';
@@ -2995,7 +2997,8 @@ const Solace = (() => {
 
   /* ─── Internal poles from LTF high/low ─── */
   function internalPoles(ltf, primaryBars, lookback) {
-    if (!ltf || ltf.length < 20) return { hi: null, lo: null, hiBar: -1, loBar: -1 };    const n = Math.min(lookback, ltf.length);
+    if (!ltf || ltf.length < 20) return { hi: null, lo: null, hiBar: -1, loBar: -1 };
+    const n = Math.min(lookback, ltf.length);
     let hh = -Infinity, ll = Infinity, hb = 0, lb = 0;
     for (let k = 0; k < n; k++) {
       const idx = ltf.length - 1 - k;
@@ -3994,7 +3997,8 @@ const IruEngine = (() => {
           history:[{ state:'PENDING', by:ev.by, at:ev.at }],
         };
         st.committed[p.id] += u;
-        break;      }
+        break;
+      }
       case 'ALLOCATION_APPROVED':
       case 'ALLOCATION_RESERVED':
       case 'ALLOCATION_DISTRIBUTED': {
@@ -4993,7 +4997,8 @@ const Wallet = (() => {
       notify();
     },
     setRpc(url) {
-      st.rpc = String(url || '').trim();      persist();
+      st.rpc = String(url || '').trim();
+      persist();
       refresh();
       notify();
     },
@@ -5993,6 +5998,7 @@ const MsgCrypto = (() => {
   return { encrypt, decrypt, PREFIX };
 })();
 window.MsgCrypto = MsgCrypto;
+
 /* ═══════════════════════════════════════════════════════════════════
    CHAIN CHECK — canonical contract registry verification (read-only)
    ═══════════════════════════════════════════════════════════════════ */
@@ -6991,7 +6997,8 @@ const CloudMT5 = (() => {
       if(!stillCurrent())return;
       state.accounts=Array.isArray(result.accounts)?result.accounts:[];
       state.configured=result.configured===true;
-      if(S.integrations?.['broker.mt5']) S.integrations['broker.mt5'].status=        (state.accounts.some(a=>a.verified===true)||Link.state.status==='live')?'CONNECTED':
+      if(S.integrations?.['broker.mt5']) S.integrations['broker.mt5'].status=
+        (state.accounts.some(a=>a.verified===true)||Link.state.status==='live')?'CONNECTED':
         (state.configured?'READY':'BLOCKED');
       state.loaded=true;state.lastRefresh=Date.now();
     }catch(e){
@@ -7990,7 +7997,8 @@ function drawSolace(){
     _ctx.beginPath(); _ctx.moveTo(PAD.l, yHi); _ctx.lineTo(_W - PAD.r, yHi); _ctx.stroke();
     _ctx.beginPath(); _ctx.moveTo(PAD.l, yLo); _ctx.lineTo(_W - PAD.r, yLo); _ctx.stroke();
     _ctx.setLineDash([]);
-    _ctx.globalAlpha = 1;    _ctx.fillStyle = P.internal;
+    _ctx.globalAlpha = 1;
+    _ctx.fillStyle = P.internal;
     _ctx.font = '9px "JetBrains Mono", monospace';
     _ctx.textAlign = 'right';
     if(S.chart.show.labels !== false){
@@ -8989,7 +8997,8 @@ function viewPortfolio(el){
         </tr>`).join('')}
       </tbody></table></div>
     </section>` : ''}
-  `;}
+  `;
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    VIEW: MT5 ACCOUNTS
@@ -9988,7 +9997,8 @@ function viewHolders(el){
       </div>
       ${filtered.length ? `<div class="scroll-x"><table class="pos"><thead><tr>
         <th>Client ID</th><th>Name</th><th>Status</th><th>Tier</th><th>Legacy</th>
-        <th class="right">VICE</th><th class="right">V4X</th><th></th>      </tr></thead><tbody>
+        <th class="right">VICE</th><th class="right">V4X</th><th></th>
+      </tr></thead><tbody>
         ${filtered.map(h => {
           const v = st.balances.VICE[h.holderId] || 0n;
           const x = st.balances.V4X[h.holderId] || 0n;
@@ -10988,6 +10998,7 @@ function paintOI(){
         closeModal();renderMain();return;
       }
       case 'import-bars': { $('csv')?.click(); return; }
+
       /* ─── COMMS ─── */
       case 'comms-tab': {
         S.comms.tab = t.dataset.tab;
@@ -11986,6 +11997,7 @@ function openHolderViewModal(holderId){
     <div class="mact"><button class="btn btn-g" data-act="modal-close">Close</button></div>
   `);
 }
+
 function openIssueUnitsModal(holderId){
   const st = S.iru.state || IruEngine.emptyState();
   const h = st.holders[holderId];
@@ -12985,7 +12997,8 @@ ${txt(560,2765,issued,49,'#ece8e1','normal','start')}
 ${txt(1290,2711,'VICE',39,'#ecd28a')}
 ${txt(1290,2845,'AUTHORIZED ISSUER',23,'#c9a84c','normal','middle','letter-spacing="5"')}
 ${qSvg}
-${txt(560,2945,sim?'SIMULATION — NOT VERIFIED':String(c.id),32,sim?'#e59b6a':'#dfc182','normal','start')}${txt(560,3010,sim?'No public registry entry':'Scan QR to verify at the official VICE registry',24,'#928575','normal','start')}
+${txt(560,2945,sim?'SIMULATION — NOT VERIFIED':String(c.id),32,sim?'#e59b6a':'#dfc182','normal','start')}
+${txt(560,3010,sim?'No public registry entry':'Scan QR to verify at the official VICE registry',24,'#928575','normal','start')}
 <path d="M540 3050H2010" stroke="#9c7c33" stroke-opacity=".4" stroke-width="2"/>
 ${txt(1275,3110,'VICE CAPITAL INC.  •  OFFICIAL ACADEMY COMPLETION RECORD',22,'#8e8069','normal','middle','letter-spacing="3"')}
 </svg>`;
