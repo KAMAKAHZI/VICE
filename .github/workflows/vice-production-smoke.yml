@@ -1,0 +1,38 @@
+name: VICE OS production smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'version.json'
+      - 'guide.html'
+      - 'verify.html'
+      - 'netlify/**'
+      - 'tests/vice-production-smoke.mjs'
+      - '.github/workflows/vice-production-smoke.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '23 13 * * *'
+permissions:
+  contents: read
+jobs:
+  public-production-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compare production deployment to GitHub exact release
+        run: node tests/vice-production-smoke.mjs
+        env:
+          VICE_SMOKE_ATTEMPTS: '8'
+          VICE_SMOKE_DELAY_MS: '10000'
+      - name: Publish truthful public production report (including failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_OS_PRODUCTION_SMOKE
+          path: production-smoke-report.json
+          if-no-files-found: warn
