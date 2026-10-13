@@ -58,6 +58,9 @@ async function clientInfo(providerId){
  return {equity,balance,currency:String(data.currency||'USD').toUpperCase().slice(0,8),
    login:String(data.login??'').slice(0,30),broker:String(data.broker||'').slice(0,120),
    server:String(data.server||'').slice(0,120),investorMode:data.investorMode===true?true:null,
+   // Broker-reported mode (not user-supplied LIVE/DEMO) controls financial inclusion.
+   terminalMode:data.type==='ACCOUNT_TRADE_MODE_REAL'?'LIVE':
+     data.type==='ACCOUNT_TRADE_MODE_DEMO'?'DEMO':'UNVERIFIED',
    checkedAt:new Date().toISOString()};
 }
 async function clientPositions(providerId){
@@ -124,6 +127,7 @@ Deno.serve(async(req)=>{
      const [info,positions]=await Promise.all([clientInfo(row.provider_account_id),clientPositions(row.provider_account_id)]);
      if(info&&/^\d+$/.test(info.login)&&info.server.toLowerCase()===String(row.server).toLowerCase()){
        Object.assign(result,info,{verified:true,connectionState:'CONNECTED',
+         realEquityVerified:row.account_mode==='LIVE'&&info.terminalMode==='LIVE',
          positions:positions||[],positionsAvailable:Array.isArray(positions)});
      }
     }

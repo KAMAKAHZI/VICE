@@ -1,7 +1,7 @@
 {
-  "version": "1.3.6.2-MT5-PORTFOLIO-INTEGRITY",
+  "version": "1.3.6.3-MT5-ACCOUNT-INTEGRITY",
   "date": "2026-10-12",
-  "status": "ENGINEERING_RELEASE_BACKEND_ACTIVE_PROVIDER_TEST_PENDING",
+  "status": "ENGINEERING_RELEASE_EDGE_ACTIVE_PROVIDER_LOGIN_NOT_TESTED",
   "release_summary": "No-PC MT5 cloud account connection, optional Windows bridge and broker portal; corrected verified-equity consolidation",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
@@ -24,7 +24,10 @@
     "unverified_broker_accounts_in_portfolio": false,
     "stale_saved_mt5_equity_in_portfolio": false,
     "cloud_equity": "fresh verified USD only; overlap with live bridge excluded",
-    "trading_via_cloud_connector": false
+    "trading_via_cloud_connector": false,
+    "live_broker_portfolio": "Only fresh, authenticated, nonduplicated REAL LIVE USD equity; DEMO, metadata, stale accounts excluded",
+    "owner_session": "Cloud and optional Windows broker data isolated by signed-in VICE member",
+    "onchain_custody_proven": false
   },
   "verified_offline": [
     "front_end_runtime_syntax",
@@ -42,6 +45,8 @@
     "authenticated broker account connection",
     "live equity and position reconciliation",
     "Netlify production deploy status",
-    "onchain holdings custody and fair market value"
+    "onchain holdings custody and fair market value",
+    "MetaApi operator token activation and real account acceptance test",
+    "Netlify production publication of this exact commit"
   ]
 }

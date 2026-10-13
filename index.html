@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.6.2-MT5-PORTFOLIO-INTEGRITY" data-pwa="1">
+<html lang="en" data-build="1.3.6.3-MT5-ACCOUNT-INTEGRITY" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1346,7 +1346,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.6.2-MT5-PORTFOLIO-INTEGRITY', date: '2026-10-12' };
+const BUILD = { version: '1.3.6.3-MT5-ACCOUNT-INTEGRITY', date: '2026-10-12' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -2183,7 +2183,9 @@ async function completeAuthenticatedSetup(user){
       avatarInitials:prof.avatar_initials||'NA',avatarUrl:prof.avatar_url||null,
       vipAccess:!!prof.vip_access,memberId:prof.member_id||null,clientId:prof.client_id||null};
     if(typeof CloudMT5!=='undefined')CloudMT5.reset();
+    try{Link.stop()}catch(_){}
     S.user={id:user.id,email:user.email,name:S.profile.name,role:S.profile.role};
+    try{Link.start()}catch(e){console.warn('Optional VICE Link:',e)}
     // A holder-registry RPC failure must not hide every other module.
     // The server still enforces IRU permissions; do not invent a holder balance.
     try {
@@ -2431,6 +2433,8 @@ async function logout(){
   if(!confirm('Sign out?')) return;
   try{ await sb.auth.signOut(); }catch(_){}
   try { Realtime.disconnect(); } catch(_) {}
+  try{Link.stop()}catch(_){}
+  if(typeof CloudMT5!=='undefined')CloudMT5.reset();
   S.user = null;
   S.estateHolderBalances=null; S.estateAdminLedger=null; S.strategicBackendVerified=false;
   S.personalHoldings={viceUnits:0,v4xUnits:0};
@@ -2512,18 +2516,23 @@ async function persistIruEvent(ev){
 function defiUsd(){
   return S.defiWallet.chains.reduce((s,c)=>s+(c.balance*c.usdRate),0);
 }
+function liveBridgeAccounts(){
+  if(APP_MODE!=='LIVE'||!S.user||typeof Link==='undefined'||Link.state.status!=='live')return [];
+  const last=Number(Link.state.portfolioAt)||0,age=Date.now()-last;
+  if(!last||age<0||age>120000||!Array.isArray(Link.state.portfolio?.accounts))return [];
+  return Link.state.portfolio.accounts.filter(a=>a&&typeof a==='object');
+}
 function mt5Usd(){
-  // Stored MT5 rows are account metadata, not live broker equity proof.
-  // The independent WSS bridge must be authenticated and its snapshot fresh.
-  if(APP_MODE!=='LIVE'||!S.user||typeof Link==='undefined'||Link.state.status!=='live')return 0;
-  if(!Link.state.portfolioAt||Date.now()-Link.state.portfolioAt>300000)return 0;
-  const dedup=new Set();let total=0;
-  for(const a of Link.state.portfolio?.accounts||[]){
-    const k=String(a.server||'').trim().toLowerCase()+'|'+String(a.login||'').trim();
-    if(!a.server||!a.login||dedup.has(k)||String(a.currency||'').toUpperCase()!=='USD')continue;
-    const equity=Number(a.equity);
-    if(a.equity==null||!Number.isFinite(equity))continue;
-    dedup.add(k);total+=equity;
+  // SIM demo snapshots remain in SIM only; browser metadata is never real money.
+  if(APP_MODE==='SIM')return (S.mt5||[]).reduce((acc,a)=>acc+(Number(a.equity)||0),0);
+  const seen=new Set();let total=0;
+  for(const a of liveBridgeAccounts()){
+    const mode=String(a.mode||a.accountMode||'').toUpperCase();
+    if(mode!=='LIVE'||String(a.currency||'').toUpperCase()!=='USD')continue;
+    if(a.equity===null||a.equity===undefined||!Number.isFinite(Number(a.equity)))continue;
+    const id=String(a.server||'').trim().toLowerCase()+'|'+String(a.login||'').trim();
+    if(!a.server||!a.login||seen.has(id))continue;
+    seen.add(id);total+=Number(a.equity);
   }
   return total;
 }
@@ -2585,7 +2594,7 @@ function accountIruReferenceUsd(){
   return iruUsd()+(isOwner()?managedReserveUsd():0);
 }
 function portfolioReliabilityNote(){
-  return 'Combined IRU management reference, broker equity and connected account estimates. IRU reference values are not independently appraised assets, cash, on-chain custody, or guaranteed collateral.';
+  return 'Founder-attributed IRU management reference plus eligible verified real LIVE broker equity. DEMO balances and saved broker metadata are excluded; IRU reference is not FMV, cash, custody, or accepted collateral.';
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -6427,13 +6436,24 @@ const Link = (() => {
   const quotes = new Map();
   const reqs = new Map();
   let ws = null, retry = 0, timer = null, seq = 0, sub = null;
-  const accts = (() => {
-    let list = [];
-    try { list = JSON.parse(localStorage.getItem('vice-mt5-accounts') || '[]'); } catch(_) { list = []; }
-    return list;
-  })();
-  const persistAccts = () => {
-    try { localStorage.setItem('vice-mt5-accounts', JSON.stringify(accts)); } catch(_) {}
+  const accts=[];
+  const memberKey=stem=>APP_MODE==='LIVE'&&S.user?.id?stem+':'+S.user.id:null;
+  function loadAccts(){
+    accts.length=0;
+    const key=memberKey('vice-mt5-accounts');if(!key)return;
+    try{
+      const list=JSON.parse(localStorage.getItem(key)||'[]');
+      if(Array.isArray(list))accts.push(...list.slice(0,60).filter(a=>a&&a.server&&a.login).map(a=>({
+        id:String(a.id||uuid()),broker:String(a.broker||''),server:String(a.server),
+        login:String(a.login),mode:String(a.mode||'DEMO'),label:String(a.label||''),
+        addedAt:a.addedAt,verified:false,equity:null,balance:null,currency:null
+      })));
+    }catch(_){accts.length=0;}
+  }
+  const persistAccts=()=>{
+    const key=memberKey('vice-mt5-accounts');if(!key)return;
+    try{localStorage.setItem(key,JSON.stringify(accts.map(({id,broker,server,login,mode,label,addedAt})=>
+       ({id,broker,server,login,mode,label,addedAt}))));}catch(_){}
   };
   // Optional Windows connector: only account metadata is collected here.
   // Credentials must not traverse an arbitrary browser-configured WebSocket.
@@ -6444,7 +6464,7 @@ const Link = (() => {
   function config() {
     const h = new URLSearchParams(location.hash.replace(/^#/,''));
     let saved = {};
-    try { saved = JSON.parse(localStorage.getItem('vice-link') || '{}'); } catch(_) { saved = {}; }
+    try {const key=memberKey('vice-link');saved=key?JSON.parse(localStorage.getItem(key)||'{}'):{};} catch(_) {saved={};}
     st.url = h.get('link') || saved.url || '';
     st.token = saved.token || '';
     const startErr = h.get('linkerr') || '';
@@ -6452,7 +6472,7 @@ const Link = (() => {
     if (h.get('link') || h.get('token') || h.get('linkerr')) {
       if (h.get('link') || h.get('token')) {
         try {
-          localStorage.setItem('vice-link', JSON.stringify({ url:st.url, token:st.token }));
+          const key=memberKey('vice-link');if(key)localStorage.setItem(key,JSON.stringify({url:st.url,token:st.token}));
         } catch(_) {}
       }
       try { history.replaceState(null, '', location.pathname + location.search); } catch(_) {}
@@ -6466,7 +6486,7 @@ const Link = (() => {
   };
   function connect() {
     clearTimeout(timer);
-    if (st._stopped) return;
+    if (st._stopped||APP_MODE!=='LIVE'||!S.user?.id)return;
     if (!st.url) { st.status = 'off'; notify(); return; }
     if(location.protocol==='https:' && !st.url.startsWith('wss://')) { st.status='error'; st.msg='HTTPS VICE OS requires a WSS bridge behind TLS.'; notify(); return; }
     if (typeof WebSocket === 'undefined') { st.status = 'off'; notify(); return; }
@@ -6477,10 +6497,12 @@ const Link = (() => {
     catch(e) { ws = null; st.status = 'error'; st.msg = 'Could not reach VICE Link.'; schedule(); notify(); return; }
     const me = ws;
     ws.onopen = () => {
+      if(ws!==me||st._stopped||!S.user?.id){try{me.close()}catch(_){}return;}
       if (st.token) send({ t:'auth', token:st.token });
       else { st.status = 'pair'; notify(); }
     };
     ws.onmessage = e => {
+      if(ws!==me||st._stopped||APP_MODE!=='LIVE'||!S.user?.id)return;
       let m;
       try { m = JSON.parse(e.data); } catch(_) { return; }
       onMsg(m);
@@ -6520,7 +6542,7 @@ const Link = (() => {
       case 'paired':
         st.token = m.token;
         try {
-          localStorage.setItem('vice-link', JSON.stringify({ url:st.url, token:st.token }));
+          const key=memberKey('vice-link');if(key)localStorage.setItem(key,JSON.stringify({url:st.url,token:st.token}));
         } catch(_) {}
         ready(m);
         break;
@@ -6528,7 +6550,7 @@ const Link = (() => {
         if (m.re === 'auth') {
           st.token = '';
           try {
-            localStorage.setItem('vice-link', JSON.stringify({ url:st.url, token:'' }));
+            const key=memberKey('vice-link');if(key)localStorage.setItem(key,JSON.stringify({url:st.url,token:''}));
           } catch(_) {}
           st.status = 'pair';
           st.msg = m.msg;
@@ -6708,11 +6730,18 @@ const Link = (() => {
       } catch(e) { toast('Verification failed: ' + e.message,'error'); }
       notify();
     },
-    start() { config(); connect(); },
-    stop() {
-      st._stopped = true;
-      clearTimeout(timer);
-      if (ws) { const w = ws; ws = null; w.close(); }
+    start(){
+      if(APP_MODE!=='LIVE'||!S.user?.id)return;
+      st._stopped=false;loadAccts();config();connect();
+    },
+    stop(){
+      st._stopped=true;clearTimeout(timer);retry=0;
+      if(ws){const w=ws;ws=null;try{w.close()}catch(_){}}
+      for(const r of reqs.values())try{r.reject(new Error('Member session ended'))}catch(_){}
+      reqs.clear();loading.clear();symbols.clear();series.clear();errors.clear();quotes.clear();
+      accts.length=0;sub=null;
+      st.status='off';st.msg='';st.portfolio=null;st.portfolioAt=0;st.sources=[];
+      st.audit=null;st.adminInfo=null;st.admin=false;st.token='';st.url='';st.device='';
     },
     send,
     symbols: src => symbols.get(src) || null,
@@ -6748,7 +6777,7 @@ const Link = (() => {
       st.url = String(url || '').trim();
       st.token = token || '';
       try {
-        localStorage.setItem('vice-link', JSON.stringify({ url:st.url, token:st.token }));
+        const key=memberKey('vice-link');if(key)localStorage.setItem(key,JSON.stringify({url:st.url,token:st.token}));
       } catch(_) {}
       st._stopped = false;
       if (ws) { try { ws.close(); } catch(_) {} ws = null; }
@@ -6822,24 +6851,27 @@ const CloudMT5 = (() => {
     }
   }
   function verifiedUsd(){
-    // Never include stale, unverified, or non-USD values in a USD total.
     ensureOwner();
     if(APP_MODE==='LIVE'&&S.user&&!state.loaded&&!state.busy&&!state._queued){
       state._queued=true;
       setTimeout(()=>{state._queued=false;if(APP_MODE==='LIVE'&&S.user&&!state.loaded)refresh();},250);
     }
-    if(APP_MODE!=='LIVE'||!S.user||!state.lastRefresh||Date.now()-state.lastRefresh>300000)return 0;
+    const age=Date.now()-state.lastRefresh;
+    if(APP_MODE!=='LIVE'||!S.user||!state.lastRefresh||age<0||age>120000)return 0;
     const accounted=new Set();
     const record=(a)=>String(a.server||'').trim().toLowerCase()+'|'+String(a.login||'').trim();
-    // Only exclude overlap with a fresh, authenticated bridge reading. Never
-    // suppress a valid cloud balance due to stale or unverified saved metadata.
-    if(Link.state.status==='live'&&Link.state.portfolioAt&&Date.now()-Link.state.portfolioAt<=300000)
-      for(const a of Link.state.portfolio?.accounts||[])
-        if(a.server&&a.login&&a.equity!=null&&String(a.currency||'').toUpperCase()==='USD')accounted.add(record(a));
+    // Only fresh, authenticated real LIVE bridge equity may suppress a cloud duplicate.
+    for(const a of liveBridgeAccounts()){
+      if(a.server&&a.login&&String(a.currency||'').toUpperCase()==='USD'&&
+         String(a.mode||a.accountMode||'').toUpperCase()==='LIVE')accounted.add(record(a));
+    }
     let total=0;
     for(const a of state.accounts){
+      if(!a.verified||a.realEquityVerified!==true||a.mode!=='LIVE'||
+          String(a.currency||'').toUpperCase()!=='USD'||
+          a.equity===null||a.equity===undefined||!Number.isFinite(Number(a.equity))||
+          !a.server||!/^\d+$/.test(String(a.login||'')))continue;
       const id=record(a);
-      if(!a.verified||a.currency!=='USD'||!Number.isFinite(Number(a.equity))||a.equity===null||a.login===undefined)continue;
       if(accounted.has(id))continue;
       accounted.add(id);total+=Number(a.equity);
     }
@@ -8750,8 +8782,8 @@ function viewMarkets(el){
 function viewPortfolio(el){
   const iru = iruUsd(), reserve=managedReserveUsd(), df = defiUsd(), mt = mt5Usd(), ex = externalUsd();
   const total = totalAccountPortfolioUsd(); // Founder-designated reserve included in consolidated management reference
-  const live = Link.state.status === 'live' && Link.state.portfolio;
-  const accts = live ? Link.state.portfolio.accounts : [];
+  const live = liveBridgeAccounts().length > 0;
+  const accts = live ? liveBridgeAccounts() : [];
   el.innerHTML = `
     <div class="ph">
       <div><div class="eb">Portfolio</div><h1>Institutional <em>Portfolio</em></h1></div>
@@ -8841,13 +8873,13 @@ function viewMT5(el){
     ${cloud.error?`<section class="band"><p class="note warn">${esc(cloud.error)}</p></section>`:''}
     <div class="stats">
       <div class="st"><span class="l">Cloud accounts</span><div class="v gd">${cloud.accounts.length}</div><div class="n">${cloud.busy?'Refreshing…':`${cloudVerified.length} broker verified`}</div></div>
-      <div class="st"><span class="l">Verified cloud USD equity</span><div class="v sm">${fmtMoney(CloudMT5.verifiedUsd(),'USD')}</div><div class="n">Only current USD-equity accounts; avoids duplicates</div></div>
+      <div class="st"><span class="l">Verified LIVE cloud USD equity</span><div class="v sm">${fmtMoney(CloudMT5.verifiedUsd(),'USD')}</div><div class="n">Provider-confirmed real USD equity only; demo excluded; no duplicates</div></div>
       <div class="st"><span class="l">Windows bridge</span><div class="v">${live?'LIVE':'OFFLINE'}</div><div class="n">${accts.length} saved account${accts.length===1?'':'s'} · not automatically verified</div></div>
     </div>
     ${cloud.accounts.length?`<section class="band"><div class="band-head"><h2>Cloud MT5 accounts</h2><span class="meta">Investor-mode recommended · broker verification required</span></div>
       <div class="scroll-x"><table class="pos"><thead><tr><th>Label</th><th>Server</th><th>Connection</th><th>Broker Equity</th><th>Access</th></tr></thead><tbody>
       ${cloud.accounts.map(a=>`<tr><td><b>${esc(a.label)}</b></td><td class="mn">${esc(a.server)}</td>
-        <td><span class="chip ${a.verified?'live':'file'}"><i></i>${a.verified?'VERIFIED':esc(a.connectionState||'PENDING')}</span></td>
+        <td><span class="chip ${a.verified?'live':'file'}"><i></i>${a.verified?(a.realEquityVerified===true?'VERIFIED LIVE':'VERIFIED DEMO / UNCONFIRMED'):esc(a.connectionState||'PENDING')}</span></td>
         <td class="mn">${displayNum(a)} ${a.verified?esc(a.currency||''):''}${a.verified&&a.investorMode===false?'<br><span class="note warn">Investor mode not confirmed</span>':''}<br><span class="meta">${a.positionsAvailable?`${(a.positions||[]).length} open position(s)`:'Positions unavailable'}</span></td>
         <td class="acts"><button class="btn btn-xs btn-g" data-act="cloud-mt5-configure" data-id="${esc(a.id)}">Sign-in</button>
         <button class="btn btn-xs btn-g" data-act="cloud-mt5-deploy" data-id="${esc(a.id)}">Start</button>
@@ -12359,6 +12391,7 @@ sb.auth.onAuthStateChange((event, session) => {
   try {
     if(event === 'SIGNED_OUT'){
       if(typeof CloudMT5!=='undefined')CloudMT5.reset();
+      try{Link.stop()}catch(_){}
       S.user = null;
       try { Realtime.disconnect(); } catch(_){}
       const login = $('login'); if(login) login.hidden = false;
@@ -12422,10 +12455,7 @@ function restoreLocalState(){
     const tickets = JSON.parse(localStorage.getItem('vice-tickets') || '[]');
     if(Array.isArray(tickets)) S.support.tickets = tickets;
   } catch(_){}
-  try {
-    const accts = JSON.parse(localStorage.getItem('vice-mt5-accounts') || '[]');
-    if(Array.isArray(accts)) Link.accounts.length = 0, accts.forEach(a => Link.accounts.push(a));
-  } catch(_){}
+  // Bridge account metadata is restored from an authenticated member-scoped key.
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -12470,8 +12500,7 @@ function runSplash(){
   /* Restore imported bar datasets from IndexedDB */
   await restoreDatasets();
 
-  /* Start VICE Link if URL exists */
-  try { Link.start(); } catch(_){}
+  /* Optional WSS bridge starts only after VICE member authentication. */
 
   /* Start the splash animation */
   runSplash();
