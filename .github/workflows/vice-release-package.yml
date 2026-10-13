@@ -1,0 +1,47 @@
+name: VICE OS complete release ZIPs
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'version.json'
+      - 'guide.html'
+      - 'netlify/**'
+      - 'supabase/**'
+      - 'tests/**'
+      - 'scripts/vice-package-release.sh'
+      - '.github/workflows/vice-release-package.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact source commit
+        uses: actions/checkout@v4
+      - name: Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build and validate deployment ZIPs
+        run: bash scripts/vice-package-release.sh
+      - name: Store Netlify deploy package
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_OS_NETLIFY_SITE
+          path: dist/VICE_OS_NETLIFY_SITE.zip
+          if-no-files-found: error
+      - name: Store complete backend and application source
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_OS_FULL_SOURCE
+          path: dist/VICE_OS_FULL_SOURCE.zip
+          if-no-files-found: error
+      - name: Store checksum manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_OS_SHA256SUMS
+          path: dist/SHA256SUMS.txt
+          if-no-files-found: error
