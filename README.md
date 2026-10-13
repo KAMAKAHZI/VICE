@@ -1,6 +1,6 @@
 # VICE OS — Institutional Member Operating System
 
-**Canonical release:** `1.3.6.9-ACCESS-CONTROL`  
+**Canonical release:** `1.3.6.10-AUDIT-PROVENANCE`  
 **Web app:** https://vice4x.netlify.app/  
 **Member guide:** https://vice4x.netlify.app/guide.html  
 **Backend:** Supabase project `sdsaewumabzjjvsmqqsl`  
@@ -10,9 +10,9 @@ This is the complete VICE OS site source, not a UI mock-up. The application is a
 
 ## Install / update
 
-1. Connect the Netlify site to `KAMAKAHZI/VICE`, branch `main`, with publish directory `.`; Netlify Functions directory is `netlify/functions`, as specified in `netlify.toml`.
+1. Connect the Netlify site to `KAMAKAHZI/VICE`, branch `main`, with publish directory `dist/site`; Netlify Functions directory is `netlify/functions`, as specified in `netlify.toml`.
 2. Deploy from `main`. Never deploy a previous `VICE_OS_1_3_6` upload over the updated source.
-3. Inspect `https://vice4x.netlify.app/version.json` and compare to `index.html` `data-build`. Both must report `1.3.6.9-ACCESS-CONTROL`. A query such as `?build=1364` is **not** a deployment mechanism.
+3. Inspect `https://vice4x.netlify.app/version.json` and compare to `index.html` `data-build`. Both must report `1.3.6.10-AUDIT-PROVENANCE`. A query such as `?build=1364` is **not** a deployment mechanism.
 4. Open **Check Application Connections** on the sign-in screen, then test the founder's real email/password and Google sign-in where configured. Never share passwords, wallet seed phrases or operator API keys in support channels.
 5. Invite a separate test HOLDER. Confirm no cross-account access to external accounts, storage, member records or private communication channels.
 
@@ -54,3 +54,7 @@ node tests/vice-release-safety.cjs
 ```
 
 For end-to-end readiness test `python3 tests/check_public_deployment.py` from the separate operator/audit delivery pack and complete every scenario in its acceptance checklist.
+
+## Audit provenance and relay controls (1.3.6.10)
+
+Live client actions are recorded as *unverified* user activity through `vice_record_client_activity`; direct member writes into authoritative `audit_log` are denied. Database triggers and privileged procedures remain the source of record for authorized operations. Realtime DMs require provisioned membership, and the Netlify TURN helper additionally requires the profile of the authenticated user before generating relay credentials. Verification is done in `tests/vice-1378-audit-turn.cjs` and deployment CI. These safeguards do not bypass required Netlify deployment authorization.
