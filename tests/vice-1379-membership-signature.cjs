@@ -7,7 +7,7 @@ const sql=fs.readFileSync('supabase/migrations/20261013045325_vice_1378_signer_m
 const audit=fs.readFileSync('supabase/migrations/20261013044725_vice_1377_trusted_audit_and_provisioned_dm.sql','utf8');
 const turn=fs.readFileSync('netlify/functions/turn-credentials.mjs','utf8');
 const meta=JSON.parse(fs.readFileSync('version.json','utf8'));
-assert.equal(meta.version,'1.3.6.11-IDENTITY-HARDENING');
+assert.equal(meta.version,'1.3.8.0-IRU-CERTIFICATES');
 assert(source.includes(meta.version),'Source release marker must match manifest');
 for(const [needle,msg] of [
  ['CREATE OR REPLACE FUNCTION public.list_member_directory()', 'Directory RPC missing'],
