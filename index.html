@@ -2555,6 +2555,7 @@ async function logout(){
   if(viceSyncTimer){clearInterval(viceSyncTimer);viceSyncTimer=null;}
   if(APP_MODE === 'SIM'){ exitSimMode(); return; }
   if(!confirm('Sign out?')) return;
+  viceAbortVoiceRecording();
   try{ await sb.auth.signOut(); }catch(_){}
   try { Realtime.disconnect(); } catch(_) {}
   try{Link.stop()}catch(_){}
@@ -2801,6 +2802,8 @@ document.addEventListener('click', (e) => {
     return;
   }
 
+  if(act==='vice-attach'){try{viceMediaContext();$('viceMediaInput')?.click()}catch(e){toast(e.message,'error')}return}
+  if(act==='vice-voice'){void viceToggleVoiceRecording().catch(e=>toast('Voice: '+e.message,'error'));return}
   if(t.dataset.go){ go(t.dataset.go); return; }
 
   switch(act){
@@ -2824,6 +2827,11 @@ document.addEventListener('click', (e) => {
   if(typeof window.__viceAct === 'function') window.__viceAct(t, e);
 });
 
+document.addEventListener('change',e=>{
+ if(e.target?.id!=='viceMediaInput')return;
+ const file=e.target.files?.[0];e.target.value='';
+ if(file)void viceSendMedia(file,'image').catch(error=>toast('Image failed: '+error.message,'error'));
+});
 /* ═══════════════════════════════════════════════════════════════════
    ACCOUNT MENU
    ═══════════════════════════════════════════════════════════════════ */
@@ -9460,6 +9468,107 @@ function viewComms(el){
   `;
   const box = el.querySelector('#cmMsg');
   if (box) setTimeout(() => box.scrollTop = box.scrollHeight, 10);
+  void viceHydrateChatMedia(el);
+}
+
+
+// VICE OS secure media messages: storage is private; chat is not audited E2EE.
+const VICE_MEDIA_PREFIX='VICE_MEDIA_V1:';
+let viceVoiceRecording=null;
+function viceCommsBubble(value){
+ const msg=String(value??'');
+ if(msg.startsWith(VICE_MEDIA_PREFIX)){
+  try{
+   const item=JSON.parse(msg.slice(VICE_MEDIA_PREFIX.length));
+   const path=String(item.path||'');
+   const re=/^(?:ch\/(?:general|trading|reserve|treasury)\/[a-f0-9-]{36}|dm\/[a-f0-9-]{36}\/[a-f0-9-]{36}\/[a-f0-9-]{36})\/[a-f0-9-]{36}\.(?:jpg|png|webp|webm|m4a|ogg|mp3)$/i;
+   if(!re.test(path))throw Error('Unsafe media path');
+   const filename=esc(String(item.name||'Attachment').slice(0,120));
+   if(item.kind==='image')return '<div class="vice-comms-media"><img data-vice-chat-media="'+esc(path)+'" loading="lazy" alt="'+filename+'" style="max-width:min(100%,320px);max-height:320px;object-fit:contain;border-radius:8px"><small class="meta">'+filename+'</small></div>';
+   if(item.kind==='audio')return '<div class="vice-comms-media"><audio data-vice-chat-media="'+esc(path)+'" controls preload="none" style="width:min(100%,320px)"></audio><small class="meta">'+filename+'</small></div>';
+  }catch(e){return '[Invalid media attachment]'}
+ }
+ return esc(msg).replace(/\r?\n/g,'<br>');
+}
+async function viceHydrateChatMedia(root){
+ if(!root||!S.user||APP_MODE!=='LIVE')return;
+ await Promise.all(Array.from(root.querySelectorAll('[data-vice-chat-media]')).map(async el=>{
+  try{
+   const result=await sb.storage.from('vice-chat-media').createSignedUrl(el.dataset.viceChatMedia,300);
+   if(result.error)throw result.error;
+   if(el.isConnected&&result.data?.signedUrl)el.src=result.data.signedUrl;
+  }catch(_){if(el.isConnected)el.replaceWith(document.createTextNode('Attachment unavailable or access denied'))}
+ }));
+}
+function viceMediaContext(){
+ if(APP_MODE!=='LIVE'||!S.user||S.user.id==='sim-user')throw Error('Sign in to LIVE to send media');
+ const owner=S.user.id, peer=S.comms.activeDm;
+ if(peer){
+  if(!/^[0-9a-f-]{36}$/i.test(peer))throw Error('Invalid direct message recipient');
+  const pair=[owner,peer].sort();
+  return {kind:'dm',peer,root:'dm/'+pair[0]+'/'+pair[1]+'/'+owner};
+ }
+ const channel=S.comms.activeChannel;
+ if(!['general','trading','reserve','treasury'].includes(channel))throw Error('Open a channel before sending');
+ return {kind:'channel',channel,root:'ch/'+channel+'/'+owner};
+}
+async function viceSendMedia(file,kind,context){
+ const ctx=context||viceMediaContext();
+ if(!file||file.size<1||file.size>8388608)throw Error('Maximum media size 8 MB');
+ const mime=String(file.type||'').split(';')[0].toLowerCase();
+ const allowed={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','audio/webm':'webm','audio/mp4':'m4a','audio/ogg':'ogg','audio/mpeg':'mp3'};
+ if(!allowed[mime]||((kind==='image')!==mime.startsWith('image/')))throw Error('Unsupported attachment type');
+ const key=ctx.root+'/'+(crypto.randomUUID?.()||uuid())+'.'+allowed[mime];
+ const storage=sb.storage.from('vice-chat-media');
+ const uploaded=await storage.upload(key,file,{contentType:mime,upsert:false,cacheControl:'60'});
+ if(uploaded.error)throw uploaded.error;
+ const note=VICE_MEDIA_PREFIX+JSON.stringify({kind,path:key,mime,size:file.size,name:String(file.name||'Attachment').slice(0,120)});
+ try{
+  if(ctx.kind==='dm')await Realtime.sendDm(ctx.peer,note);
+  else await Realtime.send(ctx.channel,note);
+ }catch(e){try{await storage.remove([key])}catch(_){}throw e}
+ toast(kind==='image'?'Image sent':'Voice note sent','success');
+ if(S.tab==='comms')renderMain();
+}
+function viceAbortVoiceRecording(){
+ const item=viceVoiceRecording;
+ if(!item)return;
+ item.cancelled=true;clearTimeout(item.timer);
+ try{if(item.recorder.state!=='inactive')item.recorder.stop()}catch(_){}
+ item.stream.getTracks().forEach(t=>t.stop());
+ viceVoiceRecording=null;
+}
+async function viceToggleVoiceRecording(){
+ if(viceVoiceRecording){
+  if(viceVoiceRecording.recorder.state!=='inactive')viceVoiceRecording.recorder.stop();
+  return;
+ }
+ const ctx=viceMediaContext();
+ if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined')throw Error('Browser voice recording unavailable');
+ const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+ try{
+  const types=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg'];
+  const format=types.find(t=>MediaRecorder.isTypeSupported?.(t))||'';
+  const recorder=new MediaRecorder(stream,format?{mimeType:format}:{});
+  const item={recorder,stream,chunks:[],context:ctx,cancelled:false,timer:null};
+  viceVoiceRecording=item;
+  recorder.ondataavailable=e=>{if(e.data?.size>0)item.chunks.push(e.data)};
+  recorder.onerror=()=>{toast('Recording stopped unexpectedly','error');viceAbortVoiceRecording()};
+  recorder.onstop=async()=>{
+   clearTimeout(item.timer);stream.getTracks().forEach(t=>t.stop());
+   if(viceVoiceRecording===item)viceVoiceRecording=null;
+   if(item.cancelled)return;
+   const mime=String(recorder.mimeType||'audio/webm').split(';')[0].toLowerCase();
+   const ext={'audio/mp4':'m4a','audio/ogg':'ogg','audio/mpeg':'mp3'}[mime]||'webm';
+   const file=new File([new Blob(item.chunks,{type:mime})],'Voice note.'+ext,{type:mime});
+   try{await viceSendMedia(file,'audio',ctx)}catch(e){toast('Voice note failed: '+e.message,'error')}
+   if(S.tab==='comms')renderMain();
+  };
+  recorder.start(1000);
+  item.timer=setTimeout(()=>{if(recorder.state!=='inactive')recorder.stop()},60000);
+  toast('Recording. Tap Stop to send; recording automatically stops after 60 seconds.','info');
+  if(S.tab==='comms')renderMain();
+ }catch(e){stream.getTracks().forEach(t=>t.stop());throw e}
 }
 
 function commsChats(){
@@ -9494,7 +9603,7 @@ function commsChats(){
         </div>
         <div class="cm-input">
           <button class="btn btn-sm btn-g vice-attach" data-act="vice-attach" title="Attach image">+</button>
-          <button class="btn btn-sm btn-g vice-voice" data-act="vice-voice" title="Record voice note">Mic</button>
+          <button class="btn btn-sm btn-g vice-voice" data-act="vice-voice" title="Record or stop voice note">${viceVoiceRecording ? 'Stop' : 'Mic'}</button>
           <input type="file" id="viceMediaInput" accept="image/jpeg,image/png,image/webp" hidden>
           <input type="text" id="cmIn" placeholder="Message ${esc(prof.name)}…" data-enter="comms-dm-send">
           <button class="btn btn-p btn-sm" data-act="comms-dm-send">Send</button>
@@ -9531,7 +9640,7 @@ function commsChats(){
         </div>
         <div class="cm-input">
           <button class="btn btn-sm btn-g vice-attach" data-act="vice-attach" title="Attach image">+</button>
-          <button class="btn btn-sm btn-g vice-voice" data-act="vice-voice" title="Record voice note">Mic</button>
+          <button class="btn btn-sm btn-g vice-voice" data-act="vice-voice" title="Record or stop voice note">${viceVoiceRecording ? 'Stop' : 'Mic'}</button>
           <input type="file" id="viceMediaInput" accept="image/jpeg,image/png,image/webp" hidden>
           <input type="text" id="cmIn" placeholder="Message ${esc(ch.name)}…" data-enter="comms-send">
           <button class="btn btn-p btn-sm" data-act="comms-send">Send</button>
