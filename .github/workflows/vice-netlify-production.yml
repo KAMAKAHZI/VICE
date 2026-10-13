@@ -22,6 +22,7 @@ on:
       - 'tests/vice-1369-integrity.cjs'
       - 'tests/vice-1378-audit-turn.cjs'
       - 'tests/vice-1379-membership-signature.cjs'
+      - 'tests/vice-token-certificates.cjs'
       - '.github/workflows/vice-netlify-production.yml'
   workflow_dispatch:
 permissions:
@@ -45,6 +46,7 @@ jobs:
           node tests/vice-1369-integrity.cjs
           node tests/vice-1378-audit-turn.cjs
           node tests/vice-1379-membership-signature.cjs
+          node tests/vice-token-certificates.cjs
           node --check tests/vice-production-smoke.mjs
       - name: Prepare strict public web root
         run: |
