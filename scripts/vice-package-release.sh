@@ -9,8 +9,14 @@ for f in "${required[@]}"; do
 done
 node tests/vice-release-safety.cjs
 node tests/vice-1367-contracts.cjs
-zip -X -q dist/VICE_OS_NETLIFY_SITE.zip "${required[@]}" -r netlify
-zip -X -q dist/VICE_OS_FULL_SOURCE.zip "${required[@]}" -r .github docs netlify supabase tests scripts -x '*.pyc' '*/__pycache__/*' '.github/.DS_Store'
+zip -X -q -r dist/VICE_OS_NETLIFY_SITE.zip "${required[@]}" netlify
+# Preserve every tracked frontend, backend, documentation, test, release and
+# security file, including superseded-reference safeguards and hidden workflows.
+git archive --format=zip --output=dist/VICE_OS_FULL_SOURCE.zip HEAD
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+unzip -q dist/VICE_OS_FULL_SOURCE.zip -d "$work"
+(cd "$work" && node tests/vice-release-safety.cjs && node tests/vice-1367-contracts.cjs)
 sha256sum dist/VICE_OS_NETLIFY_SITE.zip dist/VICE_OS_FULL_SOURCE.zip > dist/SHA256SUMS.txt
-echo "Both complete release ZIPs built from the *same* GitHub commit."
+echo "Both ZIPs built from the same GitHub commit: $(git rev-parse --verify HEAD)"
 cat dist/SHA256SUMS.txt
