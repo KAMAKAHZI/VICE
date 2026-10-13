@@ -19,6 +19,7 @@ on:
       - 'scripts/vice-publish-netlify.sh'
       - 'tests/vice-release-safety.cjs'
       - 'tests/vice-1367-contracts.cjs'
+      - 'tests/vice-1369-integrity.cjs'
       - '.github/workflows/vice-netlify-production.yml'
   workflow_dispatch:
 permissions:
@@ -39,6 +40,7 @@ jobs:
         run: |
           node tests/vice-release-safety.cjs
           node tests/vice-1367-contracts.cjs
+          node tests/vice-1369-integrity.cjs
           node --check tests/vice-production-smoke.mjs
       - name: Prepare strict public web root
         run: |
