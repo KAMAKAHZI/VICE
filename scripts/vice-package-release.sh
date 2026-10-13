@@ -9,7 +9,11 @@ for f in "${required[@]}"; do
 done
 node tests/vice-release-safety.cjs
 node tests/vice-1367-contracts.cjs
-zip -X -q -r dist/VICE_OS_NETLIFY_SITE.zip "${required[@]}" netlify
+# The manual Netlify Drop ZIP contains only public files. Cloud functions
+# require the separately configured GitHub/CLI production workflow.
+bash scripts/vice-publish-netlify.sh
+node tests/vice-deploy-privacy.cjs
+(cd dist/site && zip -X -q ../VICE_OS_NETLIFY_SITE.zip ./* _headers _redirects 2>/dev/null)
 # Preserve every tracked frontend, backend, documentation, test, release and
 # security file, including superseded-reference safeguards and hidden workflows.
 git archive --format=zip --output=dist/VICE_OS_FULL_SOURCE.zip HEAD
