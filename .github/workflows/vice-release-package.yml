@@ -13,6 +13,10 @@ on:
       - 'scripts/vice-publish-netlify.sh'
       - 'netlify.toml'
       - '.github/workflows/vice-release-package.yml'
+      - '.github/workflows/vice-netlify-production.yml'
+      - '.github/workflows/vice-production-smoke.yml'
+      - 'docs/**'
+      - 'README.md'
   workflow_dispatch:
 permissions:
   contents: read
