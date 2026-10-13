@@ -3,8 +3,22 @@ on:
   push:
     branches: [main]
     paths:
+      - 'index.html'
+      - 'version.json'
+      - 'guide.html'
+      - 'verify.html'
+      - 'manifest.json'
+      - 'manifest.webmanifest'
+      - 'vice-mega.js'
+      - 'vice-mega.css'
+      - 'sw.js'
+      - '_headers'
+      - '_redirects'
       - 'netlify.toml'
+      - 'netlify/functions/**'
       - 'scripts/vice-publish-netlify.sh'
+      - 'tests/vice-release-safety.cjs'
+      - 'tests/vice-1367-contracts.cjs'
       - '.github/workflows/vice-netlify-production.yml'
   workflow_dispatch:
 permissions:
