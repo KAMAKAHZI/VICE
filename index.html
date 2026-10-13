@@ -2581,21 +2581,24 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
       outcome, correlationId: uuid().slice(0,8),
       createdAt: nowIso(),
     };
+    // This is user-reported activity, not proof of successful settlement,
+    // a signed instruction, or issuer-authenticated administrative execution.
+    if(APP_MODE==='LIVE') {
+      entry.actorRole='CLIENT_REPORTED';
+      entry.outcome='UNVERIFIED_CLIENT_EVENT';
+    }
     S.audit.unshift(entry);
     if(S.audit.length>500) S.audit.length=500;
     if(sb && S.user && APP_MODE==='LIVE' && S.user.id!=='sim-user') {
       try {
-        await sb.from('audit_log').insert({
-          event_type: eventType,
-          action,
-          object_type: objectType,
-          object_id: String(objectId || ''),
-          actor_id: S.user.id,
-          actor_role: S.profile?.role || 'SYSTEM',
-          outcome,
-          correlation_id: entry.correlationId,
+        const {error}=await sb.rpc('vice_record_client_activity',{
+          p_event_type:String(eventType||'').trim().toUpperCase(),
+          p_action:String(action||''),
+          p_object_type:String(objectType||''),
+          p_object_id:String(objectId||'')
         });
-      } catch(_) {}
+        if(error) console.warn('Client activity was not persisted:',error.message);
+      }catch(error){console.warn('Client activity telemetry unavailable:',error);}
     }
   }catch(_){}
 }
