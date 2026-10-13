@@ -2,7 +2,7 @@
   "version": "1.3.6.8-BACKEND-INTEGRITY",
   "date": "2026-10-13",
   "status": "BACKEND_SCHEMA_COMPLETE_PUBLIC_NETLIFY_DEPLOYMENT_BLOCKED_MISSING_AUTH",
-  "release_summary": "Implemented missing server-side staff role administration and guarded issuer reference attestation RPCs; added authenticated super-admin backend integrity snapshot, case-insensitive username lookup, and in-app issuer diagnostics. Live Netlify deploy and real-user login remain blocked/unverified.",
+  "release_summary": "Deployed role administration, protected issuer reference and operational health RPCs, case-insensitive username lookup, and secured manual bank/legacy MT5 records against fabricated LIVE verification or broker equity. Netlify production and real-user acceptance still blocked/unverified.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -18,12 +18,21 @@
       "vice_1366_verified_academy_certificate_awards",
       "vice_1366_governance_votes_distribution_fields",
       "vice_1368_certificate_integrity_rls_initplan",
-      "vice_1369_complete_role_price_and_operational_health_rpcs"
+      "vice_1369_complete_role_price_and_operational_health_rpcs",
+      "vice_1370_unverified_external_and_legacy_mt5_provenance"
     ],
     "required_rpc_coverage_checked": true,
     "role_admin_rpc_authorization": "SUPER_ADMIN only; no SUPER_ADMIN promotion",
     "reference_attestation": "VICE $2/V4X $320 fixed pending formal policy update",
-    "owner_health_rpc": "vice_operational_health"
+    "owner_health_rpc": "vice_operational_health",
+    "manual_account_provenance": {
+      "manual_external_default": "UNVERIFIED",
+      "legacy_mt5_default": "UNVERIFIED",
+      "member_cannot_attest_verified_status": true,
+      "member_cannot_override_broker_equity": true,
+      "live_asset_totals_exclude_unverified_metadata": true,
+      "verified_on": "2026-10-13"
+    }
   },
   "provider": {
     "name": "MetaApi",
@@ -75,9 +84,10 @@
     "real signed-in governance creation and ballot acceptance",
     "real end-to-end distribution record acceptance",
     "real external account owner-scope acceptance",
-    "Netlify publishing of 1.3.6.7",
     "NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID not provisioned in GitHub Actions; production still on 1.3.6.1 at last public smoke",
-    "Authenticated production login, invite redemption, dashboard cross-module browser acceptance, external provider test"
+    "Authenticated production login, invite redemption, dashboard cross-module browser acceptance, external provider test",
+    "Netlify publishing of 1.3.6.8",
+    "Real-user RLS/role and manual account lifecycle acceptance"
   ],
   "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
   "not_yet_certified": [
