@@ -2,7 +2,7 @@
   "version": "1.3.6.9-ACCESS-CONTROL",
   "date": "2026-10-13",
   "status": "SOURCE_AND_SUPABASE_UPDATED_NETLIFY_DEPLOYMENT_NOT_PUBLISHED",
-  "release_summary": "Server-enforced channel ACLs for staff-only rooms; message sender identity protection, transparent legacy chat encryption notice; preserved 1.3.6.8 auth, issuer, governance, Academy and portfolio fixes.",
+  "release_summary": "Secured staff-only channels and message identity on Supabase. Restored a previously missing chat bubble renderer; implemented private image uploads, browser voice notes, signed media playback, and published recipient-scoped DM INSERT events to Supabase Realtime. Earlier authentication, governance and Academy fixes preserved.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -20,7 +20,10 @@
       "vice_1368_certificate_integrity_rls_initplan",
       "vice_1369_complete_role_price_and_operational_health_rpcs",
       "vice_1370_unverified_external_and_legacy_mt5_provenance",
-      "vice_1370_channel_acl_and_chat_identity_integrity"
+      "vice_1370_channel_acl_and_chat_identity_integrity",
+      "vice_1371_private_chat_media_bucket_storage_acl",
+      "vice_1372_dm_media_storage_correlated_acl_fix",
+      "vice_1373_realtime_direct_message_replication"
     ],
     "required_rpc_coverage_checked": true,
     "role_admin_rpc_authorization": "SUPER_ADMIN only; no SUPER_ADMIN promotion",
@@ -46,6 +49,31 @@
       "sender_id_guard": "SERVER_TRIGGER_AND_RLS",
       "sender_display_name_guard": "SERVER_TRIGGER",
       "end_to_end_encryption_verified": false
+    },
+    "chat_media": {
+      "bucket": "vice-chat-media",
+      "bucket_public": false,
+      "max_file_bytes": 8388608,
+      "supported_mime": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "audio/webm",
+        "audio/mp4",
+        "audio/ogg",
+        "audio/mpeg"
+      ],
+      "upload_access": "authenticated member + permitted channel, or one of two DM participants",
+      "read_access": "per-channel/per-DM storage RLS, 5-minute signed links",
+      "live_media_upload_verified": false,
+      "ios_recording_verified": false
+    },
+    "direct_messages": {
+      "realtime_publication": "supabase_realtime",
+      "table": "public.dm_messages",
+      "event": "INSERT",
+      "recipient_rls": true,
+      "actual_two_member_acceptance": false
     }
   },
   "provider": {
@@ -106,7 +134,11 @@
     "Live mobile/browser member login and invite completion",
     "Real client and staff chat ACL acceptance",
     "End-to-end chat encryption; legacy chat does not provide it",
-    "Netlify deploy secrets NETLIFY_AUTH_TOKEN/NETLIFY_SITE_ID currently absent from GitHub Actions"
+    "Netlify deploy secrets NETLIFY_AUTH_TOKEN/NETLIFY_SITE_ID currently absent from GitHub Actions",
+    "Actual two-person private image attachment send and playback",
+    "Microphone recording and audio/mp4 voice note on iOS Safari",
+    "Cross-device DM delivery through Supabase Realtime in authenticated browser",
+    "Native browser tests with production Netlify bundle after new deploy"
   ],
   "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
   "not_yet_certified": [
