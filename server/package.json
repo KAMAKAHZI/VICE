@@ -1,0 +1,9 @@
+{
+  "name": "vice-os-link-and-mailer",
+  "version": "1.3.8.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {"node": ">=22"},
+  "scripts": {"start": "node server.js", "check": "node --check server.js && node --check mt5-bridge.js && node --check mailer.js"},
+  "dependencies": {"ws": "8.18.3", "nodemailer": "7.0.6"}
+}
