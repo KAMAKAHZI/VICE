@@ -1,0 +1,13 @@
+{
+  "bind": "127.0.0.1",
+  "port": 9000,
+  "max_message_bytes": 65536,
+  "max_history_bars": 100000,
+  "request_rate_per_second": 30,
+  "max_memory_mb": 500,
+  "tick_poll_ms": 1000,
+  "mt5_snapshot_path": "./data/mt5-readonly-snapshot.json",
+  "email_poll_ms": 5000,
+  "email_rate_per_hour": 100,
+  "email_max_attempts": 3
+}
