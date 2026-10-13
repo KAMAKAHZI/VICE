@@ -6756,11 +6756,18 @@ const Link = (() => {
 const CloudMT5 = (() => {
   const state={accounts:[],configured:null,loaded:false,busy:false,error:'',lastRefresh:0,
                secureUrl:null,pendingNonce:null,pendingForm:null,ownerId:null};
+  function reset(){
+    // Revoke the previous browser session's in-memory account details and
+    // invalidate responses from any request still in flight.
+    state.epoch=(state.epoch||0)+1;
+    Object.assign(state,{ownerId:null,accounts:[],configured:null,loaded:false,busy:false,
+      error:'',lastRefresh:0,secureUrl:null,pendingNonce:null,pendingForm:null,_queued:false});
+  }
   function ensureOwner(){
     const id=APP_MODE==='LIVE'?S.user?.id||null:null;
     if(id!==state.ownerId){
-      Object.assign(state,{ownerId:id,accounts:[],configured:null,loaded:false,error:'',
-       lastRefresh:0,secureUrl:null,pendingNonce:null,pendingForm:null});
+      reset();
+      state.ownerId=id;
     }
   }
   async function request(action,args={}){
@@ -6776,19 +6783,31 @@ const CloudMT5 = (() => {
   }
   async function refresh(){
     ensureOwner();
-    if(APP_MODE!=='LIVE'||!S.user){state.accounts=[];state.loaded=false;state.configured=null;return;}
+    if(APP_MODE!=='LIVE'||!S.user){reset();return;}
     if(state.busy)return;
     state.busy=true;state.error='';
+    const requestedFor=state.ownerId;
+    const requestEpoch=state.epoch||0;
+    const stillCurrent=()=>requestedFor===state.ownerId && requestEpoch===(state.epoch||0)
+      && APP_MODE==='LIVE' && S.user?.id===requestedFor;
     try{
       const result=await request('list');
+      if(!stillCurrent())return;
       state.accounts=Array.isArray(result.accounts)?result.accounts:[];
       state.configured=result.configured===true;
       if(S.integrations?.['broker.mt5']) S.integrations['broker.mt5'].status=
         (state.accounts.some(a=>a.verified===true)||Link.state.status==='live')?'CONNECTED':
         (state.configured?'READY':'BLOCKED');
       state.loaded=true;state.lastRefresh=Date.now();
-    }catch(e){state.error=e.message;state.loaded=true;state.configured=false;state.accounts=[];state.lastRefresh=0;}
-    finally{state.busy=false;try{renderMain()}catch(_){}}
+    }catch(e){
+      if(!stillCurrent())return;
+      state.error=e.message;state.loaded=true;state.configured=false;state.accounts=[];state.lastRefresh=0;
+    }finally{
+      if(stillCurrent()){
+        state.busy=false;
+        try{renderMain()}catch(_){}
+      }
+    }
   }
   function verifiedUsd(){
     // Never include stale, unverified, or non-USD values in a USD total.
@@ -6861,7 +6880,7 @@ const CloudMT5 = (() => {
     if(APP_MODE==='LIVE'&&S.user&&state.loaded&&!state.busy&&state.configured===true&&
        Date.now()-state.lastRefresh>65000&&['command','portfolio','mt5'].includes(S.tab))refresh();
   },65000);
-  return {state,request,refresh,verifiedUsd,prepare,configure,deploy,remove,openSecure,ensureOwner};
+  return {state,request,reset,refresh,verifiedUsd,prepare,configure,deploy,remove,openSecure,ensureOwner};
 })();
 
 function openCloudMt5Modal(){
@@ -8787,7 +8806,7 @@ function viewMT5(el){
       <div class="ph-acts"><button class="btn btn-g" data-act="cloud-mt5-refresh">Refresh connections</button></div></div>
     <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px">
       <section class="band"><div class="band-head"><h2>Cloud MT5</h2><span class="chip ${cloud.configured?'live':'blocked'}"><i></i>${cloud.configured?'SERVICE READY':'SETUP REQUIRED'}</span></div>
-        <p class="muted" style="margin-bottom:14px">No computer or local MT5 terminal required. Secure investor-password handoff hosted by MetaApi. Live portfolio read-only.</p>
+        <p class="muted" style="margin-bottom:14px">No computer or local MT5 terminal required. Secure investor-password handoff hosted by MetaApi. VICE reads balances and positions only; use investor credentials.</p>
         <button class="btn btn-gd" data-act="cloud-mt5-open" ${cloud.configured?'':'disabled'}>Connect via cloud</button>
         ${!cloud.configured?'<p class="note warn" style="margin-top:10px">Service operator must configure METAAPI_TOKEN in Supabase secrets. No account can connect until enabled.</p>':''}
       </section>
