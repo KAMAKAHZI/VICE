@@ -41,4 +41,13 @@ assert(dmPath.includes('storage.foldername(storage.objects.name)'), 'RLS DM corr
 const realtime=read('supabase/migrations/20261013041130_vice_1373_realtime_direct_message_replication.sql');
 assert(realtime.includes('ALTER PUBLICATION supabase_realtime ADD TABLE public.dm_messages'),'Live DM postgres_changes replication missing');
 
+
+assert(code.includes("channelDb=sb.channel('vice-os-rbac-channel-inbox-'"),'Channel realtime must subscribe through RLS');
+assert(code.includes("table:'messages'"),'RLS channel INSERT subscription missing');
+assert(!code.includes("event:'chat',payload"),'Global broadcast must not carry chat message content');
+assert(!code.includes("event:'chat' }, ({ payload })"),'Global chat event listener can bypass staff-channel RLS');
+const channelStream=read('supabase/migrations/20261013041304_vice_1374_authorized_channel_postgres_realtime.sql');
+assert(channelStream.includes('ALTER PUBLICATION supabase_realtime ADD TABLE public.messages'),
+ 'Channel changes must publish through RLS-protected postgres_changes');
+
 console.log('PASS',manifest.version,'— backend RBAC, private media, signed playback, recorder controls and realtime DMs.');
