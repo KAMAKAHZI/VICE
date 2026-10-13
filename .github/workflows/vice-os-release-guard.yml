@@ -7,6 +7,8 @@ on:
       - 'supabase/functions/vice-mt5-cloud/index.ts'
       - 'tests/vice-release-safety.cjs'
       - 'tests/vice-1369-integrity.cjs'
+      - 'tests/vice-1378-audit-turn.cjs'
+      - 'netlify/functions/turn-credentials.mjs'
       - 'supabase/migrations/**'
       - '.github/workflows/vice-os-release-guard.yml'
   pull_request:
@@ -16,6 +18,8 @@ on:
       - 'supabase/functions/vice-mt5-cloud/index.ts'
       - 'tests/vice-release-safety.cjs'
       - 'tests/vice-1369-integrity.cjs'
+      - 'tests/vice-1378-audit-turn.cjs'
+      - 'netlify/functions/turn-credentials.mjs'
       - 'supabase/migrations/**'
       - '.github/workflows/vice-os-release-guard.yml'
 permissions:
@@ -32,3 +36,4 @@ jobs:
       - run: |
           node tests/vice-release-safety.cjs
           node tests/vice-1369-integrity.cjs
+          node tests/vice-1378-audit-turn.cjs
