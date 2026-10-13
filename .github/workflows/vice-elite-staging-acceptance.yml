@@ -1,0 +1,48 @@
+name: VICE OS v1.3.8.0 Staging Acceptance (NO NETLIFY)
+on:
+  push:
+    branches: [vice-os-1380-elite-acceptance]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: vice-elite-staging
+  cancel-in-progress: true
+jobs:
+  offline-source:
+    name: Test source, certificate contracts, and public deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify no paid Netlify build requested
+        run: echo "This job does not publish or call the Netlify API"
+      - name: JavaScript and financial security contract tests
+        run: |
+          node tests/vice-release-safety.cjs
+          node tests/vice-1367-contracts.cjs
+          node tests/vice-1369-integrity.cjs
+          node tests/vice-1378-audit-turn.cjs
+          node tests/vice-1379-membership-signature.cjs
+          node tests/vice-token-certificates.cjs
+      - name: Build public-only Netlify artifact
+        run: |
+          bash scripts/vice-publish-netlify.sh
+          node tests/vice-deploy-privacy.cjs
+      - name: Confirm no sensitive deployment artifacts
+        run: |
+          test ! -f dist/site/server/server.js
+          test ! -d dist/site/supabase
+          test ! -f dist/site/.env
+          node --check netlify/functions/turn-credentials.mjs
+          node --check netlify/functions/yahoo.js
+          node --check netlify/functions/yahoo-search.js
+      - name: Upload vetted static assets (not deployed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_OS_1380_STAGING_SITE_NOT_PRODUCTION
+          path: dist/site/
+          if-no-files-found: error

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.6.11-IDENTITY-HARDENING" data-pwa="1">
+<html lang="en" data-build="1.3.8.0-IRU-CERTIFICATES" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1348,7 +1348,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.6.11-IDENTITY-HARDENING', date: '2026-10-13' };
+const BUILD = { version: '1.3.8.0-IRU-CERTIFICATES', date: '2026-10-13' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -1566,6 +1566,7 @@ const S = {
   externalAccounts:[],
   signatures:[],
   docFolders:[],
+  tokenCerts:{list:[],loaded:false,loading:false,error:null,kind:'ALL',program:'ALL'},
   defiWallet:{
     initialized:false,
     chains:[
@@ -2298,6 +2299,7 @@ async function completeAuthenticatedSetup(user){
     safeResetCloudMt5Session();
     try{Link.stop()}catch(_){} // prevent bridge portfolio from prior user
     S.user={id:user.id,email:user.email,name:S.profile.name,role:S.profile.role};
+    S.tokenCerts={list:[],loaded:false,loading:false,error:null,kind:'ALL',program:'ALL'};
     try{Link.start()}catch(e){console.warn('Optional VICE Link:',e)}
     // A holder-registry RPC failure must not hide every other module.
     // The server still enforces IRU permissions; do not invent a holder balance.
@@ -2635,6 +2637,10 @@ async function persistIruEvent(ev){
   const {data,error}=await sb.rpc('append_iru_event',{
     p_payload:ev,p_correlation_id:crypto.randomUUID()});
   if(error)throw error;
+  if(['UNITS_ISSUED','UNITS_RETIRED'].includes(ev?.type)) {
+    S.tokenCerts.loaded=false;
+    ViceTokenCertificates.load().then(()=>{if(S.tab==='iru')renderMain();}).catch(()=>{});
+  }
   return data;
 }
 
@@ -9809,6 +9815,8 @@ function viewVip(el){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewIRU(el){
+  if(!S.tokenCerts.loaded&&!S.tokenCerts.loading&&S.user?.id&&S.user.id!=='sim-user')
+    ViceTokenCertificates.load().then(()=>{if(S.tab==='iru')renderMain();}).catch(()=>{});
   const st = S.iru.state || IruEngine.emptyState();
   const me = S.user ? st.holders[S.user.id] : null;
   const mine = me ? IruEngine.holderView(st, S.user.id) : null;
@@ -9865,6 +9873,7 @@ function viewIRU(el){
         </tr>`).join('')}
       </tbody></table></div>` : '<p class="muted">No allocations yet.</p>'}
     </section>
+    ${ViceTokenCertificates.htmlSection()}
     <section class="band">
       <div class="band-head"><h2>Legal</h2></div>
       ${mine.legal ? `<div class="rw"><span class="rw-l">Status</span><span class="rw-v">${esc(mine.legal.status)}</span></div>
@@ -9903,7 +9912,8 @@ function viewDistributions(el){
           <td>${esc(d.holderName || '—')}</td>
           <td><span class="bdg ${d.program === 'VICE' ? 'gd' : 'nt'}">${esc(d.program || 'VICE')}</span></td>
           <td class="mn right">${fmtMoney(d.total, 'USD')}</td>
-          <td><span class="bdg ${d.status === 'PAID' ? 'gr' : d.status === 'AUDITED' ? 'nt' : 'gd'}">${esc(d.status || 'DRAFT')}</span></td>
+          <td><span class="bdg ${d.status === 'PAID' ? 'gr' : d.status === 'AUDITED' ? 'nt' : 'gd'}">${esc(d.status || 'DRAFT')}</span>
+            ${S.tokenCerts.list.some(c=>c.source_distribution_id===d.id)?'<span class="bdg gd">CERTIFIED</span>':''}</td>
           ${isAdmin ? `<td class="acts">
             ${d.status === 'DRAFT' ? `<button class="btn btn-xs btn-g" data-act="dist-advance" data-id="${esc(d.id)}">→ Audited</button>` : ''}
             ${d.status === 'AUDITED' ? `<button class="btn btn-xs btn-gd" data-act="dist-advance" data-id="${esc(d.id)}">→ Paid</button>` : ''}
@@ -9928,6 +9938,13 @@ function viewDocuments(el){
         ${can('create') || isOwner() ? '<button class="btn btn-g" data-act="doc-upload">Upload</button>' : ''}
       </div>
     </div>
+    <section class="band">
+      <div class="band-head"><h2>Token Certificates · Issuer Registry</h2></div>
+      ${S.tokenCerts.list.filter(c=>isOwner()||c.profile_id===S.user?.id||c.holder_client_id===S.profile?.clientId)
+        .map(c=>`<div class="row"><span class="row-l"><b>${esc(c.cert_id)}</b><span class="meta">${esc(c.kind)} · ${esc(c.program)} · ${esc(fmtD(c.issued_at))}</span></span>
+          <span class="row-r"><button class="btn btn-xs btn-gd" data-act="iru-cert-preview" data-id="${esc(c.cert_id)}">Preview</button>
+          <button class="btn btn-xs btn-g" data-act="iru-cert-download" data-id="${esc(c.cert_id)}">Download</button></span></div>`).join('')||'<p class="muted">No verified IRU certificates yet.</p>'}
+    </section>
     <section class="band">
       <div class="band-head"><h2>Library</h2><span class="meta">${docs.length}</span></div>
       ${docs.length ? docs.map(d => `
@@ -12285,6 +12302,10 @@ async function advanceDistribution(id){
       .eq('id',id).select('id,status').single();
     if(error)throw error;
     d.status=data.status;
+    if(next==='PAID'){
+      S.tokenCerts.loaded=false;
+      ViceTokenCertificates.load().catch(e=>console.warn('Distribution certificate refresh:',e));
+    }
     toast(`Distribution saved: ${next}`,'success');
     try{ if(d.holderId && window.Realtime?.emit) Realtime.emit('notify',{
       kind:'distribution',period:d.period,total:d.total,program:d.program,status:next,
@@ -13028,6 +13049,235 @@ function openCertificateModal(cert){
     ${isOwner()&&!cert.revoked?`<button class="btn btn-r" data-act="cert-revoke" data-id="${esc(cert.id)}">Revoke</button>`:''}`:''}
   </div><p class="note">Official certificates can be checked against the VICE registry. A SIM certificate is not publicly authentic.</p>`);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECTION 9 — IRU CERTIFICATES · HISTORICAL PORTFOLIO · QR + CODE 39
+   Server-authoritative records; no self-issued browser certificates.
+   ═══════════════════════════════════════════════════════════════════ */
+const ViceBarcode = (()=>{
+  // Industrial Code 39 (NW ratio 3:1); scanners return the certificate ID.
+  // The QR encodes the canonical verification URL. Barcodes themselves are not proof.
+  const patterns={
+    '0':'bsbSBsBsb','1':'BsbSbsbsB','2':'bsBSbsbsB','3':'BsBSbsbsb',
+    '4':'bsbSBsbsB','5':'BsbSBsbsb','6':'bsBSBsbsb','7':'bsbSbsBsB',
+    '8':'BsbSbsBsb','9':'bsBSbsBsb','A':'BsbsbSbsB','B':'bsBsbSbsB',
+    'C':'BsBsbSbsb','D':'bsbsBSbsB','E':'BsbsBSbsb','F':'bsBsBSbsb',
+    'G':'bsbsbSBsB','H':'BsbsbSBsb','I':'bsBsbSBsb','J':'bsbsBSBsb',
+    'K':'BsbsbsbSB','L':'bsBsbsbSB','M':'BsBsbsbSb','N':'bsbsBsbSB',
+    'O':'BsbsBsbSb','P':'bsBsBsbSb','Q':'bsbsbsBSB','R':'BsbsbsBSb',
+    'S':'bsBsbsBSb','T':'bsbsBsBSb','U':'BSbsbsbsB','V':'bSBsbsbsB',
+    'W':'BSBsbsbsb','X':'bSbsBsbsB','Y':'BSbsBsbsb','Z':'bSBsBsbsb',
+    '-':'bSbsbsBsB','*':'bSbsBsBsb'};
+  function svg(value,{width=600,height=84,fill='#0a0b0d'}={}){
+    const encoded='*'+String(value||'').toUpperCase()+'*';
+    if([...encoded].some(c=>!patterns[c]))throw Error('Invalid Code39 identifier');
+    let x=12;const rects=[];
+    for(const ch of encoded){
+      const p=patterns[ch];
+      for(let i=0;i<9;i++){
+        const w=p[i]===p[i].toUpperCase()?6:2;
+        if(i%2===0)rects.push(`<rect x="${x}" y="0" width="${w}" height="${height}"/>`);
+        x+=w;
+      }
+      x+=2;
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${x+12} ${height}" width="${width}" height="${height}" preserveAspectRatio="none" role="img" aria-label="Code 39 barcode ${esc(value)}"><g fill="${fill}">${rects.join('')}</g></svg>`;
+  }
+  return {svg};
+})();
+
+const ViceTokenCertificates = (()=>{
+  const WIDTH=2550,HEIGHT=3300;
+  const titles={ISSUANCE:'Certificate of Issuance',ALLOCATION:'Certificate of Allocation',
+    DISTRIBUTION:'Certificate of Distribution',CONSOLIDATION:'Consolidated Holdings Certificate',
+    RETIREMENT:'Certificate of Unit Retirement'};
+  const verifyUrl=c=>new URL('./verify.html?id='+encodeURIComponent(c.cert_id),location.href).href;
+  const formatUnits=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  const moneyCents=v=>{
+    try{const neg=BigInt(v||0)<0n,a=neg?-BigInt(v):BigInt(v);
+      return (neg?'-':'')+'$'+(a/100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')+'.'+String(a%100n).padStart(2,'0');}
+    catch(_){return '—';}
+  };
+  const shorten=(s,n=40)=>String(s||'').length>n?String(s).slice(0,n-1)+'…':String(s||'');
+  function row(label,value,y,size=41){
+    return `<text x="590" y="${y}" font-size="34" fill="#bcb0a0" font-family="Arial,sans-serif">${esc(label)}</text>
+    <text x="1970" y="${y}" text-anchor="end" font-size="${size}" fill="#f0e3bd" font-family="monospace">${esc(value)}</text>`;
+  }
+  function snapshot(c){return c.holdings_snapshot||{};}
+  function render(c){
+    if(!/^VCT-[A-F0-9]{4}(-[A-F0-9]{4}){3}$/.test(String(c.cert_id||'')))throw Error('Invalid token certificate');
+    const s=snapshot(c),url=verifyUrl(c);
+    const qr=ViceQR.encode(url,{moduleSize:1,quiet:4}), side=452;
+    const barcode=ViceBarcode.svg(c.cert_id,{width:1050,height:110,fill:'#07080a'});
+    const issued=new Date(c.issued_at).toLocaleString('en-US',{timeZone:'UTC',dateStyle:'long',timeStyle:'short'})+' UTC';
+    const status=c.revoked?'REVOKED':'ISSUER REGISTERED';
+    const refLabel=c.value_basis||'INTERNAL_REFERENCE';
+    const caution='IRUs are internal accounting units and do not, by themselves, establish equity, ownership, transferability, redemption rights, market price, independent appraisal or lender acceptance.';
+    const snapTime=s.as_of||c.issued_at;
+    const lines=[
+      row('Certificate type',c.kind,1890),
+      row('Program',c.program,1975),
+      row('Unit transaction',formatUnits(c.units),2060),
+      row('Held before',formatUnits(c.units_held_before),2145),
+      row('Held after',formatUnits(c.units_held_after),2230),
+      row('VICE held · snapshot',formatUnits(s.vice_units),2315),
+      row('V4X held · snapshot',formatUnits(s.v4x_units),2400),
+      row('Combined internal reference',moneyCents(s.combined_reference_cents),2485),
+    ].join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+      <defs><linearGradient id="vice-certificate-gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecd28a"/><stop offset=".5" stop-color="#c9a84c"/><stop offset="1" stop-color="#9c7c33"/></linearGradient></defs>
+      <rect width="2550" height="3300" fill="#07080a"/><rect x="170" y="170" width="2210" height="2960" fill="none" stroke="url(#vice-certificate-gold)" stroke-width="8"/>
+      <rect x="200" y="200" width="2150" height="2900" fill="none" stroke="#7c652f" stroke-width="2"/>
+      ${ViceCertificates.cornerOrnament(170,170)}${ViceCertificates.cornerOrnament(2380,170,-1,1)}${ViceCertificates.cornerOrnament(170,3130,1,-1)}${ViceCertificates.cornerOrnament(2380,3130,-1,-1)}
+      <text x="1275" y="540" text-anchor="middle" font-size="175" font-family="Georgia,serif" font-style="italic" fill="url(#vice-certificate-gold)">V I C E</text>
+      <text x="1275" y="615" text-anchor="middle" font-size="36" font-family="monospace" letter-spacing="15" fill="#c9a84c">CAPITAL INC.</text>
+      <text x="1275" y="865" text-anchor="middle" font-size="90" font-family="Georgia,serif" font-style="italic" fill="#f4e4bb">${esc(titles[c.kind]||'Verified IRU Certificate')}</text>
+      <path d="M540 940H2010" stroke="#c9a84c" stroke-width="3"/><circle cx="1275" cy="940" r="10" fill="#c9a84c"/>
+      <text x="1275" y="1060" text-anchor="middle" font-size="34" font-family="monospace" letter-spacing="9" fill="#c9a84c">THIS CERTIFIES THAT</text>
+      <text x="1275" y="1240" text-anchor="middle" font-size="101" font-family="Georgia,serif" font-style="italic" fill="#fff7e7">${esc(shorten(c.holder_name,36))}</text>
+      <text x="1275" y="1330" text-anchor="middle" font-size="31" fill="#a79880" font-family="monospace">${esc(c.holder_client_id||'REGISTERED HOLDER')}</text>
+      <text x="1275" y="1460" text-anchor="middle" font-size="32" fill="#c9a84c" font-family="Arial,sans-serif">Recorded IRU portfolio as of certificate issuance</text>
+      <rect x="520" y="1770" width="1510" height="775" rx="22" stroke="#c9a84c" stroke-opacity=".55" fill="#121216" stroke-width="3"/>
+      ${lines}
+      <text x="570" y="1620" font-size="31" font-family="monospace" fill="#ecd28a">STATUS  ${esc(status)}</text>
+      <text x="570" y="1700" font-size="27" font-family="monospace" fill="#a89a83">BASIS  ${esc(refLabel)}</text>
+      <text x="550" y="2650" font-family="monospace" font-size="28" fill="#ecd28a">${esc(c.cert_id)}</text>
+      <text x="550" y="2700" font-family="Arial,sans-serif" font-size="26" fill="#d3c0a4">Issued ${esc(issued)}</text>
+      <text x="550" y="2750" font-family="Arial,sans-serif" font-size="23" fill="#a89a83">Snapshot ${esc(snapTime)}</text>
+      <text x="550" y="2810" font-family="Arial,sans-serif" font-size="23" fill="#a89a83">Authorized by KAHZI · Issuer record</text>
+      <g transform="translate(1838 2570) scale(${side/(qr.size+8)})"><rect width="${qr.size+8}" height="${qr.size+8}" fill="white"/><path d="${qr.path}" fill="#07080a"/></g>
+      <rect x="510" y="2860" width="1140" height="150" fill="white" rx="8"/>
+      <svg x="535" y="2875" width="1080" height="115" viewBox="0 0 1080 115">${barcode.match(/<svg[^>]*>([\s\S]*?)<\/svg>/)?.[1]||''}</svg>
+      <text x="565" y="3045" font-family="monospace" font-size="21" fill="#baa678">Code 39 ID · scan QR for verified holdings</text>
+      <text x="1275" y="3079" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#a3957b">${esc(caution)}</text>
+    </svg>`;
+  }
+  async function toPNG(c){
+    const url=URL.createObjectURL(new Blob([render(c)],{type:'image/svg+xml;charset=utf-8'}));
+    try{
+      const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('SVG decode failed'));img.src=url;});
+      const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;
+      const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw Error('Canvas unavailable');ctx.drawImage(img,0,0);
+      return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('PNG encoding failed')),'image/png'));
+    }finally{URL.revokeObjectURL(url);}
+  }
+  async function downloadPNG(c){
+    const blob=await toPNG(c),href=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=href;a.download=c.cert_id+'-VICE-IRU-Certificate.png';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(href),15000);toast('Verified IRU certificate exported at 2550 × 3300','success');
+  }
+  function print(c){
+    const w=window.open('','_blank');if(!w){toast('Allow popups to print certificate','warn');return;}
+    w.document.write(`<!doctype html><html><head><title>${esc(c.cert_id)}</title><style>@page{size:letter;margin:0}body{margin:0;background:#07080a}svg{display:block;width:8.5in;height:11in}@media screen{svg{max-width:100%;height:auto;margin:auto}}</style></head><body>${render(c)}<script>addEventListener('load',()=>setTimeout(()=>print(),500));<\/script></body></html>`);
+    w.document.close();
+  }
+  async function copyVerifyUrl(c){await navigator.clipboard.writeText(verifyUrl(c));toast('Issuer verification link copied','success');}
+  function open(c){
+    const qr=ViceQR.encode(verifyUrl(c),{moduleSize:3}).svg;
+    openModal('Issuer-verified IRU Certificate',`
+      <div class="actions" style="margin-bottom:12px"><span class="bdg ${c.revoked?'rd':'gr'}">${c.revoked?'REVOKED':'ISSUER REGISTERED'}</span>
+      <span class="bdg gd">${esc(c.kind)}</span><span class="bdg">${esc(fmtD(c.issued_at))}</span></div>
+      <div style="max-height:52vh;overflow:auto;text-align:center;background:#07080a;border:1px solid #352b19">
+        <div style="max-width:370px;margin:auto">${render(c).replace('width="2550" height="3300"','width="100%" height="auto"')}</div></div>
+      <div class="row"><span class="row-l"><b>${esc(c.cert_id)}</b><span class="meta">Barcode ID and QR link resolve in the live issuer registry.</span></span>
+      <span style="width:86px;height:86px">${qr}</span></div>
+      <div class="mact"><button class="btn btn-p" data-act="iru-cert-download" data-id="${esc(c.cert_id)}">Download PNG</button>
+      <button class="btn btn-g" data-act="iru-cert-print" data-id="${esc(c.cert_id)}">Print / PDF</button>
+      <button class="btn btn-g" data-act="iru-cert-copy" data-id="${esc(c.cert_id)}">Copy Link</button>
+      <button class="btn btn-gd" data-act="iru-cert-verify" data-id="${esc(c.cert_id)}">Verify Record</button>
+      ${isOwner()&&!c.revoked?`<button class="btn btn-r" data-act="iru-cert-revoke" data-id="${esc(c.cert_id)}">Revoke</button>`:''}</div>
+      <p class="note">Scans verify the recorded snapshot, not independently verified collateral, current market value, external bank or brokerage balances.</p>`);
+  }
+  async function load(){
+    if(S.user?.id==='sim-user'||!S.user?.id||APP_MODE!=='LIVE')return;
+    if(S.tokenCerts.loading)return;
+    S.tokenCerts.loading=true;
+    try{
+      const {data,error}=await sb.from('token_certificates').select('*').order('issued_at',{ascending:false}).limit(500);
+      if(error)throw error;
+      S.tokenCerts.list=data||[];S.tokenCerts.loaded=true;S.tokenCerts.error=null;
+    }catch(e){S.tokenCerts.error=e.message;toast('IRU certificates: '+e.message,'warn');}
+    finally{S.tokenCerts.loading=false;}
+  }
+  function find(id){return S.tokenCerts.list.find(c=>c.cert_id===id);}
+  function htmlSection(){
+    const st=S.tokenCerts;
+    const me=S.profile?.clientId;
+    const list=isOwner()?st.list:st.list.filter(c=>c.profile_id===S.user?.id||c.holder_client_id===me);
+    const filtered=list.filter(c=>(st.kind==='ALL'||c.kind===st.kind)&&(st.program==='ALL'||c.program===st.program));
+    return `<section class="band"><div class="band-head"><h2>My Verified IRU Certificates</h2><span class="meta">${list.length} issuer records</span></div>
+      <div class="actions" style="margin:10px 0 16px"><button class="btn btn-g" data-act="iru-cert-refresh">Refresh registry</button>
+      ${isOwner()?'<button class="btn btn-gd" data-act="iru-cert-consolidate">Issue Period Summary</button>':''}
+      <label class="field">Kind<select id="iruCertKind" data-act="iru-cert-filter" aria-label="Filter certificate kind"><option>ALL</option>${Object.keys(titles).map(k=>`<option value="${k}" ${st.kind===k?'selected':''}>${esc(k)}</option>`).join('')}</select></label>
+      <label class="field">Program<select id="iruCertProgram" data-act="iru-cert-filter" aria-label="Filter program"><option>ALL</option><option value="VICE" ${st.program==='VICE'?'selected':''}>VICE</option><option value="V4X" ${st.program==='V4X'?'selected':''}>V4X</option><option value="BOTH" ${st.program==='BOTH'?'selected':''}>BOTH</option></select></label></div>
+      ${st.loading?'<p class="muted">Loading issuer certificates…</p>':st.error?`<p class="note warn">Registry not loaded: ${esc(st.error)}</p>`:''}
+      ${filtered.length?`<div class="scroll-x"><table class="pos"><thead><tr><th>Certificate</th><th>Type</th><th>Program</th><th>Units</th><th>Issued (UTC)</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+      ${filtered.map(c=>`<tr><td class="mn">${esc(c.cert_id)}</td><td>${esc(c.kind)}</td><td>${esc(c.program)}</td><td>${esc(formatUnits(c.units))}</td>
+      <td>${esc(fmtD(c.issued_at))}</td><td><span class="bdg ${c.revoked?'rd':'gr'}">${c.revoked?'REVOKED':'ACTIVE'}</span></td>
+      <td class="acts"><button class="btn btn-xs btn-gd" data-act="iru-cert-preview" data-id="${esc(c.cert_id)}">Preview</button>
+      <button class="btn btn-xs btn-g" data-act="iru-cert-download" data-id="${esc(c.cert_id)}">PNG</button>
+      <button class="btn btn-xs btn-g" data-act="iru-cert-verify" data-id="${esc(c.cert_id)}">Verify</button></td></tr>`).join('')}</tbody></table></div>`:
+        '<p class="muted">No certificates match. Certificates are generated only by server-authorized IRU changes.</p>'}
+      <p class="note">Scan the QR to open a live, digest-checked portfolio snapshot. Each issued certificate captures BOTH VICE and V4X holdings at issuance; later changes do not rewrite it.</p></section>`;
+  }
+  return {titles,verifyUrl,render,toPNG,downloadPNG,print,copyVerifyUrl,open,load,find,htmlSection,moneyCents};
+})();
+
+(function extendTokenCertificateActions(){
+  const prev=window.__viceAct;
+  window.__viceAct=function(t,e){
+    const act=t.dataset.act;
+    if(act?.startsWith('iru-cert-')){
+      (async()=>{
+        try{
+          if(act==='iru-cert-refresh'){await ViceTokenCertificates.load();renderMain();return;}
+          if(act==='iru-cert-filter')return;
+          if(APP_MODE!=='LIVE'||S.user?.id==='sim-user')throw Error('Switch to authenticated LIVE mode');
+          if(act==='iru-cert-consolidate'){
+            if(!isOwner())throw Error('Issuer authorization required');
+            const clientId=prompt('Holder client ID (for a monthly snapshot):',S.profile.clientId||'');
+            if(!clientId)return;
+            const period=prompt('Closing period in YYYY-MM:',new Date().toISOString().slice(0,7));
+            if(period===null)return;
+            if(!/^20\d\d-(0[1-9]|1[0-2])$/.test(period))throw Error('Use YYYY-MM');
+            const found=await sb.from('holders').select('id').eq('client_id',clientId.trim()).maybeSingle();
+            if(found.error)throw found.error;
+            if(!found.data)throw Error('Holder is not present in issuer registry');
+            const {data,error}=await sb.rpc('issue_holdings_consolidation',{p_holder_id:found.data.id,p_period:period});
+            if(error)throw error;
+            await ViceTokenCertificates.load();renderMain();
+            if(data?.cert_id){const cert=ViceTokenCertificates.find(data.cert_id);if(cert)ViceTokenCertificates.open(cert);}
+            toast('Consolidated holdings recorded','success');return;
+          }
+          const cert=ViceTokenCertificates.find(t.dataset.id);
+          if(!cert)throw Error('Certificate not available to this member');
+          if(act==='iru-cert-preview'){ViceTokenCertificates.open(cert);return;}
+          if(act==='iru-cert-download'){await ViceTokenCertificates.downloadPNG(cert);return;}
+          if(act==='iru-cert-print'){ViceTokenCertificates.print(cert);return;}
+          if(act==='iru-cert-copy'){await ViceTokenCertificates.copyVerifyUrl(cert);return;}
+          if(act==='iru-cert-verify'){window.open(ViceTokenCertificates.verifyUrl(cert),'_blank','noopener');return;}
+          if(act==='iru-cert-revoke'){
+            if(!isOwner())throw Error('Issuer authorization required');
+            const reason=prompt('Revocation reason (minimum 8 characters):');if(reason===null)return;
+            const {error}=await sb.rpc('revoke_token_certificate',{p_cert_id:cert.cert_id,p_reason:reason});
+            if(error)throw error;await ViceTokenCertificates.load();closeModal();renderMain();toast('Token certificate revoked','success');return;
+          }
+          throw Error('Unrecognized certificate operation');
+        }catch(err){toast('Certificate: '+(err.message||'Operation failed'),'error');}
+      })();return;
+    }
+    if(prev)prev(t,e);
+  };
+})();
+// Filter selects are change events, not click delegation targets.
+document.addEventListener('change',e=>{
+  if(e.target.id==='iruCertKind'||e.target.id==='iruCertProgram'){
+    S.tokenCerts.kind=$('iruCertKind')?.value||'ALL';
+    S.tokenCerts.program=$('iruCertProgram')?.value||'ALL';
+    renderMain();
+  }
+});
 
 
 // v1.0.3 deliberately retires the previous offline HTML cache: account pages

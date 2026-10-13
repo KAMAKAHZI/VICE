@@ -7,7 +7,7 @@ const edge=read('supabase/functions/vice-mt5-cloud/index.ts');
 assert.match(html,/^<!DOCTYPE html>/i,'site root must start with HTML');
 const build=html.match(/data-build="([^"]+)"/)?.[1];
 assert.equal(build,meta.version,'HTML build marker and version.json must match');
-assert.match(build,/^1\.3\.6\.\d+-/,'unexpected release family');
+assert.match(build,/^1\.3\.8\.\d+-/,'unexpected release family');
 assert(html.includes('function safeResetCloudMt5Session()'),'optional Cloud MT5 reset safeguard missing');
 assert(html.includes('return {state,request,reset,refresh,'),'CloudMT5 must expose reset method');
 assert(!html.includes("if(typeof CloudMT5!=='undefined')CloudMT5.reset();"),'unsafe MT5 reset can block login');
@@ -24,7 +24,7 @@ assert(html.includes("if(APP_MODE==='LIVE')return 0;"),'unverified manual extern
 assert(html.includes("const row={id:uuid(),owner_id:S.user.id,institution"),'external accounts must be owner scoped');
 assert(html.includes("holderClientId: d.holder_client_id"),'distribution must remain mapped to holder client ID');
 assert(!html.includes("status:'OPEN',votes_for:0,votes_against:0,created_by:S.user.id"),'proposal vote totals must be server controlled');
-assert(html.includes("1.3.6.11-IDENTITY-HARDENING"),'current release identity missing');
+assert(html.includes("1.3.8.0-IRU-CERTIFICATES"),'current release identity missing');
 const ballot=read('supabase/migrations/20261013030938_vice_1366_governance_votes_distribution_fields.sql');
 assert(ballot.includes('CREATE OR REPLACE FUNCTION public.vice_cast_proposal_vote'),'server ballot RPC missing');
 assert(ballot.includes('UNIQUE (proposal_id,voter_id)'),'one vote per holder guard missing');
