@@ -2,7 +2,7 @@
   "version": "1.3.6.10-AUDIT-PROVENANCE",
   "date": "2026-10-13",
   "status": "SOURCE_AND_SUPABASE_UPDATED_NETLIFY_DEPLOYMENT_NOT_PUBLISHED",
-  "release_summary": "Preserve VICE OS 1.3.6.9 membership and media access controls; deny nonmembers TURN relay and direct messages; remove direct user-forgeable audit insert grants and classify browser activity as rate-limited unverified telemetry. Authenticated browser acceptance and Netlify publication remain pending.",
+  "release_summary": "Preserve VICE OS 1.3.6.9 membership and media access controls; deny nonmembers TURN relay and direct messages; remove direct user-forgeable audit insert grants and classify browser activity as rate-limited unverified telemetry. Authenticated browser acceptance and Netlify publication remain pending. Second backend hardening guards e-signatures, member directory, and Academy from uninvited identities.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -27,7 +27,8 @@
       "vice_1374_authorized_channel_postgres_realtime",
       "vice_1375_invite_only_chat_media_membership_acl",
       "vice_1376_vip_channel_membership_acl",
-      "vice_1377_trusted_audit_and_provisioned_dm"
+      "vice_1377_trusted_audit_and_provisioned_dm",
+      "vice_1378_provisioned_signatures_directory_academy"
     ],
     "required_rpc_coverage_checked": true,
     "role_admin_rpc_authorization": "SUPER_ADMIN only; no SUPER_ADMIN promotion",
@@ -92,7 +93,10 @@
     "real_authenticated_channel_tested": false,
     "trusted_audit": "Direct member INSERT revoked; SECURITY DEFINER accepts rate-limited CLIENT_ACTIVITY with actor_role CLIENT_REPORTED and outcome UNVERIFIED_CLIENT_EVENT.",
     "dm_access": "RLS requires an existing provisioned profile for sender/reader and recipient.",
-    "turn_access": "Netlify validates a logged-in Supabase user AND an owner-scoped provisioned profile before issuing temporary TURN credentials."
+    "turn_access": "Netlify validates a logged-in Supabase user AND an owner-scoped provisioned profile before issuing temporary TURN credentials.",
+    "document_signing": "Requires provisioned profile, exact typed name, authentic SHA-256 document digest and owner/issuer authorization; writes server-backed signature with audit entry.",
+    "member_directory": "Excludes unprovisioned JWT identities at SECURITY DEFINER function boundary.",
+    "academy_grading": "Only provisioned member profiles may submit answers. Actual learning and exam integrity require further independent acceptance."
   },
   "provider": {
     "name": "MetaApi",
