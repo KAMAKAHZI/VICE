@@ -1,8 +1,8 @@
 {
-  "version": "1.3.6.7-GOVERNANCE-PORTFOLIO",
+  "version": "1.3.6.8-BACKEND-INTEGRITY",
   "date": "2026-10-13",
-  "status": "GITHUB_AND_SUPABASE_UPDATED_LIVE_PRODUCTION_ACCEPTANCE_PENDING",
-  "release_summary": "Preserve complete VICE application, repair governance vote schema + RPC, distribution record columns, owner-scoped external account insertion, and exclude manually entered unverified account balances from LIVE totals.",
+  "status": "BACKEND_SCHEMA_COMPLETE_PUBLIC_NETLIFY_DEPLOYMENT_BLOCKED_MISSING_AUTH",
+  "release_summary": "Implemented missing server-side staff role administration and guarded issuer reference attestation RPCs; added authenticated super-admin backend integrity snapshot, case-insensitive username lookup, and in-app issuer diagnostics. Live Netlify deploy and real-user login remain blocked/unverified.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -16,8 +16,14 @@
       "vice_1365_foreign_key_performance_indexes",
       "vice_1366_high_priority_row_security_hardening",
       "vice_1366_verified_academy_certificate_awards",
-      "vice_1366_governance_votes_distribution_fields"
-    ]
+      "vice_1366_governance_votes_distribution_fields",
+      "vice_1368_certificate_integrity_rls_initplan",
+      "vice_1369_complete_role_price_and_operational_health_rpcs"
+    ],
+    "required_rpc_coverage_checked": true,
+    "role_admin_rpc_authorization": "SUPER_ADMIN only; no SUPER_ADMIN promotion",
+    "reference_attestation": "VICE $2/V4X $320 fixed pending formal policy update",
+    "owner_health_rpc": "vice_operational_health"
   },
   "provider": {
     "name": "MetaApi",
@@ -69,7 +75,9 @@
     "real signed-in governance creation and ballot acceptance",
     "real end-to-end distribution record acceptance",
     "real external account owner-scope acceptance",
-    "Netlify publishing of 1.3.6.7"
+    "Netlify publishing of 1.3.6.7",
+    "NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID not provisioned in GitHub Actions; production still on 1.3.6.1 at last public smoke",
+    "Authenticated production login, invite redemption, dashboard cross-module browser acceptance, external provider test"
   ],
   "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
   "not_yet_certified": [
