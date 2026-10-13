@@ -6,6 +6,8 @@ on:
       - 'version.json'
       - 'supabase/functions/vice-mt5-cloud/index.ts'
       - 'tests/vice-release-safety.cjs'
+      - 'tests/vice-1369-integrity.cjs'
+      - 'supabase/migrations/**'
       - '.github/workflows/vice-os-release-guard.yml'
   pull_request:
     paths:
@@ -13,6 +15,8 @@ on:
       - 'version.json'
       - 'supabase/functions/vice-mt5-cloud/index.ts'
       - 'tests/vice-release-safety.cjs'
+      - 'tests/vice-1369-integrity.cjs'
+      - 'supabase/migrations/**'
       - '.github/workflows/vice-os-release-guard.yml'
 permissions:
   contents: read
@@ -25,4 +29,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node tests/vice-release-safety.cjs
+      - run: |
+          node tests/vice-release-safety.cjs
+          node tests/vice-1369-integrity.cjs
