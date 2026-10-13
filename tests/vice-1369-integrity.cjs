@@ -1,10 +1,10 @@
 'use strict';
-/** VICE OS 1.3.6.9 source-only security contracts. No production credentials. */
+/** VICE OS 1.3.6.10 source-only security contracts. No production credentials. */
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const read=p=>fs.readFileSync(p,'utf8');
 const code=read('index.html'),manifest=JSON.parse(read('version.json'));
 const m=read('supabase/migrations/20261013040147_vice_1370_channel_acl_and_chat_identity_integrity.sql');
-assert.equal(manifest.version,'1.3.6.9-ACCESS-CONTROL');
+assert.equal(manifest.version,'1.3.6.10-AUDIT-PROVENANCE');
 assert(code.includes('badge:\'RLS\''),'Security label must not imply audited E2EE');
 assert(code.includes('Legacy message encryption uses publicly derivable thread keys'),'Crypto limitations must be disclosed');
 for(const s of [
@@ -59,4 +59,12 @@ assert(inviteGate.includes('ALTER POLICY %I ON storage.objects'),
 const vipGate=read('supabase/migrations/20261013041544_vice_1376_vip_channel_membership_acl.sql');
 assert(vipGate.includes('pr.vip_access IS TRUE'),'Non-VIP accounts must not read VIP messages');
 
+const auditMigration=read('supabase/migrations/20261013044725_vice_1377_trusted_audit_and_provisioned_dm.sql');
+assert(auditMigration.includes('REVOKE INSERT,UPDATE,DELETE,TRUNCATE ON TABLE public.audit_log'),'Direct trusted ledger write remains prohibited');
+assert(auditMigration.includes('CLIENT_REPORTED') && auditMigration.includes('UNVERIFIED_CLIENT_EVENT'),'Client events must be distinguishable from issuer-authorized operations');
+assert(auditMigration.includes('CREATE POLICY vice_read ON public.dm_messages'),'DM RLS must require member profile');
+assert(code.includes("sb.rpc('vice_record_client_activity'"),'Client activity must route through rate-limited RPC');
+assert(!code.includes("sb.from('audit_log').insert("),'Browser may not forge authoritative audit entry');
+const turn=read('netlify/functions/turn-credentials.mjs');
+assert(turn.includes("+'/rest/v1/profiles'")&&turn.includes("return json(403,{error:'Approved VICE membership required'});"),'TURN credentials require provisioned membership');
 console.log('PASS',manifest.version,'— backend RBAC, private media, signed playback, recorder controls and realtime DMs.');
