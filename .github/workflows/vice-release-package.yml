@@ -10,6 +10,8 @@ on:
       - 'supabase/**'
       - 'tests/**'
       - 'scripts/vice-package-release.sh'
+      - 'scripts/vice-publish-netlify.sh'
+      - 'netlify.toml'
       - '.github/workflows/vice-release-package.yml'
   workflow_dispatch:
 permissions:
