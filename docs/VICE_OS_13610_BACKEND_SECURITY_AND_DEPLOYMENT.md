@@ -99,3 +99,7 @@ login/mobile/function acceptance passes.
 **Stop condition:** If any sensitive/private operation fails an access
 test or public production remains on the old build, keep the launch
 status at `PENDING`, not 100%-certified.
+
+## Additional signing and directory gate (2026-10-13)
+
+Production migration `vice_1378_provisioned_signatures_directory_academy` now requires a provisioned identity for database-managed typed-name signatures, member directory, and server-graded Academy attempts. Only the issuer super administrator may authorize signing on another holder's behalf; staff roles do not inherit that ability. Original document SHA-256, exact member name, consent, signatory ownership and duplicate-signing prevention remain mandatory. A rollback-only synthetic unprovisioned-JWT test confirmed that such an account cannot enumerate the directory, sign a document, or submit Academy quiz answers. No actual document was signed in this test.
