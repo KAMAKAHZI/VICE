@@ -1,5 +1,5 @@
 'use strict';
-/** Release 1.3.6.10 static/contract gates. No substitute for production acceptance. */
+/** VICE OS release family static/contract gates. No substitute for production acceptance. */
 const fs=require('node:fs'), assert=require('node:assert/strict'),vm=require('node:vm');
 const read=p=>fs.readFileSync(p,'utf8');
 const html=read('index.html'),manifest=JSON.parse(read('version.json'));
