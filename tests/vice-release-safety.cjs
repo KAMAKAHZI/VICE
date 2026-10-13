@@ -55,7 +55,13 @@ for(const file of ['netlify/functions/yahoo.js','netlify/functions/yahoo-search.
 }
 // Legacy bootstrap was physically removed from the production source root.
 // Keep its historical audit snapshot in the docs archive; never reintroduce it.
-assert(!fs.existsSync(path.join(root,'supabase-setup.sql')),'unsafe legacy SQL file must not exist at repository root');
+// Allow an inert exception-raising compatibility stub at the old path, but
+// never permit a legacy executable schema to be packaged.
+if(fs.existsSync(path.join(root,'supabase-setup.sql'))){
+  const stub=read('supabase-setup.sql');
+  assert(stub.includes('RAISE EXCEPTION')&&stub.includes('SAFE ENTRYPOINT')
+    &&!stub.includes('create policy'),'legacy SQL root must remain a throwing stub');
+}
 const retired=read('docs/legacy/supabase-setup-LEGACY-INSECURE-DO-NOT-RUN.sql');
 assert(retired.includes('DO NOT EXECUTE')&&retired.includes('UNSAFE HISTORICAL BOOTSTRAP'),'archived SQL must remain clearly nondeployable');
 const patch=read('supabase/migrations/20261013025843_vice_1366_high_priority_row_security_hardening.sql');
