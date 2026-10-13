@@ -24,7 +24,7 @@ assert(html.includes("if(APP_MODE==='LIVE')return 0;"),'unverified manual extern
 assert(html.includes("const row={id:uuid(),owner_id:S.user.id,institution"),'external accounts must be owner scoped');
 assert(html.includes("holderClientId: d.holder_client_id"),'distribution must remain mapped to holder client ID');
 assert(!html.includes("status:'OPEN',votes_for:0,votes_against:0,created_by:S.user.id"),'proposal vote totals must be server controlled');
-assert(html.includes("1.3.6.8-BACKEND-INTEGRITY"),'current release identity missing');
+assert(html.includes("1.3.6.9-ACCESS-CONTROL"),'current release identity missing');
 const ballot=read('supabase/migrations/20261013030938_vice_1366_governance_votes_distribution_fields.sql');
 assert(ballot.includes('CREATE OR REPLACE FUNCTION public.vice_cast_proposal_vote'),'server ballot RPC missing');
 assert(ballot.includes('UNIQUE (proposal_id,voter_id)'),'one vote per holder guard missing');
