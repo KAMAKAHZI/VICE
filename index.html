@@ -5011,6 +5011,7 @@ const Realtime = (() => {
   let presenceChannel = null;
   let broadcastChannel = null;
   let dmChannel = null;
+  let channelDb = null;
   let heartbeatTimer = null;
 
   /* Cross-tab fallback — same-browser multi-tab delivery independent of Supabase */
@@ -5126,15 +5127,12 @@ const Realtime = (() => {
         }
       });
 
-      /* Channel 2: broadcast (chat, calls, profile updates, notifications) */
+      /* Public realtime broadcast is for presence/call signaling only.
+         Never send channel message contents over the shared broadcast. */
       broadcastChannel = sb.channel('vice-os-broadcast', {
         config: { broadcast:{ self:false } }
       });
       broadcastChannel
-        .on('broadcast', { event:'chat' }, ({ payload }) => {
-          if(!payload || payload.senderId === S.user.id) return;
-          receiveChat(payload);
-        })
         .on('broadcast', { event:'call' }, ({ payload }) => {
           if(!payload) return;
           handlers.call.forEach(h => h(payload));
@@ -5183,6 +5181,16 @@ const Realtime = (() => {
           }
         });
 
+      /* Authorized channel stream: RLS hides reserve/treasury staff records. */
+      channelDb=sb.channel('vice-os-rbac-channel-inbox-'+S.user.id)
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},({new:row})=>{
+          if(row && row.sender_id!==S.user.id)receiveChat({
+            id:row.id,channelId:row.channel_id,senderId:row.sender_id,
+            senderName:row.sender_name,text:row.text,
+            at:new Date(row.created_at).getTime()
+          });
+        }).subscribe();
+
       /* DM transport is RLS-scoped to the recipient, never global broadcast. */
       dmChannel=sb.channel('vice-os-dm-inbox-'+S.user.id)
         .on('postgres_changes',{
@@ -5224,6 +5232,7 @@ const Realtime = (() => {
       broadcastChannel = null;
     }
     if(dmChannel){try{dmChannel.unsubscribe();}catch(_){}dmChannel=null;}
+    if(channelDb){try{channelDb.unsubscribe();}catch(_){}channelDb=null;}
     st.connected = false;
     st.online = new Set();
     paintRealtimeBadge();
@@ -5384,10 +5393,8 @@ const Realtime = (() => {
     });
     const list=S.comms.messages[channelId]||(S.comms.messages[channelId]=[]);
     if(!list.some(m=>m.id===id)) list.push({id,from:senderName,at,text:t,self:true,_decrypted:true});
-    if(broadcastChannel && st.connected){
-      try{await broadcastChannel.send({type:'broadcast',event:'chat',payload});}
-      catch(e){console.warn('Message persisted; broadcast unavailable',e);}
-    }
+    // The subscriber receives this through postgres_changes after server RLS.
+    // Do not broadcast staff-only payloads to every member.
     try{localBus?.postMessage({type:'chat',payload});}catch(_){}
     return true;
   }
