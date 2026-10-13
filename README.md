@@ -1,10 +1,14 @@
-# VICE OS — Institutional Member Operating System
+# VICE OS — Release 1.3.8.0 (Issuer IRU Certificates)
 
-**Canonical release:** `1.3.6.10-AUDIT-PROVENANCE`  
-**Web app:** https://vice4x.netlify.app/  
-**Member guide:** https://vice4x.netlify.app/guide.html  
-**Backend:** Supabase project `sdsaewumabzjjvsmqqsl`  
-**Production source branch:** `main`
+**Release status:** Supabase migrations 1380–1383 applied; local static checks passed; Netlify production publication and real signed-in acceptance remain unverified.
+
+**To avoid exhausting Netlify deploy credits, package and test locally, then publish ONCE.** The complete step-by-step playbook is in `docs/VICE_OS_FINAL_DEPLOYMENT_RUNBOOK_1380.md`. Do not re-run SQL migrations which Supabase already lists. The Netlify web root must never contain SQL, service-role keys, server config secrets or GitHub workflows.
+
+**New:** issuer-generated VCT token certificates for IRU issuance, allocation, retirement, issuer-reported paid distribution and period consolidation; dated snapshot of both VICE and V4X balances; SHA-256 digest over signed properties; public verification via `verify.html` (`VCT-...` and `VCA-...`); QR + Code39 scannable printed certificate; 2550×3300 PNG; PDF printing; holder list and issuer revocation; private email outbox and separately configurable 14-template SMTP worker.
+
+**Explicit limits:** the site and backend cannot be declared 100% deployed until Netlify publishes this build and real users pass acceptance. SMTP email will not send until a private worker and legitimate SMTP account are configured. The optional Node MT5 bridge consumes a fresh read-only operator terminal export; it cannot truthfully attest real brokerage money without provider verification. No bank collateral valuation is established by VICE IRUs.
+
+---
 
 This is the complete VICE OS site source, not a UI mock-up. The application is a static Netlify client with Supabase Auth, a PostgreSQL permission-controlled member/ledger backend, Supabase Realtime, Edge functions, and optional provider-hosted integrations. All external features should be reported as **configured**, **unconfigured**, or **verified** on their own evidence; no README can prove that an operator's external broker or relay service is provisioned.
 
@@ -12,7 +16,7 @@ This is the complete VICE OS site source, not a UI mock-up. The application is a
 
 1. Connect the Netlify site to `KAMAKAHZI/VICE`, branch `main`, with publish directory `dist/site`; Netlify Functions directory is `netlify/functions`, as specified in `netlify.toml`.
 2. Deploy from `main`. Never deploy a previous `VICE_OS_1_3_6` upload over the updated source.
-3. Inspect `https://vice4x.netlify.app/version.json` and compare to `index.html` `data-build`. Both must report `1.3.6.10-AUDIT-PROVENANCE`. A query such as `?build=1364` is **not** a deployment mechanism.
+3. Inspect `https://vice4x.netlify.app/version.json` and compare to `index.html` `data-build`. Both must report `1.3.8.0-IRU-CERTIFICATES`. A query such as `?build=1364` is **not** a deployment mechanism.
 4. Open **Check Application Connections** on the sign-in screen, then test the founder's real email/password and Google sign-in where configured. Never share passwords, wallet seed phrases or operator API keys in support channels.
 5. Invite a separate test HOLDER. Confirm no cross-account access to external accounts, storage, member records or private communication channels.
 
