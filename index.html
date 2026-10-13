@@ -2263,13 +2263,18 @@ async function completeAuthenticatedSetup(user){
       new URLSearchParams(location.search).get('invite');
     let {data:prof,error:profileError}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
     if(profileError) throw profileError;
-    if(inviteCode){
+    // An existing provisioned member must never be forced to redeem an old
+    // or already-used URL invitation; that fails even after valid authentication.
+    if(inviteCode && !prof){
       const redeemed=await sb.rpc('redeem_invite',{p_code:inviteCode});
       if(redeemed.error) throw redeemed.error;
       sessionStorage.removeItem('pending_invite');
       const result=await sb.from('profiles').select('*').eq('id',user.id).single();
       if(result.error)throw result.error;
       prof=result.data;
+    } else if(inviteCode && prof){
+      // Returning members can safely reuse historical invite links.
+      sessionStorage.removeItem('pending_invite');
     }
     if(!prof){await sb.auth.signOut();toast('VICE OS is invite-only. Use a valid invitation.','error');return;}
     S.profile={name:prof.name||'Member',username:prof.username||'',email:prof.email||user.email||'',
