@@ -4,7 +4,7 @@ const fs=require('node:fs'),assert=require('node:assert/strict');
 const read=p=>fs.readFileSync(p,'utf8');
 const code=read('index.html'),manifest=JSON.parse(read('version.json'));
 const m=read('supabase/migrations/20261013040147_vice_1370_channel_acl_and_chat_identity_integrity.sql');
-assert.equal(manifest.version,'1.3.6.11-IDENTITY-HARDENING');
+assert.equal(manifest.version,'1.3.8.0-IRU-CERTIFICATES');
 assert(code.includes('badge:\'RLS\''),'Security label must not imply audited E2EE');
 assert(code.includes('Legacy message encryption uses publicly derivable thread keys'),'Crypto limitations must be disclosed');
 for(const s of [
