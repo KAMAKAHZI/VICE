@@ -1,10 +1,10 @@
 'use strict';
-/** Release 1.3.6.8 static/contract gates. No substitute for production acceptance. */
+/** Release 1.3.6.9 static/contract gates. No substitute for production acceptance. */
 const fs=require('node:fs'), assert=require('node:assert/strict'),vm=require('node:vm');
 const read=p=>fs.readFileSync(p,'utf8');
 const html=read('index.html'),manifest=JSON.parse(read('version.json'));
 assert.equal((html.match(/data-build="([^"]+)"/)||[])[1],manifest.version);
-assert.match(manifest.version,/^1\.3\.6\.8-/);
+assert.match(manifest.version,/^1\.3\.6\.9-/);
 assert.match(html,/if\(APP_MODE==='LIVE'\)return 0;\s*const fx=/, 'Unverified external manual balances must not be in LIVE totals');
 assert.match(html,/owner_id:S\.user\.id,institution/, 'Owner-scoped external account insert');
 assert.match(html,/sb\.rpc\('vice_cast_proposal_vote'/, 'Ballot must be sent to database RPC');
