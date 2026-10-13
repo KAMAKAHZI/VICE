@@ -1,12 +1,30 @@
-exports.handler = async (event) => {
-  const q = (event.queryStringParameters?.q || '').trim();
-  if (!q) return json(200, { quotes: [] });
-  const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=25&newsCount=0&enableFuzzyQuery=true&quotesQueryId=tss_match_phrase_query`;
-  try {
-    const r = await fetch(url, { headers: { 'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36','Accept':'application/json' }});
-    const j = await r.json();
-    const quotes = (j.quotes || []).map(q => ({ symbol:q.symbol, name:q.shortname||q.longname||q.symbol, exchange:q.exchange||q.exchDisp||'', type:q.quoteType||q.typeDisp||'', source:'YAHOO' }));
-    return { statusCode:200, headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'public, max-age=60'}, body:JSON.stringify({ quotes }) };
-  } catch (e) { return json(502, { error:e.message, quotes:[] }); }
+'use strict';
+// Read-only public market symbol discovery. Never proxy user-supplied URLs.
+const json=(statusCode,payload,cache='no-store')=>({
+ statusCode,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':cache,
+ 'X-Content-Type-Options':'nosniff','Access-Control-Allow-Origin':'*'},
+ body:JSON.stringify(payload)
+});
+exports.handler=async(event={})=>{
+ if(event.httpMethod&&event.httpMethod!=='GET')return json(405,{error:'Method not allowed',quotes:[]});
+ const q=String(event.queryStringParameters?.q||'').trim();
+ if(q.length<1)return json(200,{quotes:[]},'public, max-age=30');
+ if(q.length>100)return json(400,{error:'Query too long',quotes:[]});
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),9000);
+ try{
+  const upstream=new URL('https://query1.finance.yahoo.com/v1/finance/search');
+  upstream.searchParams.set('q',q);upstream.searchParams.set('quotesCount','25');
+  upstream.searchParams.set('newsCount','0');upstream.searchParams.set('enableFuzzyQuery','true');
+  upstream.searchParams.set('quotesQueryId','tss_match_phrase_query');
+  const response=await fetch(upstream,{headers:{'User-Agent':'VICE OS market search/1.3.6','Accept':'application/json'},signal:controller.signal});
+  if(!response.ok)return json(502,{error:'Market search provider unavailable (HTTP '+response.status+')',quotes:[]});
+  const data=await response.json();
+  const quotes=Array.isArray(data?.quotes)?data.quotes.slice(0,25)
+   .filter(x=>typeof x.symbol==='string'&&x.symbol.length<=40)
+   .map(x=>({symbol:x.symbol,name:String(x.shortname||x.longname||x.symbol).slice(0,160),
+     exchange:String(x.exchange||x.exchDisp||'').slice(0,60),
+     type:String(x.quoteType||x.typeDisp||'').slice(0,50),source:'YAHOO'})):[];
+  return json(200,{quotes},'public, max-age=60');
+ }catch{return json(502,{error:'Market search temporarily unavailable',quotes:[]})}
+ finally{clearTimeout(timer)}
 };
-function json(c, o){ return { statusCode:c, headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}, body:JSON.stringify(o) }; }
