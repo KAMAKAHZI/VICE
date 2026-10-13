@@ -1,0 +1,27 @@
+'use strict';
+/** Static release safety checks. Do not replace broker acceptance tests. */
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const root=path.resolve(__dirname,'..'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const html=read('index.html'),meta=JSON.parse(read('version.json'));
+const edge=read('supabase/functions/vice-mt5-cloud/index.ts');
+assert.match(html,/^<!DOCTYPE html>/i,'site root must start with HTML');
+const build=html.match(/data-build="([^"]+)"/)?.[1];
+assert.equal(build,meta.version,'HTML build marker and version.json must match');
+assert.match(build,/^1\.3\.6\.3-/,'wrong release version');
+const mainScript=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]).find(x=>x.length>100000);
+assert(mainScript,'preserved VICE OS inline application code is missing');
+new vm.Script(mainScript,{filename:'vice-os-inline.js'});
+assert(html.includes('function liveBridgeAccounts()'),'verified WSS snapshot gate missing');
+assert(html.includes('a.realEquityVerified!==true'),'MetaApi real broker mode gating missing');
+assert(html.includes("mode!=='LIVE'"),'bridge LIVE-only account gate missing');
+assert(/const memberKey=\(?stem\)?=>/.test(html),'per-user WSS storage missing');
+assert(html.includes('try{Link.stop()}catch(_){}'),'bridge signout cleanup missing');
+assert(!html.includes('id="mt5Password"'),'browser MT5 password input must not exist');
+assert(!html.includes("localStorage.setItem('vice-link',"),'shared browser bridge credential storage present');
+assert(edge.includes("terminalMode:data.type==='ACCOUNT_TRADE_MODE_REAL'"),'broker-reported terminal mode gate missing');
+assert(edge.includes("realEquityVerified:row.account_mode==='LIVE'&&info.terminalMode==='LIVE'"),'LIVE real equity guard missing');
+assert(edge.includes("'password' in body"),'client-submitted MT5 passwords must be rejected');
+assert(edge.includes(".eq('owner_id',uid)"),'MT5 cloud account owner filter missing');
+assert(meta.unverified?.some(v=>/MetaApi|token|broker/i.test(v)),'external broker acceptance must not be marked certified');
+console.log('PASS',meta.version,'— syntax, session isolation, live verified equity, password refusal, and no-credential storage.');
+console.log('Reminder: automated tests do NOT certify MetaApi token activation or Netlify publication.');
