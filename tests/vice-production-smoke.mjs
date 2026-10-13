@@ -8,6 +8,9 @@ import { createHash } from 'node:crypto';
 
 const ORIGIN = (process.env.VICE_PRODUCTION_ORIGIN || 'https://vice4x.netlify.app').replace(/[/]+$/,'');
 const expected = JSON.parse(readFileSync('version.json','utf8')).version;
+const source = readFileSync('index.html','utf8');
+const publicAnonKey = source.match(/const SUPABASE_ANON_KEY = '([^']+)'/)?.[1] || '';
+const authGatewayUrl = source.match(/const SUPABASE_URL = '([^']+)'/)?.[1] || '';
 const attempts=Number(process.env.VICE_SMOKE_ATTEMPTS||'6');
 const delayMs=Number(process.env.VICE_SMOKE_DELAY_MS||'10000');
 const results=[];
@@ -50,10 +53,10 @@ try{
  else record('TURN_endpoint','WARN',`HTTP ${r.status} (manual authenticated/WebRTC acceptance remains required)`);
 }catch(e){record('TURN_endpoint','WARN',e.message)}
 try{
- const url='https://sdsaewumabzjjvsmqqsl.supabase.co/auth/v1/health';
+ const url=authGatewayUrl.replace(/[/]+$/,'')+'/auth/v1/health';
  const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),10000);
  try{
- const r=await fetch(url,{signal:ctrl.signal,headers:{accept:'application/json'}});
+ const r=await fetch(url,{signal:ctrl.signal,headers:{accept:'application/json',apikey:publicAnonKey}});
  record('supabase_auth_gateway',r.ok?'PASS':'WARN',`GET /auth/v1/health HTTP ${r.status}`);
  }finally{clearTimeout(t)}
 }catch(e){record('supabase_auth_gateway','WARN',e.message)}
