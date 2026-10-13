@@ -13,7 +13,7 @@ node tests/vice-1367-contracts.cjs
 # require the separately configured GitHub/CLI production workflow.
 bash scripts/vice-publish-netlify.sh
 node tests/vice-deploy-privacy.cjs
-(cd dist/site && zip -X -q ../VICE_OS_NETLIFY_SITE.zip ./* _headers _redirects 2>/dev/null)
+(cd dist/site && zip -X -q ../VICE_OS_NETLIFY_SITE.zip ./*)
 # Preserve every tracked frontend, backend, documentation, test, release and
 # security file, including superseded-reference safeguards and hidden workflows.
 git archive --format=zip --output=dist/VICE_OS_FULL_SOURCE.zip HEAD
