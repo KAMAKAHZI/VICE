@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VICE OS | Member Application Guide</title>
+<meta name="description" content="Official user guide for VICE OS: access, membership, markets, holdings, academy, security, support and integrations.">
+<style>
+:root{color-scheme:dark;--ink:#e9e8e6;--muted:#a6a5aa;--line:#3b3130;--gold:#d3b37b;--bg:#0b0d11;--card:#12141b;--red:#df5973}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 75% -10%,#272027 0,#0b0d11 45%);color:var(--ink);font:16px/1.72 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+a{color:var(--gold)}a:hover{color:#f0d1a5}
+.wrap{max-width:1100px;padding:24px;margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid var(--line)}
+.brand{font-size:1.35rem;letter-spacing:.15em;font-weight:750;color:var(--gold)}.tag{font:12px monospace;letter-spacing:.08em;color:var(--muted)}
+.hero{padding:60px 0 34px}h1{font:clamp(2.4rem,6vw,4.8rem)/1.1 Georgia,serif;font-weight:400;letter-spacing:-.04em;margin:14px 0}h1 em{color:var(--gold)}
+.lead{max-width:750px;font-size:1.14rem;color:var(--muted)}.stamp{border:1px solid var(--line);border-radius:30px;padding:6px 12px;color:var(--gold);font:12px monospace;letter-spacing:.04em}
+.layout{display:grid;grid-template-columns:235px 1fr;gap:28px;align-items:start}.nav{position:sticky;top:24px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:18px}
+.nav strong{display:block;margin-bottom:12px;color:var(--gold);letter-spacing:.07em;font-size:.75rem}.nav a{display:block;padding:7px 6px;color:var(--muted);text-decoration:none;font-size:.89rem}.nav a:hover{color:var(--gold)}
+article{min-width:0}section{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:25px 29px;margin-bottom:18px}
+h2{font:1.9rem/1.2 Georgia,serif;font-weight:400;margin:0 0 17px;color:var(--gold)}h3{margin:20px 0 6px;font-size:1rem;color:#f1ded0}
+p{margin:8px 0 16px}ul,ol{padding-left:23px}li{margin:5px 0}code{color:#fae3b8;font:13px ui-monospace,monospace;overflow-wrap:anywhere}
+.notice{background:#2c1b21;border-left:3px solid var(--red);padding:13px 15px;border-radius:4px;color:#f7d7dd;margin:15px 0}
+.ok{border-left-color:var(--gold);background:#242018;color:#f4e9d4}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line)}th{color:var(--gold)}
+footer{padding:25px 0 50px;color:var(--muted);border-top:1px solid var(--line);font-size:.88rem}
+@media(max-width:770px){.layout{display:block}.nav{position:static;margin-bottom:20px}.hero{padding:38px 0 25px}section{padding:23px 19px}}
+@media print{body{background:white;color:#151515}.nav,.top a{display:none}section{border:1px solid #ccc;break-inside:avoid;background:white}a,h2{color:#865e17}}
+</style></head>
+<body><div class="wrap"><header class="top"><div><span class="brand">VICE OS</span><span class="tag"> &nbsp; APPLICATION MANUAL</span></div><a href="/" aria-label="Go to VICE OS application">Open VICE OS →</a></header>
+<div class="hero"><span class="stamp">MEMBER + OPERATOR REFERENCE • v1.3.6.6</span><h1>The complete <em>user guide.</em></h1>
+<p class="lead">How to enter VICE OS, navigate your authenticated workspace, distinguish live data from simulated/reference figures, use member services and troubleshoot connections. Features are role-gated; some integrations require additional provider activation.</p></div>
+<div class="layout"><nav class="nav" aria-label="Guide sections"><strong>GUIDE INDEX</strong>
+<a href="#first">01 · First access</a><a href="#login">02 · Login and recovery</a>
+<a href="#navigation">03 · Navigation</a><a href="#markets">04 · Charts and trading</a>
+<a href="#accounts">05 · Portfolio and MT5</a><a href="#iru">06 · Units and valuations</a>
+<a href="#communication">07 · Communications</a><a href="#academy">08 · Academy</a>
+<a href="#services">09 · Support and services</a><a href="#governance">10 · Holder and DAO records</a>
+<a href="#docs">11 · Documents and wallet</a><a href="#security">12 · Security</a>
+<a href="#diagnostics">13 · Troubleshooting</a><a href="#operators">14 · Operator acceptance</a></nav>
+<article>
+<section id="first"><h2>01 / First access</h2>
+<p>VICE OS is invitation-only. The founder or an authorized operator creates a personalized invitation bound to your email. Open the invite link on the device you intend to use. Use the exact invited email address to create your account, verify your email when prompted, and sign in.</p>
+<ol><li>Open the official app at <a href="/">vice4x.netlify.app</a> and confirm HTTPS.</li><li>Select account creation only when you have a valid, unexpired invitation.</li><li>Use the email address on that invitation; do not share invite links or codes.</li><li>Complete Supabase email verification where required. Refresh and sign in.</li><li>Authorized staff can view issuer modules; ordinary members see only permitted tools.</li></ol>
+<div class="notice ok">Your account access, membership tier, ownership allocation, and app permissions are separate records. Signing in does not itself distribute units, verify broker equity or activate VIP features.</div></section>
+<section id="login"><h2>02 / Login and recovery</h2>
+<h3>Email, username or Google</h3><p>Use email and password, username and password (when a username is provisioned), or “Continue with Google” if that identity is configured. If the account has a registered email/Google identity, choose the sign-in method attached to that identity.</p>
+<h3>Recover password</h3><ol><li>Select “Forgot password?” on the login screen and enter the account email.</li><li>Open the Supabase recovery email, return to the authorized HTTPS site, and enter a new password of at least 12 characters.</li><li>Confirm the password and sign in again.</li></ol>
+<p>Recovery depends on the operator allowing the site URL in Supabase Auth redirect settings and on email delivery. A failed provider connection must not invalidate a valid membership login.</p>
+<h3>Private session</h3><p>Use Sign Out when finished, especially on shared devices. Normal and private browsing sessions may have different site storage; they are not interchangeable.</p></section>
+<section id="navigation"><h2>03 / Your navigation</h2>
+<p>The left navigation organizes features by purpose. On smaller screens, use the menu toggle. Sections shown depend on your assigned server-side role; not all members receive Trade Desk, Treasury, Data Rooms or Compliance access.</p>
+<table><tr><th>Workspace</th><th>Use</th></tr>
+<tr><td>Home / Chart</td><td>Overview, instruments, candles and technical overlays</td></tr>
+<tr><td>Portfolio / Wallet</td><td>Authorized account summaries and local wallet tooling</td></tr>
+<tr><td>Chats & Calls / VIP</td><td>Member communication and role-limited channels</td></tr>
+<tr><td>My IRU & Units</td><td>Internal unit history, designated holdings and reference policy</td></tr>
+<tr><td>Learn & Certify</td><td>Courses, assessments and verifiable certificates</td></tr>
+<tr><td>Help & Tickets / O.I.</td><td>Assistance, request tracking and application support</td></tr>
+<tr><td>Operations</td><td>Holder registry, issuer approvals, audit and reconciliation (staff only)</td></tr></table></section>
+<section id="markets"><h2>04 / Charts, bots and trading</h2>
+<p>My Chart and Trade Desk are separate from live broker execution. Select an instrument and timeframe, confirm the current data source and timestamp, and understand any <b>SIM</b>, <b>FILE</b>, <b>DELAYED</b> or <b>LIVE</b> label before relying on a number.</p>
+<p>VICEBOT/quant analysis panels can show signals, backtests or hypothetical trade setups. A simulation is not a placed order. Broker connectivity and actual orders require explicit, separately tested, authorized integrations. Follow your own risk limits; use demo accounts for initial testing.</p>
+<div class="notice">Never interpret chart simulations or model forecasts as guaranteed trading outcomes, portfolio returns, funded-account eligibility or real execution receipts.</div></section>
+<section id="accounts"><h2>05 / Portfolio, MT5 and external accounts</h2>
+<h3>Portfolio</h3><p>Live verified broker equity must be attributed to the current signed-in user, recent, real-account confirmed, denominated in USD for USD aggregation, and deduplicated against live bridge connections. Historical entries, self-declared balances and DEMO accounts are not evidence of live funds.</p>
+<h3>Connect MT5 without a PC</h3><ol><li>Open <b>MT5 Accounts</b>, then the Cloud MT5 option available to your role.</li><li>Enter a descriptive label and your broker's exact MetaTrader 5 server name; select DEMO or LIVE.</li><li>Approve any displayed third-party hosting costs.</li><li>Follow the generated link to the <b>official MetaApi site</b>. Enter MT5 login and an investor/read-only password there, never into VICE OS.</li><li>Wait for provider provisioning, deploy/start the terminal if required, and refresh account status. Verify broker name, real/demo mode, holdings and freshness.</li></ol>
+<p>The Cloud MT5 connector is read-only. It requires an administrator to configure a MetaApi token securely in Supabase. The external official broker portal is just a website handoff unless an actual broker API integration has been installed. Windows/WSS bridge remains optional and requires its own client.</p></section>
+<section id="iru"><h2>06 / VICE and V4X units</h2>
+<p>The IRU view is your internal record of unit class, history and authorized distributions. A holder tier is determined by recorded entry/contribution class, while any Legacy designation is separately awarded; neither is automatically recalculated from a displayed reference valuation.</p>
+<p>The current issuer <b>management references</b> are VICE $2 per unit and V4X/VPRE $320 per unit. These are <b>not market prices, legally binding appraisals, guaranteed collateral values, lender commitments or proof of third-party fair market value</b>. A lender must independently accept collateral and determine credit terms.</p>
+<p>Institutional actions such as allocation, approval, reserve release and reconciliation require authorized staff and server-side checks. Members cannot directly adjust their own units.</p></section>
+<section id="communication"><h2>07 / Chats, calls and VIP channels</h2>
+<p>Open Chats & Calls to select a public channel or permitted direct conversation. Group channels and any executive/private channel are governed by server-side access rules. Messaging and online presence need a working Supabase realtime connection; remote calls need browser permissions, signalling and a properly provisioned TURN service.</p>
+<p>If calls fail: allow microphone access, confirm your operating system allows the browser to use the microphone, check the app diagnostics, and test again with another member on a separate network. Do not assume every message is independently audited end-to-end encrypted: older key derivation remains unverified for that claim.</p></section>
+<section id="academy"><h2>08 / Academy and certificates</h2><p>Select <b>Learn & Certify</b>. Read the core modules I–VII and complete each four-question server-graded assessment. A passing score is 75% or better on each core module. After all seven qualifying attempts have been recorded, apply for the official course certificate.</p>
+<p>Certificate issuance validates actual server-stored passing scores; changing a value in the browser does not earn a certificate. Download/print your certificate and use the verification flow for authenticity. This is a VICE educational certificate, not a regulated professional license.</p></section>
+<section id="services"><h2>09 / Support, requests and services</h2><p>From Help & Tickets you can view your tickets and submit an issue with a concise subject, what you expected, what happened, the page, the current build, and the approximate time. Never paste a password, authentication token, seed phrase, personal banking password or private API key.</p>
+<p>Services, VIP and marketplace features may require a particular membership tier or operator approval. A submitted request has not been fulfilled until its status is confirmed by the responsible system/operator.</p></section>
+<section id="governance"><h2>10 / Governance, distributions and issuer operations</h2>
+<p>Governance proposals are published by authorized personnel; voting eligibility and tally logic are enforced server-side. Distributions and custody/treasury movements are separate from proposed or reference values; consult their transaction state and actual receipts.</p>
+<p>Staff with the correct role may see Holder Registry, Invites, Treasury, Compliance, Contracts, Audit Log and Reconciliation. Changes to financial rights should use approved, append-only, replay-safe workflows rather than direct table edits.</p></section>
+<section id="docs"><h2>11 / Documents and wallet</h2>
+<p>Documents go to an access-controlled private storage bucket. Its current object-size limit is 10 MB. Upload your own permitted documents and verify a successful metadata record; other members should not be able to read your files.</p>
+<p>My Wallet is separate from custody proof. Never reveal your seed phrase/private key. Check chain, wallet account, signed message and transaction confirmation. Tokens, internal IRUs, and independently held on-chain assets are separate things; do not infer chain ownership from an application screen.</p></section>
+<section id="security"><h2>12 / Security and privacy</h2><ul>
+<li>Use a unique password, verify HTTPS and prefer MFA where available.</li><li>Do not upload trade passwords or MetaApi operator tokens to VICE or chat.</li><li>Operator secrets belong in provider secret managers; the browser key is a public Supabase anon key, not a service-role secret.</li><li>Read-only connectors do not authorize trading. Do not share the account on a communal device.</li><li>Report suspicious account changes and revoke compromised access through the operator immediately.</li></ul></section>
+<section id="diagnostics"><h2>13 / Troubleshooting connections</h2><ol>
+<li>Open <b>Check Application Connections</b> from login, or <b>Run Diagnostics</b> when authenticated.</li><li>Check that <b>Published version</b> matches the displayed build, currently <code>1.3.6.6-INTEGRATION-QA</code>.</li><li>Check Supabase Auth and session; when logged in, check Member Profile, Holder Registry, Academy, Support and Governance.</li><li>Check the Market Search Proxy, TURN Calls and Cloud MT5 only for services you use.</li><li>If your sidebar disappears, verify the session and member profile first. Optional MT5 failures should not sign you out.</li><li>After an operator confirms a successful Netlify deploy, open the home URL without an old <code>?build=</code> query, refresh and sign in again.</li><li>Save the displayed diagnostic statuses and send a ticket with a timestamp. A service marked WARN needs investigation; a PASS is only a connectivity check, not a completed feature test.</li></ol>
+<div class="notice ok">If you see “CloudMT5.reset is not a function”, you are still running an obsolete site build. The fix must be published from the current GitHub main branch to Netlify before it can appear in your browser.</div></section>
+<section id="operators"><h2>14 / Operator acceptance and limitations</h2><p>Before declaring production ready, verify actual Netlify deploy SHA, email/username/Google login and recovery, two separate member roles, Supabase storage separation, IRU replay/caps, certificate falsification resistance, realtime messaging, TURN cross-network calls, provider-side MT5 investor credentials, market-data latency, account-level isolation, governance approvals and ledger accounting.</p><p>Service diagnostics are observational. Provider tokens, TURN secrets, a second test member, regulated financial validation, on-chain attestations and live-trading behavior must all be independently provisioned, permissioned and accepted. Do not label any test “100%” while those gates are open.</p></section>
+</article></div><footer>VICE OS member documentation. Application source and backend privileges determine the actual live behavior. This guide does not create legal ownership or authorize a financial transaction. | <a href="/">Back to VICE OS</a></footer></div></body></html>
