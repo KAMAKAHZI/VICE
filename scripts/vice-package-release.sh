@@ -9,7 +9,7 @@ for f in "${required[@]}"; do
 done
 node tests/vice-release-safety.cjs
 node tests/vice-1367-contracts.cjs
-node tests/vice-1369-integrity.cjs && node tests/vice-1378-audit-turn.cjs
+node tests/vice-1369-integrity.cjs && node tests/vice-1378-audit-turn.cjs && node tests/vice-1379-membership-signature.cjs
 # The manual Netlify Drop ZIP contains only public files. Cloud functions
 # require the separately configured GitHub/CLI production workflow.
 bash scripts/vice-publish-netlify.sh
@@ -21,7 +21,7 @@ git archive --format=zip --output=dist/VICE_OS_FULL_SOURCE.zip HEAD
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 unzip -q dist/VICE_OS_FULL_SOURCE.zip -d "$work"
-(cd "$work" && node tests/vice-release-safety.cjs && node tests/vice-1367-contracts.cjs && node tests/vice-1369-integrity.cjs && node tests/vice-1378-audit-turn.cjs)
+(cd "$work" && node tests/vice-release-safety.cjs && node tests/vice-1367-contracts.cjs && node tests/vice-1369-integrity.cjs && node tests/vice-1378-audit-turn.cjs && node tests/vice-1379-membership-signature.cjs)
 sha256sum dist/VICE_OS_NETLIFY_SITE.zip dist/VICE_OS_FULL_SOURCE.zip > dist/SHA256SUMS.txt
 echo "Both ZIPs built from the same GitHub commit: $(git rev-parse --verify HEAD)"
 cat dist/SHA256SUMS.txt
