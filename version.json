@@ -1,8 +1,8 @@
 {
-  "version": "1.3.6.5-AUTH-DIAGNOSTICS",
-  "date": "2026-10-12",
-  "status": "SOURCE_COMMITTED_PRODUCTION_DEPLOY_AND_REAL_LOGIN_PENDING_VERIFICATION",
-  "release_summary": "Correct browser auth-session reset storage key, add read-only member diagnostics for site/Auth/profile/MT5/TURN, preserve valid login on optional plugin error.",
+  "version": "1.3.6.6-INTEGRATION-QA",
+  "date": "2026-10-13",
+  "status": "CODE_AND_BACKEND_SECURITY_RELEASED_EXTERNAL_PRODUCTION_ACCEPTANCE_PENDING",
+  "release_summary": "Secure password reset flow, expanded read-only self-checks across market data, support, Academy, holder registry and governance, 14 performance indexes, RLS hardening and server-verified certificate grades.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -11,7 +11,12 @@
     "registry": "public.vice_mt5_cloud_accounts",
     "registry_rls": true,
     "edge_function_version_at_release": 9,
-    "edge_function_last_verified": "ACTIVE_JWT_SERVER_REAL_MODE_CHECK_INSTALLED_V9"
+    "edge_function_last_verified": "ACTIVE_JWT_SERVER_REAL_MODE_CHECK_INSTALLED_V9",
+    "last_database_migrations": [
+      "vice_1365_foreign_key_performance_indexes",
+      "vice_1366_high_priority_row_security_hardening",
+      "vice_1366_verified_academy_certificate_awards"
+    ]
   },
   "provider": {
     "name": "MetaApi",
@@ -54,7 +59,11 @@
     "real user username/password and Google OAuth acceptance",
     "real-time calls on independent networks",
     "end-to-end encryption of chat",
-    "financial transactions and external provider integrations"
+    "financial transactions and external provider integrations",
+    "Netlify publication of 1.3.6.6",
+    "password recovery via actual email link",
+    "post-RLS member vs admin workflow testing",
+    "market data upstream acceptance"
   ],
   "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
   "not_yet_certified": [
@@ -72,6 +81,8 @@
     "auth_local_reset_corrected": true,
     "optional_module_error_no_forced_signout": true,
     "diagnostics_available_on_login_and_account_menu": true,
-    "real_user_login_certified": false
+    "real_user_login_certified": false,
+    "password_recovery_form_implemented": true,
+    "additional_readonly_diagnostics": true
   }
 }
