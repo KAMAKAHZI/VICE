@@ -1,0 +1,86 @@
+# Read-only diagnostics. This job never builds, deploys, changes settings, or reads secret values.
+name: VICE OS Netlify read-only deploy diagnostics
+on:
+  push:
+    branches: [vice-netlify-cff64e8-publish]
+    paths: [.github/workflows/vice-netlify-deploy-diagnostics.yml]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect only deployment state and access status for existing vice4x
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          const token = process.env.NETLIFY_AUTH_TOKEN;
+          const siteId = process.env.NETLIFY_SITE_ID;
+          const sha = 'cff64e8e2ca898c2291e3b28da58f18ae0998137';
+          if (!token || !siteId) throw new Error('Required Netlify credentials are missing.');
+          const redact = value => JSON.parse(JSON.stringify(value).split(token).join('[REDACTED]'));
+          const read = async path => {
+            const response = await fetch('https://api.netlify.com/api/v1' + path, {
+              headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+              redirect: 'error', signal: AbortSignal.timeout(20000)
+            });
+            const data = await response.json().catch(() => ({}));
+            return { status: response.status, data };
+          };
+          const selectDeploy = d => ({ id: d.id, state: d.state, context: d.context, branch: d.branch,
+            commit_ref: d.commit_ref, matches_source: d.commit_ref === sha || String(d.title || '').includes(sha),
+            error_message: d.error_message, created_at: d.created_at, published_at: d.published_at });
+          const sitePath = '/sites/' + encodeURIComponent(siteId);
+          const s = await read(sitePath);
+          if (s.status !== 200 || s.data.name !== 'vice4x' || s.data.id !== siteId) throw new Error('Existing vice4x project could not be verified.');
+          const site = s.data;
+          const deployments = await read(sitePath + '/deploys?per_page=30');
+          const report = {
+            generated_at: new Date().toISOString(), read_only: true,
+            project: { name: site.name, suspended: site.suspended, disabled: site.disabled, disabled_reason: site.disabled_reason,
+              builds_stopped: site.build_settings?.stop_builds, production_branch: site.build_settings?.repo_branch,
+              publish_directory: site.build_settings?.dir, account_type: site.account_type, git_provider: site.build_settings?.provider,
+              repository_matches: String(site.build_settings?.repo_url || '').includes('KAMAKAHZI/VICE') },
+            published_deploy: site.published_deploy ? selectDeploy(site.published_deploy) : null,
+            deploy_list_status: deployments.status,
+            latest_deploys: Array.isArray(deployments.data) ? deployments.data.slice(0,15).map(selectDeploy) : []
+          };
+          if (site.account_id) {
+            const a = await read('/accounts/' + encodeURIComponent(site.account_id));
+            report.account_status = a.status;
+            report.account = a.status === 200 ? {
+              type: a.data.type, suspended: a.data.suspended, disabled: a.data.disabled,
+              billing_status: a.data.billing_status, delinquent: a.data.delinquent,
+              role: a.data.role, member_role: a.data.member_role
+            } : { message: a.data.message || a.data.error || null };
+            const environment = await fetch('https://api.netlify.com/api/v1/accounts/' + encodeURIComponent(site.account_id) +
+              '/env?site_id=' + encodeURIComponent(siteId), {
+              headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+              redirect: 'error', signal: AbortSignal.timeout(20000)
+            });
+            report.environment_access_status = environment.status;
+            await environment.body?.cancel();
+          }
+          const publicVersion = await fetch('https://vice4x.netlify.app/version.json', {
+            redirect: 'error', signal: AbortSignal.timeout(15000), cache: 'no-store'
+          });
+          report.production_http = publicVersion.status;
+          report.production_version = (await publicVersion.json().catch(() => ({}))).version || null;
+          const safe = redact(report);
+          writeFileSync('netlify-deploy-diagnostics.json', JSON.stringify(safe,null,2) + '\n');
+          console.log(JSON.stringify(safe,null,2));
+          NODE
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_NETLIFY_READONLY_DIAGNOSTICS
+          path: netlify-deploy-diagnostics.json
+          if-no-files-found: ignore
