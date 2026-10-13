@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.6.4-LOGIN-HOTFIX" data-pwa="1">
+<html lang="en" data-build="1.3.6.5-AUTH-DIAGNOSTICS" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1223,6 +1223,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
       <button type="button" class="login-link" data-act="invite-help">Have an Invite?</button>
     </div>
     <div class="login-legal">Invite-only. All actions audited.</div>
+    <button type="button" class="login-link" style="margin-top:12px" data-act="vice-health-check">Check Application Connections</button>
     <button type="button" class="login-link" style="margin-top:14px;opacity:.55" data-act="auth-reset">Trouble signing in? Reset local session</button>
   </div>
 </section>
@@ -1346,7 +1347,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.6.4-LOGIN-HOTFIX', date: '2026-10-12' };
+const BUILD = { version: '1.3.6.5-AUTH-DIAGNOSTICS', date: '2026-10-12' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -2137,6 +2138,29 @@ async function login(){
     const btn = $('loginBtn'); if(btn){ btn.disabled=false; btn.textContent='Log In'; }
   }
   authBusy = false;
+  const btn=$('loginBtn');if(btn){btn.disabled=false;btn.textContent='Log In';}
+}
+
+// Read-only connectivity checks. Never upload credentials or wallet recovery material.
+async function viceServiceDiagnostics(){
+  openModal('VICE OS — Connection Diagnostics','<p class="note">Read-only connectivity checks. No passwords or wallet keys are collected.</p><div id="viceHealthRows" role="status" aria-live="polite">Checking...</div>');
+  const rows=[],write=(name,status,detail)=>{
+    rows.push([name,status,detail]);const host=$('viceHealthRows');
+    if(host)host.innerHTML=rows.map(x=>'<div class="row" style="display:block;padding:10px"><b>'+esc(x[0])+'</b> <span class="bdg '+(x[1]==='PASS'?'gr':x[1]==='WARN'?'wn':'rd')+'">'+esc(x[1])+'</span><div class="meta">'+esc(x[2])+'</div></div>').join('')+'<p class="note">Build '+esc(BUILD.version)+'. Checks are not a certification of live trading, encryption or account balances.</p>';
+  };
+  const timeout=ms=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return {signal:c.signal,done:()=>clearTimeout(t)}};
+  write('Browser runtime','PASS','Build '+BUILD.version);
+  write('Browser crypto',globalThis.crypto?.subtle?'PASS':'FAIL',globalThis.crypto?.subtle?'Web Crypto supported.':'Web Crypto unavailable; do not use the wallet.');
+  try{const g=timeout(7000);try{const r=await fetch('/version.json?v='+Date.now(),{cache:'no-store',signal:g.signal});const v=r.ok?await r.json():null;write('Published version',v?.version===BUILD.version?'PASS':'WARN',v?.version===BUILD.version?'Version manifest matches.':'Version mismatch or stale Netlify build; review deploy and refresh.')}finally{g.done()}}catch(e){write('Published version','WARN',e.message)}
+  try{const g=timeout(7000);try{const r=await fetch(SUPABASE_URL+'/auth/v1/health',{headers:{apikey:SUPABASE_ANON_KEY},signal:g.signal});write('Supabase Auth',r.ok?'PASS':'WARN','HTTP '+r.status)}finally{g.done()}}catch(e){write('Supabase Auth','WARN',e.message)}
+  let session=null;
+  try{const x=await sb.auth.getSession();session=x.data?.session||null;write('Session',session?.user?.id?'PASS':'WARN',session?.user?.id?'Signed in.':'No active login; sign in to run private checks.')}catch(e){write('Session','FAIL',e.message)}
+  if(session?.user?.id){
+    try{const {data,error}=await sb.from('profiles').select('id').eq('id',session.user.id).maybeSingle();write('Member profile',error?'FAIL':data?.id?'PASS':'WARN',error?error.message:data?'Authorized profile exists.':'Profile or invitation not provisioned.')}catch(e){write('Member profile','FAIL',e.message)}
+    try{const {data,error}=await sb.functions.invoke('vice-mt5-cloud',{body:{action:'status'}});write('MT5 provider',error?'WARN':data?.configured?'PASS':'WARN',error?error.message:data?.configured?'Service configured; broker login must be separately tested.':'METAAPI_TOKEN operator setup required.')}catch(e){write('MT5 provider','WARN',e.message)}
+    try{const g=timeout(7000);try{const r=await fetch('/.netlify/functions/turn-credentials',{headers:{Authorization:'Bearer '+session.access_token},signal:g.signal});write('Calls TURN',r.ok?'PASS':'WARN','Relay credential endpoint HTTP '+r.status+'; call quality requires two-network testing.')}finally{g.done()}}catch(e){write('Calls TURN','WARN',e.message)}
+  }
+  return rows;
 }
 
 async function forgotPassword(){
@@ -2235,10 +2259,16 @@ async function completeAuthenticatedSetup(user){
     setTimeout(()=>loadCandles().catch(e=>console.warn(e)),250);
   }catch(e){
     console.error('Authentication setup:',e);
-    S.user=null;
-    await sb.auth.signOut().catch(()=>{});
-    $('login').hidden=false;
-    toast('Access not provisioned: '+e.message,'error');
+    // The account profile determines access. An optional plugin must never
+    // invalidate a member's authenticated Supabase session.
+    if(S.user?.id===user.id && S.profile?.role){
+      try{showApp()}catch(renderError){console.error('App recovery:',renderError);}
+      toast('Signed in. Some modules could not load; run Diagnostics or refresh.','warn');
+    }else{
+      S.user=null;
+      const entry=$('login');if(entry)entry.hidden=false;
+      toast('Membership profile could not be loaded: '+(e.message||'try again')+'. Run Application Connections.','error');
+    }
   }
 }
 
@@ -2707,12 +2737,13 @@ document.addEventListener('click', (e) => {
     case 'open-user': openUserMenu(); return;
     case 'google-sign-in': signInWithGoogle(); return;
     case 'forgot': forgotPassword(); return;
+    case 'vice-health-check': viceServiceDiagnostics(); return;
     case 'invite-help': openInviteHelp(); return;
     case 'sign-out': logout(); return;
     case 'auth-reset': {
       (async()=>{
         try{await sb.auth.signOut();}catch(_){}
-        try{localStorage.removeItem('vice-os-auth-v'+BUILD.version);}catch(_){}
+        try{localStorage.removeItem('vice-os-auth-v1.0.1');}catch(_){}
         sessionStorage.removeItem('pending_invite');location.assign(location.pathname);
       })();return;
     }
@@ -2732,6 +2763,7 @@ function openUserMenu(){
     <div class="mact">
       <button class="btn btn-g" data-act="modal-close" onclick="setTimeout(()=>go('profile'),10)">Edit Profile</button>
       ${isOwner()?`<button class="btn btn-gd" data-act="modal-close" onclick="setTimeout(()=>openModeSwitch(),10)">Switch Mode</button>`:''}
+      <button class="btn btn-g" data-act="vice-health-check">Run Diagnostics</button>
       <button class="btn btn-r" data-act="sign-out">${APP_MODE==='SIM'?'Exit SIM':'Sign Out'}</button>
     </div>
   `);
