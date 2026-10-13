@@ -39,6 +39,33 @@ await check('No public cloud MT5 records',async()=>{
  const good=[401,403,404].includes(r.status)||(r.ok&&Array.isArray(r.json)&&r.json.length===0);
  save('No public cloud MT5 records',good?'PASS':'FAIL','Anonymous broker records HTTP '+r.status+', rows '+(Array.isArray(r.json)?r.json.length:'not returned'));
 });
+// Every finance and member record must reject anonymous reading; a 200 []
+// response is acceptable under PostgreSQL RLS, while even one row is a leak.
+const privateTables=[
+ ['Holder registry','holders','id,client_id'],
+ ['Private allocations','allocations','id,holder_id'],
+ ['Issuer distributions','distributions','id,total'],
+ ['Member documents','documents','id,url'],
+ ['Financial treasury','treasury_tx','id,amount'],
+ ['External bank metadata','external_accounts','id,owner_id'],
+ ['Legacy broker metadata','mt5_accounts','id,owner_id'],
+ ['Governance ballots','vice_proposal_votes','id,voter_id'],
+ ['Support tickets','support_tickets','id,profile_id'],
+ ['Institutional audit trail','audit_log','id,actor_id']
+];
+for(const [name,table,fields] of privateTables){
+ await check('Anonymous '+name,async()=>{
+  const r=await req('/rest/v1/'+table+'?select='+encodeURIComponent(fields)+'&limit=1');
+  const safe=[401,403,404].includes(r.status)||(r.ok&&Array.isArray(r.json)&&r.json.length===0);
+  save('Anonymous '+name,safe?'PASS':'FAIL','HTTP '+r.status+'; rows '+(Array.isArray(r.json)?r.json.length:'not disclosed'));
+ });
+}
+await check('Anonymous super-admin backend diagnostics blocked',async()=>{
+ const r=await req('/rest/v1/rpc/vice_operational_health',{});
+ const safe=[401,403,404].includes(r.status)||
+  (r.ok&&r.json?.status!=='PASS'&&r.json?.error);
+ save('Anonymous super-admin backend diagnostics blocked',safe?'PASS':'FAIL','RPC HTTP '+r.status);
+});
 await check('MT5 Edge Function rejects anon JWT',async()=>{
  const r=await req('/functions/v1/vice-mt5-cloud',{action:'status'});
  // Anon JWT MUST NOT reveal provider configuration nor register broker accounts.
