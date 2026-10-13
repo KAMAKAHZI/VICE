@@ -1,4 +1,3 @@
--- Production-applied account provenance hardening. No existing account data changed.
 -- VICE OS manual-account provenance: never allow a browser to assert
 -- independently verified bank balances or broker connection states.
 -- Existing records and any provider-managed cloud connector records unchanged.
@@ -35,4 +34,3 @@ GRANT INSERT(id,owner_id,broker,login,server,display_mode,created_at)
  ON TABLE public.mt5_accounts TO authenticated;
 GRANT UPDATE(broker,login,server,display_mode)
  ON TABLE public.mt5_accounts TO authenticated;
-

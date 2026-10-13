@@ -1,5 +1,3 @@
--- Deployed migration from Supabase migration history, recorded by version.
--- Do not rerun on a previously migrated database without a DBA review.
 -- Server-side award verification. Browser scores/digests are untrusted.
 CREATE OR REPLACE FUNCTION public.issue_certificate(
  p_name text, p_course_title text, p_scores jsonb,

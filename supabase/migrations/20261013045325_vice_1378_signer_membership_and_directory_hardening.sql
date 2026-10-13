@@ -1,4 +1,3 @@
--- Production-applied migration; authorization tests executed with synthetic JWT claims and rolled back.
 -- VICE OS controlled release: provisioned membership and document signing grants.
 -- No existing holder, document, certificate, or financial data is changed.
 CREATE OR REPLACE FUNCTION public.list_member_directory()
@@ -109,4 +108,3 @@ BEGIN
 END $fn$;
 REVOKE ALL ON FUNCTION public.sign_document(uuid,text,boolean) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.sign_document(uuid,text,boolean) TO authenticated;
-

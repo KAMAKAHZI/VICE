@@ -1,4 +1,3 @@
--- Applied: anonymous account registrations cannot bypass invitation through authenticated JWT access.
 
 -- VICE OS 1.3.6.9: invite-only access must be enforced below the UI.
 -- An auth.users record without a provisioned public.profiles membership must
@@ -55,4 +54,3 @@ BEGIN
    END IF;
  END LOOP;
 END $block$;
-

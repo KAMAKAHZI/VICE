@@ -1,4 +1,3 @@
--- Verified production Supabase migration, source-controlled verbatim.
 
 -- VICE OS 1.3.6.8 — Fill two missing privileged application RPCs and
 -- provide safe backend integrity diagnostics. No user data is changed.
@@ -161,4 +160,3 @@ BEGIN
 END $function$;
 REVOKE ALL ON FUNCTION public.lookup_email_for_login(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.lookup_email_for_login(text) TO anon,authenticated;
-

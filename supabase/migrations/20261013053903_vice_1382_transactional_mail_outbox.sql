@@ -1,3 +1,4 @@
+
 create table if not exists public.email_outbox (
  id uuid primary key default gen_random_uuid(),
  event_key text not null unique,

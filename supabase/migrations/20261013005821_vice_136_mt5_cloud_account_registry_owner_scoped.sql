@@ -1,5 +1,3 @@
--- VICE OS v1.3.6: owner-scoped cloud MT5 provider account mapping.
--- No credentials, trading tokens, or live trading authorization in table.
 CREATE TABLE IF NOT EXISTS public.vice_mt5_cloud_accounts (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  owner_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -17,4 +15,4 @@ CREATE TABLE IF NOT EXISTS public.vice_mt5_cloud_accounts (
 CREATE INDEX IF NOT EXISTS vice_mt5_cloud_accounts_owner_idx ON public.vice_mt5_cloud_accounts(owner_id,created_at DESC);
 ALTER TABLE public.vice_mt5_cloud_accounts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.vice_mt5_cloud_accounts FROM PUBLIC,anon,authenticated;
-COMMENT ON TABLE public.vice_mt5_cloud_accounts IS 'Owner-scoped MT5 provider account mapping. Access through authenticated Supabase Edge Function only; no MT5 password stored.';
+COMMENT ON TABLE public.vice_mt5_cloud_accounts IS 'Read-only MT5 portfolio connector mapping; credentials configured at provider-hosted page. Edge function owner-scoped read.';

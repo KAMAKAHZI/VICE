@@ -1,4 +1,3 @@
--- Applied to production Supabase before source-control archival. Preserve order.
 
 -- Certificate integrity: no direct changes to grades or dates from user JWT.
 -- Server-issued certificate creation/revocation functions remain available.
@@ -43,4 +42,3 @@ BEGIN
    END IF;
  END LOOP;
 END $m$;
-

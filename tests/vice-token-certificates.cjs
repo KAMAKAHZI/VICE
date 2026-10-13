@@ -17,9 +17,9 @@ for(const item of ['units_held_before','vice_reference_cents','v4x_reference_cen
  assert(verify.includes(item),'Verification omits issuer-signed snapshot field '+item);
 const migrations=[
  '20261013052749_vice_1380_verified_portfolio_token_certificates.sql',
- '20261013053011_vice_1381_bind_all_certified_portfolio_fields.sql',
- '20261013053500_vice_1382_transactional_mail_outbox.sql',
- '20261013054800_vice_1383_distribution_certificate_on_issuer_paid.sql'
+ '20261013053513_vice_1381_bind_all_certified_portfolio_fields.sql',
+ '20261013053903_vice_1382_transactional_mail_outbox.sql',
+ '20261013053953_vice_1383_distribution_certificate_on_issuer_paid.sql'
 ];
 for(const file of migrations)assert(fs.existsSync(path.join(root,'supabase/migrations',file)),
  'Missing historical live Supabase migration in GitHub: '+file);

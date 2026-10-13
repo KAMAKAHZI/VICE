@@ -1,4 +1,3 @@
--- Deployed to production Supabase and tested using rollback-only negative JWT simulation.
 -- VICE OS 1.3.6.10: no implicit null=missing member identity for signing;
 -- directory and quiz functions require server-provisioned member profiles.
 CREATE OR REPLACE FUNCTION public.sign_document(
@@ -90,4 +89,3 @@ REVOKE ALL ON FUNCTION public.submit_academy_quiz(text,integer[]) FROM PUBLIC,an
 GRANT EXECUTE ON FUNCTION public.sign_document(uuid,text,boolean),
  public.list_member_directory(),
  public.submit_academy_quiz(text,integer[]) TO authenticated;
-

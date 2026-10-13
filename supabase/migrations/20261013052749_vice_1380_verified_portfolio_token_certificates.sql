@@ -1,3 +1,4 @@
+
 create table if not exists public.token_certificates (
  id uuid primary key default gen_random_uuid(),
  cert_id text not null unique check(cert_id ~ '^VCT-[A-F0-9]{4}(-[A-F0-9]{4}){3}$'),

@@ -1,4 +1,3 @@
--- Production-applied: VIP records private to provisioned VIP members and staff.
 
 -- Extend defense in depth to the legacy VIP discussion tables.
 -- Membership is an independent gate; VIP channel records cannot be read
@@ -36,4 +35,3 @@ FOR INSERT TO authenticated WITH CHECK (
    AND (NOT ch.admin_only OR (SELECT public.is_admin()))
  )
 );
-

@@ -1,5 +1,3 @@
--- Deployed migration from Supabase migration history, recorded by version.
--- Do not rerun on a previously migrated database without a DBA review.
 -- Prevent direct identity/role escalation while restoring self-service profile edits.
 REVOKE INSERT, UPDATE, DELETE ON TABLE public.profiles FROM anon,authenticated;
 GRANT SELECT ON TABLE public.profiles TO authenticated;

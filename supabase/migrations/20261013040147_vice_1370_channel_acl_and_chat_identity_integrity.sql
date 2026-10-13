@@ -1,4 +1,3 @@
--- Applied to live Supabase production. Privilege-safe chat RLS.
 
 -- VICE OS 1.3.6.9 security: enforce channel permissions at the database.
 -- Client navigation is not an authorization boundary; RLS is.
@@ -68,4 +67,3 @@ WITH CHECK (
  AND length(text) BETWEEN 1 AND 10000
  AND EXISTS (SELECT 1 FROM public.profiles pr WHERE pr.id=peer_id)
 );
-

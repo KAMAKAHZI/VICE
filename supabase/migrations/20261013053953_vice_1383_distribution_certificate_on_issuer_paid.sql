@@ -1,3 +1,4 @@
+
 alter table public.token_certificates
 add column if not exists source_distribution_id uuid unique references public.distributions(id);
 create or replace function public.token_cert_digest(p public.token_certificates)

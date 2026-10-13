@@ -1,8 +1,8 @@
 {
   "version": "1.3.8.0-IRU-CERTIFICATES",
   "date": "2026-10-13",
-  "status": "STAGING_BRANCH_NO_PRODUCTION_DEPLOYMENT_LIVE_ACCEPTANCE_PENDING",
-  "release_summary": "Staged certificate-enabled front end, dual-program QR/barcode verification and operational registries. Live issuer issuance, SMTP, cross-member calls, MT5 provider and Netlify production acceptance are not yet certified.",
+  "status": "SOURCE_MERGED_GITHUB_PUBLIC_NETLIFY_PRODUCTION_DEPLOYMENT_UNVERIFIED",
+  "release_summary": "The v1.3.8.0 source is in public GitHub main and all 38 Supabase migration versions are synchronized. Actual Netlify deployment, holder authentication, IRU issuance, email, TURN and broker endpoints remain subject to live acceptance.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -213,16 +213,16 @@
     "proposal_counters": "server-managed by SECURITY DEFINER RPC"
   },
   "release_acceptance": {
-    "stage": "STAGING_NOT_MAIN",
+    "stage": "GITHUB_MAIN_SOURCE",
     "deployment_authorized": false,
-    "main_behind_stage": true,
+    "main_behind_stage": false,
     "production_sha_verified": false,
     "live_login_tested": false,
     "live_certificate_issued": false,
     "live_smtp_tested": false,
     "turn_two_party_tested": false,
     "financial_operations_certified": false,
-    "notes": "Schema v1384 is newer than the 1.3.8.0 frontend. Keep release identity aligned and stage tests/migrations before merge."
+    "notes": "Do not imply Netlify deploy is complete until production smoke passes; CLI deploy now manual-only to avoid duplicate charges."
   },
   "last_database_migrations": [
     "vice_1380_verified_portfolio_token_certificates",
@@ -230,5 +230,11 @@
     "vice_1382_transactional_mail_outbox",
     "vice_1383_distribution_certificate_on_issuer_paid",
     "vice_1384_additive_complete_operational_registries"
-  ]
+  ],
+  "migration_sync": {
+    "live_applied_migration_versions": 38,
+    "git_exact_version_files": 38,
+    "backfilled_from": "supabase_migrations.schema_migrations statements",
+    "baseline_for_empty_database_verified": false
+  }
 }

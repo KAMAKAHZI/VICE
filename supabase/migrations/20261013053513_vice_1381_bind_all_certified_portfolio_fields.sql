@@ -1,3 +1,4 @@
+
 create or replace function public.token_cert_digest(p public.token_certificates)
 returns text language sql stable set search_path='' as $$
   select encode(extensions.digest(

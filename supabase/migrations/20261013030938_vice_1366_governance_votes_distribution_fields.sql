@@ -1,4 +1,3 @@
--- Applied to Supabase production sdsaewumabzjjvsmqqsl; recorded by migration version 20261013030938.
 
 -- VICE OS 1.3.6.6 — complete missing governance voting and distribution schema.
 -- Forward-only additive migration: existing records untouched.
@@ -89,4 +88,3 @@ GRANT INSERT, UPDATE(status) ON TABLE public.distributions TO authenticated;
 -- Member account metadata never permits anonymous writers.
 REVOKE INSERT,UPDATE,DELETE,TRUNCATE ON TABLE public.external_accounts FROM anon;
 REVOKE INSERT,UPDATE,DELETE,TRUNCATE ON TABLE public.mt5_accounts FROM anon;
-

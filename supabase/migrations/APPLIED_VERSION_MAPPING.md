@@ -1,17 +1,7 @@
-# Live Supabase migration reconciliation — 2026-10-13
+# Exact Supabase migration ledger — 2026-10-13
 
-Project: `sdsaewumabzjjvsmqqsl` (VICE). This file is an evidence record, not a migration to run.
+Exported 38 applied SQL migration definitions directly from the live project's `supabase_migrations.schema_migrations.statements`. Each file uses the exact version in the ledger. No new financial records or issuances were created by synchronizing source control.
 
-| Name | Database migration version | Source-package filename version |
-|---|---|---|
-| vice_1380_verified_portfolio_token_certificates | 20261013052749 | 20261013052749 |
-| vice_1381_bind_all_certified_portfolio_fields | 20261013053513 | 20261013053011 |
-| vice_1382_transactional_mail_outbox | 20261013053903 | 20261013053500 |
-| vice_1383_distribution_certificate_on_issuer_paid | 20261013053953 | 20261013054800 |
-| vice_1384_additive_complete_operational_registries | 20261013125523 | 20261013073000 |
+**Important:** The existing database has tables and functions predating the first recorded migration. An empty Supabase preview branch may not be reproducible from these migrations alone. Do not add artificial empty bootstrap files, disable the failing check, or apply the intentionally blocked legacy `supabase-setup.sql`. Reconstruct an audited foundation separately before promising new-environment parity. 
 
-The historical source names were preserved on the staging branch for package-test compatibility. **DO NOT blindly run** `supabase db push` against production until the filename/version history is reconciled with `supabase_migrations.schema_migrations`.
-
-Current verified state: 50 public tables, all RLS enabled. Newly added server-only tables have no browser-write grants by design. Source tables are only foundations: their existence is not proof that UIs, external integrations or workflows are live.
-
-**Production publish is blocked pending single-release acceptance**. This staging branch intentionally does not trigger Netlify production.
+Some previous filename timestamps did not match applied migration versions; those versions were moved to the canonical filenames. No migrations were applied to production during this reconciliation.

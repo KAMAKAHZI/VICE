@@ -1,4 +1,3 @@
--- Applied to Supabase production. Chat media private storage configuration.
 
 -- VICE OS 1.3.6.10: authenticated chat media; private, never publicly readable.
 INSERT INTO storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
@@ -81,4 +80,3 @@ FOR DELETE TO authenticated USING (
      OR ((storage.foldername(name))[1]='dm' AND (storage.foldername(name))[4]=(SELECT auth.uid())::text)
   )
 );
-

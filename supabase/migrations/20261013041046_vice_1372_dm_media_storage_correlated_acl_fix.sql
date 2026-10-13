@@ -1,4 +1,3 @@
--- Deployed fix: DM recipient validation uses storage.objects.name, never profiles.name.
 
 -- Correct correlated storage.objects.name lookup; never use profiles.name
 -- in a DM file path authorization decision.
@@ -37,4 +36,3 @@ FOR INSERT TO authenticated WITH CHECK (
    )
  )
 );
-

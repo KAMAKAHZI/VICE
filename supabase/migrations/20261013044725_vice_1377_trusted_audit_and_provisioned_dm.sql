@@ -1,4 +1,3 @@
--- Canonical applied Supabase migration: permission-audited and transaction-tested.
 -- VICE OS 1.3.6.10: trusted audit provenance, invite-only DM access,
 -- and bounded client self-reporting. Existing audit entries are retained.
 -- A browser event is never an issuer-authorized operation.

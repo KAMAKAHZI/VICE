@@ -1,5 +1,3 @@
--- Deployed migration from Supabase migration history, recorded by version.
--- Do not rerun on a previously migrated database without a DBA review.
 -- Index FK join and delete paths identified by Supabase Database Advisor; no data modified.
 CREATE INDEX IF NOT EXISTS idx_academy_attempts_profile_id_fk ON public.academy_attempts (profile_id);
 CREATE INDEX IF NOT EXISTS idx_allocations_holder_id_fk ON public.allocations (holder_id);
@@ -15,4 +13,3 @@ CREATE INDEX IF NOT EXISTS idx_vice_estate_events_actor_id_fk ON public.vice_est
 CREATE INDEX IF NOT EXISTS idx_vice_estate_events_allocation_id_fk ON public.vice_estate_events (allocation_id);
 CREATE INDEX IF NOT EXISTS idx_vice_estate_holder_balances_holder_id_fk ON public.vice_estate_holder_balances (holder_id);
 CREATE INDEX IF NOT EXISTS idx_vip_messages_from_user_fk ON public.vip_messages (from_user);
-

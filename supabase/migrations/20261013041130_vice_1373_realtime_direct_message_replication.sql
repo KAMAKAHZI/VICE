@@ -1,4 +1,3 @@
--- Applied production migration: realtime recipient-directed DMs under RLS.
 
 -- DM client listens to Postgres INSERT events. Enable only RLS-protected DM
 -- table in Supabase Realtime publication. Without this users wait for refresh.
@@ -12,4 +11,3 @@ BEGIN
    ALTER PUBLICATION supabase_realtime ADD TABLE public.dm_messages;
  END IF;
 END $$;
-
