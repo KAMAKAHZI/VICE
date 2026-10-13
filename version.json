@@ -1,15 +1,17 @@
 {
   "version": "1.3.6.3-MT5-ACCOUNT-INTEGRITY",
   "date": "2026-10-12",
-  "status": "ENGINEERING_RELEASE_EDGE_ACTIVE_PROVIDER_LOGIN_NOT_TESTED",
-  "release_summary": "No-PC MT5 cloud account connection, optional Windows bridge and broker portal; corrected verified-equity consolidation",
+  "status": "ENGINEERING_RELEASE_EDGE_ACTIVE_PROVIDER_AUTH_UNVERIFIED",
+  "release_summary": "MT5 cloud REAL terminal verification, fresh live USD equity, duplicate prevention, and session isolation; provider activation and broker E2E pending",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
     "edge_function_active": true,
     "verify_jwt": true,
     "registry": "public.vice_mt5_cloud_accounts",
-    "registry_rls": true
+    "registry_rls": true,
+    "edge_function_version_at_release": 9,
+    "edge_function_last_verified": "ACTIVE_JWT_SERVER_REAL_MODE_CHECK_INSTALLED_V9"
   },
   "provider": {
     "name": "MetaApi",
@@ -48,5 +50,12 @@
     "onchain holdings custody and fair market value",
     "MetaApi operator token activation and real account acceptance test",
     "Netlify production publication of this exact commit"
+  ],
+  "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
+  "not_yet_certified": [
+    "MetaApi token in Supabase secrets",
+    "Real MT5 broker login and quote/equity confirmation",
+    "Netlify production publish verification",
+    "Live order execution is not part of this release"
   ]
 }
