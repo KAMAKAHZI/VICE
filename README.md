@@ -1,6 +1,6 @@
 # VICE OS — Institutional Member Operating System
 
-**Canonical release:** `1.3.6.7-GOVERNANCE-PORTFOLIO`  
+**Canonical release:** `1.3.6.9-ACCESS-CONTROL`  
 **Web app:** https://vice4x.netlify.app/  
 **Member guide:** https://vice4x.netlify.app/guide.html  
 **Backend:** Supabase project `sdsaewumabzjjvsmqqsl`  
@@ -12,7 +12,7 @@ This is the complete VICE OS site source, not a UI mock-up. The application is a
 
 1. Connect the Netlify site to `KAMAKAHZI/VICE`, branch `main`, with publish directory `.`; Netlify Functions directory is `netlify/functions`, as specified in `netlify.toml`.
 2. Deploy from `main`. Never deploy a previous `VICE_OS_1_3_6` upload over the updated source.
-3. Inspect `https://vice4x.netlify.app/version.json` and compare to `index.html` `data-build`. Both must report `1.3.6.7-GOVERNANCE-PORTFOLIO`. A query such as `?build=1364` is **not** a deployment mechanism.
+3. Inspect `https://vice4x.netlify.app/version.json` and compare to `index.html` `data-build`. Both must report `1.3.6.9-ACCESS-CONTROL`. A query such as `?build=1364` is **not** a deployment mechanism.
 4. Open **Check Application Connections** on the sign-in screen, then test the founder's real email/password and Google sign-in where configured. Never share passwords, wallet seed phrases or operator API keys in support channels.
 5. Invite a separate test HOLDER. Confirm no cross-account access to external accounts, storage, member records or private communication channels.
 
