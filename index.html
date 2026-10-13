@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.6-MT5-CLOUD-SAFE-CONNECT" data-pwa="1">
+<html lang="en" data-build="1.3.6.1-MT5-SESSION-SAFETY" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1346,7 +1346,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.6-MT5-CLOUD-SAFE-CONNECT', date: '2026-10-12' };
+const BUILD = { version: '1.3.6.1-MT5-SESSION-SAFETY', date: '2026-10-12' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -2182,6 +2182,7 @@ async function completeAuthenticatedSetup(user){
       jurisdiction:prof.jurisdiction||'CH',timezone:prof.timezone||'UTC',
       avatarInitials:prof.avatar_initials||'NA',avatarUrl:prof.avatar_url||null,
       vipAccess:!!prof.vip_access,memberId:prof.member_id||null,clientId:prof.client_id||null};
+    if(typeof CloudMT5!=='undefined')CloudMT5.reset();
     S.user={id:user.id,email:user.email,name:S.profile.name,role:S.profile.role};
     // A holder-registry RPC failure must not hide every other module.
     // The server still enforces IRU permissions; do not invent a holder balance.
@@ -2200,6 +2201,8 @@ async function completeAuthenticatedSetup(user){
     }
     // Refresh current view with hydrated records while preserving navigation.
     try { renderMain(); paintUserBadges(); } catch(e) { console.warn('Refresh after hydrate:',e); }
+    // Nonblocking, owner-scoped read after account hydration; never requests MT5 credentials.
+    if(typeof CloudMT5!=='undefined')CloudMT5.refresh().catch(e=>console.warn('MT5 cloud refresh:',e));
     try{await Realtime.connect();await Realtime.loadProfiles();}catch(e){console.warn('Realtime:',e);}
     startViceSync();
     setTimeout(()=>loadCandles().catch(e=>console.warn(e)),250);
@@ -2275,6 +2278,8 @@ function startViceSync(){
     try{await Promise.all([refreshGovernance(),refreshIssuerReferences()]);
       if(['governance','command','portfolio','admin'].includes(S.tab))renderMain();
       renderNav();
+      if(typeof CloudMT5!=='undefined'&&(!CloudMT5.state.lastRefresh||Date.now()-CloudMT5.state.lastRefresh>240000))
+        CloudMT5.refresh().catch(e=>console.warn('MT5 cloud sync:',e));
     }catch(e){console.warn('VICE shared-record synchronization:',e);}
   },45000);
 }
@@ -12319,6 +12324,7 @@ window.addEventListener('resize', () => {
 sb.auth.onAuthStateChange((event, session) => {
   try {
     if(event === 'SIGNED_OUT'){
+      if(typeof CloudMT5!=='undefined')CloudMT5.reset();
       S.user = null;
       try { Realtime.disconnect(); } catch(_){}
       const login = $('login'); if(login) login.hidden = false;
@@ -12708,7 +12714,7 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 
 </script>
-<link rel="stylesheet" href="vice-mega.css?v=136">
-<script src="vice-mega.js?v=136"></script>
+<link rel="stylesheet" href="vice-mega.css?v=1361">
+<script src="vice-mega.js?v=1361"></script>
 </body>
 </html>

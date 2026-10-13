@@ -153,7 +153,7 @@ Deno.serve(async(req)=>{
   }
   let providerId=row.provider_account_id;
   if(!providerId){
-   const payload={name:label,server,platform:'mt5',type:'cloud-g2',magic:0,manualTrades:true};
+   const payload={name:label,server,platform:'mt5',type:'cloud-g2',magic:0,manualTrades:true,region:REGIONS.has(CLIENT_REGION)?CLIENT_REGION:'new-york'};
    const {http,data,retryAfter}=await provider('/users/current/accounts','POST',payload,row.provisioning_transaction_id);
    if(http===202)return reply({pending:true,retryAfter:retryAfter||null,id:row.id,message:'Broker settings detection is in progress. Retry this same request in about one minute.'},202,origin);
    providerId=String(data.id||data._id||'');

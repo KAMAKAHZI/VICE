@@ -1,15 +1,16 @@
 {
-  "version": "1.3.6-MT5-CLOUD-SAFE-CONNECT",
+  "version": "1.3.6.1-MT5-SESSION-SAFETY",
   "date": "2026-10-12",
-  "status": "ENGINEERING_RELEASE_CLOUD_PROVIDER_CONFIGURATION_REQUIRED",
-  "release_summary": "No-PC cloud MT5 connection handoff, broker web portal, optional terminal bridge, guarded broker-equity aggregation",
+  "status": "CLOUD_BACKEND_ACTIVE_PROVIDER_CREDENTIALS_NOT_YET_VERIFIED",
+  "release_summary": "MT5 cloud access with authenticated owner-scoped refresh, sign-out isolation, and regional provisioning; no on-site MT5 passwords",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
     "edge_function_deployed": true,
     "edge_function_verify_jwt": true,
     "registry_table": "vice_mt5_cloud_accounts",
-    "registry_migration_applied": true
+    "registry_migration_applied": true,
+    "edge_function_latest_version": 6
   },
   "provider": {
     "name": "MetaApi",
@@ -19,7 +20,26 @@
     "cloud_login_required_for_end_to_end_testing": true,
     "browser_broker_handoff_does_not_sync_equity": true
   },
-  "verified_offline": ["frontend_syntax", "cloud_ui", "optional_bridge", "no_browser_password_field", "CORS_and_JWT_failure_tests", "owner_state_reset", "verified_equity_guard", "existing_v1_3_5_UI_regression"],
-  "not_yet_certified": ["live_MetaApi_token", "real_MT5_broker_authentication", "live_equity_and_position_provider_responses", "Netlify_production_published", "automated_live_trade_execution"],
+  "verified_offline": [
+    "frontend_syntax",
+    "cloud_ui",
+    "optional_bridge",
+    "no_browser_password_field",
+    "CORS_and_JWT_failure_tests",
+    "owner_state_reset",
+    "verified_equity_guard",
+    "existing_v1_3_5_UI_regression",
+    "session_owner_scope_refresh_retests",
+    "Supabase_Edge_v6_active"
+  ],
+  "not_yet_certified": [
+    "live_MetaApi_token",
+    "real_MT5_broker_authentication",
+    "live_equity_and_position_provider_responses",
+    "Netlify_production_published",
+    "automated_live_trade_execution",
+    "MetaApi_token_in_Supabase_secrets",
+    "authentic_live_MT5_broker_acceptance"
+  ],
   "reference_policy": "VICE_2_USD_V4X_320_USD_internal_management_reference_not_FMV"
 }
