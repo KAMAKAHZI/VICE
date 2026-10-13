@@ -10,15 +10,16 @@
     "edge_function_verify_jwt": true,
     "registry_table": "vice_mt5_cloud_accounts",
     "registry_migration_applied": true,
-    "edge_function_latest_version": 6
+    "edge_function_last_verified": "ACTIVE_WITH_JWT_AND_GITHUB_SOURCE_MATCH"
   },
   "provider": {
     "name": "MetaApi",
     "requires_server_secret": "METAAPI_TOKEN",
-    "configured_and_authenticated": false,
+    "configured_and_authenticated": null,
     "mt5_passwords_accepted_by_vice": false,
     "cloud_login_required_for_end_to_end_testing": true,
-    "browser_broker_handoff_does_not_sync_equity": true
+    "browser_broker_handoff_does_not_sync_equity": true,
+    "validation_state": "AWAITING_OWNER_CONFIGURED_METAAPI_TOKEN_AND_DEMO_BROKER_TEST"
   },
   "verified_offline": [
     "frontend_syntax",
