@@ -6,7 +6,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-const ORIGIN = (process.env.VICE_PRODUCTION_ORIGIN || 'https://vice4x.netlify.app').replace(/\\/$/,'');
+const ORIGIN = (process.env.VICE_PRODUCTION_ORIGIN || 'https://vice4x.netlify.app').replace(/[/]+$/,'');
 const expected = JSON.parse(readFileSync('version.json','utf8')).version;
 const attempts=Number(process.env.VICE_SMOKE_ATTEMPTS||'6');
 const delayMs=Number(process.env.VICE_SMOKE_DELAY_MS||'10000');
