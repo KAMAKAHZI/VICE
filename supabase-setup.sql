@@ -1,3 +1,14 @@
+-- WARNING: LEGACY BOOTSTRAP SNAPSHOT — DO NOT EXECUTE ON AN EXISTING VICE DATABASE.
+-- This historical script intentionally remains as reference only; it predates
+-- hardened row permissions, invite and ledger/academy RPCs, and MT5 Cloud owner RLS.
+-- Its broad CREATE POLICY statements would UNDO modern authorization guarantees.
+-- Deployed production Supabase migrations are authoritative:
+--  vice_1365_foreign_key_performance_indexes
+--  vice_1366_high_priority_row_security_hardening
+--  vice_1366_verified_academy_certificate_awards
+-- Use forward-only reviewed migrations, never this file, for ongoing changes.
+-- For an empty environment, derive a fresh schema dump and reviewed migrations.
+
 -- ═══════════════════════════════════════════════════════════
 -- VICE OS — Supabase Schema (Google-only, invite-gated)
 -- ═══════════════════════════════════════════════════════════
