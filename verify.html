@@ -15,7 +15,7 @@ footer{text-align:center;color:#6b5f59;margin-top:28px;font:10px 'JetBrains Mono
 @media print{body{padding:0}main{box-shadow:none;background:#fff;color:#000;border:0}.sub,footer{color:#555}}
 </style></head><body><main><div class="logo"><div class="mark"><span>V</span></div> VICE</div>
 <h1>Certificate Verification</h1><p class="sub">VICE CAPITAL INC.</p>
-<form id="verifyForm"><input id="certId" required maxlength="40" autocomplete="off" autocapitalize="characters" placeholder="VCA-XXXX-XXXX-XXXX-XXXX" aria-label="Certificate ID"><button type="submit" id="verifyButton">Verify</button></form>
+<form id="verifyForm"><input id="certId" required maxlength="40" autocomplete="off" autocapitalize="characters" placeholder="VCA- or VCT-XXXX-XXXX-XXXX-XXXX" aria-label="Certificate ID"><button type="submit" id="verifyButton">Verify</button></form>
 <section id="result" aria-live="polite"></section>
 <footer>Authenticity requires a successful response from the official VICE issuance registry.<br>Reference units, training completion and broker performance are distinct records.</footer></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
@@ -139,30 +139,81 @@ const ViceQR = (() => {
 </script>
 <script>
 'use strict';
-const input=document.getElementById('certId');const host=document.getElementById('result');
+const input=document.getElementById('certId');
+const host=document.getElementById('result');
+const row=(label,value)=>`<tr><td>${esc(label)}</td><td>${esc(value??'—')}</td></tr>`;
+const formatUnits=v=>Number(v||0).toLocaleString('en-US',{maximumFractionDigits:0});
+function asMoney(cents){
+ try{const n=BigInt(cents||0);const a=n<0n?-n:n;return (n<0n?'-':'')+'$'+(a/100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')+'.'+String(a%100n).padStart(2,'0');}
+ catch(_){return '—';}
+}
 async function verify(id){
   id=String(id||'').trim().toUpperCase();input.value=id;
-  if(!/^VCA-[A-F0-9]{4}(?:-[A-F0-9]{4}){3}$/.test(id)){
-    host.innerHTML='<div class="verdict invalid">✕ Invalid certificate ID</div><p class="muted">Use the full VCA-XXXX-XXXX-XXXX-XXXX identifier.</p>';return;}
+  const course=/^VCA-[A-F0-9]{4}(?:-[A-F0-9]{4}){3}$/.test(id);
+  const iru=/^VCT-[A-F0-9]{4}(?:-[A-F0-9]{4}){3}$/.test(id);
+  if(!course&&!iru){
+    host.innerHTML='<div class="verdict invalid">✕ Invalid certificate identifier</div><p class="muted">Enter the full VCA- or VCT- certificate ID displayed below the barcode.</p>';
+    return;
+  }
   history.replaceState(null,'','?id='+encodeURIComponent(id));
-  host.setAttribute('aria-busy','true');host.innerHTML='<div class="verdict">◷ Verifying against issuer registry…</div>';
+  host.setAttribute('aria-busy','true');
+  host.innerHTML='<div class="verdict">◷ Checking the issuer registry…</div>';
   document.getElementById('verifyButton').disabled=true;
   try{
-    const {data,error}=await sb.rpc('verify_certificate',{p_cert_id:id});
+    const rpc=course?'verify_certificate':'verify_token_certificate';
+    const {data,error}=await sb.rpc(rpc,{p_cert_id:id});
     if(error)throw error;
-    if(!data||!data.valid){host.innerHTML=`<div class="verdict invalid">✕ Certificate is not authentic</div><p class="muted">${esc(data?.reason||'Certificate not found')}</p>`;return;}
-    const t=Intl.DateTimeFormat('en-US',{dateStyle:'long'}).format(new Date(data.issued_at));
-    const url=location.href;
-    let qr='';try{qr=ViceQR.encode(url,{moduleSize:3}).svg;}catch(e){console.error('QR failed',e);}
-    host.innerHTML=`<div class="verdict valid">✓ Certificate is authentic</div><div class="stamp"><table>
-    <tr><td>Certificate ID</td><td><strong>${esc(data.cert_id)}</strong></td></tr>
-    <tr><td>Recipient</td><td>${esc(data.name)}</td></tr><tr><td>Course</td><td>${esc(data.course)}</td></tr>
-    <tr><td>Issued</td><td>${esc(t)}</td></tr><tr><td>Overall score</td><td>${esc(data.overall_score)}%</td></tr>
-    <tr><td>SHA-256 registry digest</td><td style="font-family:monospace;font-size:10px">${esc(data.digest)}</td></tr>
-    </table>${qr?`<div class="qr" role="img" aria-label="QR linking to this verification page">${qr}</div>`:''}</div>
-    <p class="muted">Validated against the issuer's active, non-revoked record. A certificate is evidence of this training assessment, not a trading license or guaranteed performance.</p>`;
-  }catch(e){host.innerHTML='<div class="verdict invalid">✕ Registry temporarily unavailable</div><p class="muted">Authenticity could not be checked. Retry when online; do not treat this as valid.</p>';}
-  finally{host.removeAttribute('aria-busy');document.getElementById('verifyButton').disabled=false;}
+    if(!data?.valid){
+      const reason=String(data?.reason||'NOT_FOUND');
+      const revoked=reason==='REVOKED';
+      host.innerHTML=`<div class="verdict invalid">✕ ${revoked?'Certificate revoked':'Certificate not verified'}</div>
+        <p class="muted">${esc(reason)}. ${revoked?'This identifier is no longer an active certificate.':'Do not rely on this document as authentic.'}</p>
+        ${revoked?`<p class="muted">Revoked ${esc(data.revoked_at||'')} · ${esc(data.revoked_reason||'')}</p>`:''}`;
+      return;
+    }
+    const issued=new Date(data.issued_at).toLocaleString('en-US',{timeZone:'UTC',dateStyle:'long',timeStyle:'short'})+' UTC';
+    const link=location.href;
+    let qr='';try{qr=ViceQR.encode(link,{moduleSize:3}).svg;}catch(e){console.warn('QR render',e);}
+    if(course){
+      host.innerHTML=`<div class="verdict valid">✓ Course certificate verified</div><div class="stamp"><table>
+        ${row('Certificate ID',data.cert_id)}${row('Recipient',data.name)}${row('Course',data.course)}
+        ${row('Issued',issued)}${row('Overall score',`${data.overall_score}%`)}
+        ${row('SHA-256 digest',data.digest)}</table>
+        ${qr?`<div class="qr" aria-label="QR linking to certificate verification">${qr}</div>`:''}</div>
+        <p class="muted">Verified against the issuer's course certificate registry. Completion is not a professional license.</p>`;
+      return;
+    }
+    const snap=data.snapshot||{};
+    const before=data.units_held_before==null?'Not applicable':formatUnits(data.units_held_before);
+    const after=data.units_held_after==null?'Not applicable':formatUnits(data.units_held_after);
+    host.innerHTML=`<div class="verdict valid">✓ IRU certificate verified</div>
+      <p class="muted">This is the authentic issuer-recorded snapshot at the stated time. The recorded balance may have changed since issuance.</p>
+      <div class="stamp"><table>
+      ${row('Certificate ID',data.cert_id)}${row('Holder',data.holder_name)}
+      ${row('Holder account',data.holder_client_id)}${row('Certificate kind',data.kind)}
+      ${row('Transaction program',data.program)}${row('Units in transaction',formatUnits(data.units))}
+      ${row('Units held before event',before)}${row('Units held after event',after)}
+      ${row('VICE units at issuance',formatUnits(snap.vice_units))}
+      ${row('V4X units at issuance',formatUnits(snap.v4x_units))}
+      ${row('VICE issuer reference per unit',asMoney(snap.vice_reference_cents))}
+      ${row('V4X issuer reference per unit',asMoney(snap.v4x_reference_cents))}
+      ${row('Combined internal reference',asMoney(snap.combined_reference_cents))}
+      ${row('Reference value basis',data.value_basis)}
+      ${row('Recorded portfolio timestamp',snap.as_of)}
+      ${row('Certificate issued',issued)}
+      ${row('Source ledger sequence',data.source_event_seq||'Period certificate')}
+      ${data.period?row('Period',data.period):''}
+      ${snap.distribution_record?row('Distribution recorded amount',asMoney(snap.distribution_record.issuer_recorded_amount_cents)):''}
+      ${snap.distribution_record?row('External settlement proof','NOT VERIFIED BY VICE OS'):''}
+      ${row('SHA-256 digest',data.digest)}</table>
+      ${qr?`<div class="qr" aria-label="QR linking to verified IRU holdings">${qr}</div>`:''}</div>
+      <p class="muted">IRUs are internal accounting units. These issuer reference figures are not verified bank balances, on-chain custody, independent fair-market appraisals or lender commitments. A QR scan verifies the recorded certificate and its integrity, not current holdings or guaranteed redemption.</p>`;
+  }catch(e){
+    host.innerHTML='<div class="verdict invalid">✕ Registry unavailable</div><p class="muted">The issuer could not be reached. Do not treat the certificate as verified. Retry when connected.</p>';
+    console.warn('Certificate verification request:',e);
+  }finally{
+    host.removeAttribute('aria-busy');document.getElementById('verifyButton').disabled=false;
+  }
 }
 document.getElementById('verifyForm').addEventListener('submit',e=>{e.preventDefault();verify(input.value);});
 const initial=new URLSearchParams(location.search).get('id');if(initial)verify(initial);
