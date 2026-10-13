@@ -1,8 +1,8 @@
 {
-  "version": "1.3.6.8-BACKEND-INTEGRITY",
+  "version": "1.3.6.9-ACCESS-CONTROL",
   "date": "2026-10-13",
-  "status": "BACKEND_SCHEMA_COMPLETE_PUBLIC_NETLIFY_DEPLOYMENT_BLOCKED_MISSING_AUTH",
-  "release_summary": "Deployed role administration, protected issuer reference and operational health RPCs, case-insensitive username lookup, and secured manual bank/legacy MT5 records against fabricated LIVE verification or broker equity. Netlify production and real-user acceptance still blocked/unverified.",
+  "status": "SOURCE_AND_SUPABASE_UPDATED_NETLIFY_DEPLOYMENT_NOT_PUBLISHED",
+  "release_summary": "Server-enforced channel ACLs for staff-only rooms; message sender identity protection, transparent legacy chat encryption notice; preserved 1.3.6.8 auth, issuer, governance, Academy and portfolio fixes.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -19,7 +19,8 @@
       "vice_1366_governance_votes_distribution_fields",
       "vice_1368_certificate_integrity_rls_initplan",
       "vice_1369_complete_role_price_and_operational_health_rpcs",
-      "vice_1370_unverified_external_and_legacy_mt5_provenance"
+      "vice_1370_unverified_external_and_legacy_mt5_provenance",
+      "vice_1370_channel_acl_and_chat_identity_integrity"
     ],
     "required_rpc_coverage_checked": true,
     "role_admin_rpc_authorization": "SUPER_ADMIN only; no SUPER_ADMIN promotion",
@@ -32,6 +33,19 @@
       "member_cannot_override_broker_equity": true,
       "live_asset_totals_exclude_unverified_metadata": true,
       "verified_on": "2026-10-13"
+    },
+    "chat_security": {
+      "staff_only_channels": [
+        "reserve",
+        "treasury"
+      ],
+      "public_member_channels": [
+        "general",
+        "trading"
+      ],
+      "sender_id_guard": "SERVER_TRIGGER_AND_RLS",
+      "sender_display_name_guard": "SERVER_TRIGGER",
+      "end_to_end_encryption_verified": false
     }
   },
   "provider": {
@@ -87,7 +101,12 @@
     "NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID not provisioned in GitHub Actions; production still on 1.3.6.1 at last public smoke",
     "Authenticated production login, invite redemption, dashboard cross-module browser acceptance, external provider test",
     "Netlify publishing of 1.3.6.8",
-    "Real-user RLS/role and manual account lifecycle acceptance"
+    "Real-user RLS/role and manual account lifecycle acceptance",
+    "Netlify publication of VICE OS 1.3.6.9-ACCESS-CONTROL",
+    "Live mobile/browser member login and invite completion",
+    "Real client and staff chat ACL acceptance",
+    "End-to-end chat encryption; legacy chat does not provide it",
+    "Netlify deploy secrets NETLIFY_AUTH_TOKEN/NETLIFY_SITE_ID currently absent from GitHub Actions"
   ],
   "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
   "not_yet_certified": [
@@ -96,7 +115,8 @@
     "MetaApi service token installed",
     "real MT5 broker authentication",
     "live broker equity and positions",
-    "live order execution"
+    "live order execution",
+    "Netlify publication and live browser/login acceptance for 1.3.6.9"
   ],
   "auth_hotfix": {
     "optional_reset_fails_closed_without_blocking_login": true,
