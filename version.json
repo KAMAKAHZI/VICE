@@ -1,8 +1,8 @@
 {
-  "version": "1.3.6.11-IDENTITY-HARDENING",
+  "version": "1.3.8.1-ELITE-ACCEPTANCE-PREDEPLOY",
   "date": "2026-10-13",
-  "status": "SOURCE_AND_SUPABASE_UPDATED_NETLIFY_DEPLOYMENT_NOT_PUBLISHED",
-  "release_summary": "Added strict provisioned-member directory and Academy quiz checks, signer identity verification and explicit document owner/holder assignment; retained 1.3.6.10 trusted audit and TURN protections. SQL transaction rollback and source tests cover negative/positive access cases. Actual Netlify production publication and signed-in acceptance remain pending until operator deploy authorization is configured.",
+  "status": "STAGING_BRANCH_NO_PRODUCTION_DEPLOYMENT_LIVE_ACCEPTANCE_PENDING",
+  "release_summary": "Staged certificate-enabled front end, dual-program QR/barcode verification and operational registries. Live issuer issuance, SMTP, cross-member calls, MT5 provider and Netlify production acceptance are not yet certified.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -176,7 +176,13 @@
     "Real cross-role messages and private media access acceptance before user launch",
     "Real Netlify function deploy and TURN cross-network testing still pending",
     "Operator Netlify GitHub secret provision still missing at prior check",
-    "Netlify publication and real authenticated member signing for 1.3.6.11"
+    "Netlify publication and real authenticated member signing for 1.3.6.11",
+    "Netlify deployment of this staged branch",
+    "Live certificate issuer/holder end-to-end verification",
+    "SMTP mail worker and receipt",
+    "Third-party MetaApi provider activation",
+    "TURN two-member cross-network call acceptance",
+    "Independent legal/security review"
   ],
   "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
   "not_yet_certified": [
@@ -205,5 +211,24 @@
     "voting_rule": "one active holder = one vote (not weighted, not on-chain)",
     "uniqueness": "one vote per proposal",
     "proposal_counters": "server-managed by SECURITY DEFINER RPC"
-  }
+  },
+  "release_acceptance": {
+    "stage": "STAGING_NOT_MAIN",
+    "deployment_authorized": false,
+    "main_behind_stage": true,
+    "production_sha_verified": false,
+    "live_login_tested": false,
+    "live_certificate_issued": false,
+    "live_smtp_tested": false,
+    "turn_two_party_tested": false,
+    "financial_operations_certified": false,
+    "notes": "Do not merge until release-specific tests and SQL migrations are synchronized and reviewed."
+  },
+  "last_database_migrations": [
+    "vice_1380_verified_portfolio_token_certificates",
+    "vice_1381_bind_all_certified_portfolio_fields",
+    "vice_1382_transactional_mail_outbox",
+    "vice_1383_distribution_certificate_on_issuer_paid",
+    "vice_1384_additive_complete_operational_registries"
+  ]
 }
