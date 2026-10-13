@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.6.1-MT5-SESSION-SAFETY" data-pwa="1">
+<html lang="en" data-build="1.3.6.2-MT5-PORTFOLIO-INTEGRITY" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1346,7 +1346,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.6.1-MT5-SESSION-SAFETY', date: '2026-10-12' };
+const BUILD = { version: '1.3.6.2-MT5-PORTFOLIO-INTEGRITY', date: '2026-10-12' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -2513,7 +2513,19 @@ function defiUsd(){
   return S.defiWallet.chains.reduce((s,c)=>s+(c.balance*c.usdRate),0);
 }
 function mt5Usd(){
-  return S.mt5.reduce((s,a)=>s+Number(a.equity||0),0);
+  // Stored MT5 rows are account metadata, not live broker equity proof.
+  // The independent WSS bridge must be authenticated and its snapshot fresh.
+  if(APP_MODE!=='LIVE'||!S.user||typeof Link==='undefined'||Link.state.status!=='live')return 0;
+  if(!Link.state.portfolioAt||Date.now()-Link.state.portfolioAt>300000)return 0;
+  const dedup=new Set();let total=0;
+  for(const a of Link.state.portfolio?.accounts||[]){
+    const k=String(a.server||'').trim().toLowerCase()+'|'+String(a.login||'').trim();
+    if(!a.server||!a.login||dedup.has(k)||String(a.currency||'').toUpperCase()!=='USD')continue;
+    const equity=Number(a.equity);
+    if(a.equity==null||!Number.isFinite(equity))continue;
+    dedup.add(k);total+=equity;
+  }
+  return total;
 }
 function externalUsd(){
   const fx={USD:1,SGD:0.74,EUR:1.08,CHF:1.11,GBP:1.27};
@@ -6816,11 +6828,14 @@ const CloudMT5 = (() => {
       state._queued=true;
       setTimeout(()=>{state._queued=false;if(APP_MODE==='LIVE'&&S.user&&!state.loaded)refresh();},250);
     }
-    if(APP_MODE!=='LIVE'||!S.user||!state.lastRefresh||Date.now()-state.lastRefresh>120000)return 0;
+    if(APP_MODE!=='LIVE'||!S.user||!state.lastRefresh||Date.now()-state.lastRefresh>300000)return 0;
     const accounted=new Set();
     const record=(a)=>String(a.server||'').trim().toLowerCase()+'|'+String(a.login||'').trim();
-    for(const a of S.mt5||[])if(a.server&&a.login)accounted.add(record(a));
-    for(const a of Link.state.portfolio?.accounts||[])if(a.server&&a.login)accounted.add(record(a));
+    // Only exclude overlap with a fresh, authenticated bridge reading. Never
+    // suppress a valid cloud balance due to stale or unverified saved metadata.
+    if(Link.state.status==='live'&&Link.state.portfolioAt&&Date.now()-Link.state.portfolioAt<=300000)
+      for(const a of Link.state.portfolio?.accounts||[])
+        if(a.server&&a.login&&a.equity!=null&&String(a.currency||'').toUpperCase()==='USD')accounted.add(record(a));
     let total=0;
     for(const a of state.accounts){
       const id=record(a);
@@ -12733,7 +12748,7 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 
 </script>
-<link rel="stylesheet" href="vice-mega.css?v=1361">
-<script src="vice-mega.js?v=1361"></script>
+<link rel="stylesheet" href="vice-mega.css?v=1362">
+<script src="vice-mega.js?v=1362"></script>
 </body>
 </html>
