@@ -10,7 +10,7 @@
     "edge_function_verify_jwt": true,
     "registry_table": "vice_mt5_cloud_accounts",
     "registry_migration_applied": true,
-    "edge_function_last_verified": "ACTIVE_WITH_JWT_AND_GITHUB_SOURCE_MATCH"
+    "edge_function_last_verified": "ACTIVE_JWT_SOURCE_MATCH_UNTIL_NEXT_DEPLOY"
   },
   "provider": {
     "name": "MetaApi",
@@ -30,8 +30,7 @@
     "owner_state_reset",
     "verified_equity_guard",
     "existing_v1_3_5_UI_regression",
-    "session_owner_scope_refresh_retests",
-    "Supabase_Edge_v6_active"
+    "session_owner_scope_refresh_retests"
   ],
   "not_yet_certified": [
     "live_MetaApi_token",
