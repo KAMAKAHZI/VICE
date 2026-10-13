@@ -11579,7 +11579,7 @@ async function openRoleModal(){
 async function saveRole(){
   if(!isOwner())return;
   const id=$('roleMember')?.value,role=$('roleValue')?.value,reason=($('roleReason')?.value||'').trim();
-  if(!id||!role||reason.length<5){toast('Select a member/role and provide a reason','error');return;}
+  if(!id||!role||reason.length<8){toast('Select a member/role and provide at least 8 characters of authorization rationale','error');return;}
   try{
     const r=await sb.rpc('vice_assign_member_role',{p_member_id:id,p_role:role,p_reason:reason});
     if(r.error)throw r.error;
