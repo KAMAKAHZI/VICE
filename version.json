@@ -1,8 +1,8 @@
 {
-  "version": "1.3.6.10-AUDIT-PROVENANCE",
+  "version": "1.3.6.11-IDENTITY-HARDENING",
   "date": "2026-10-13",
   "status": "SOURCE_AND_SUPABASE_UPDATED_NETLIFY_DEPLOYMENT_NOT_PUBLISHED",
-  "release_summary": "Preserve VICE OS 1.3.6.9 membership and media access controls; deny nonmembers TURN relay and direct messages; remove direct user-forgeable audit insert grants and classify browser activity as rate-limited unverified telemetry. Authenticated browser acceptance and Netlify publication remain pending. Second backend hardening guards e-signatures, member directory, and Academy from uninvited identities.",
+  "release_summary": "Added strict provisioned-member directory and Academy quiz checks, signer identity verification and explicit document owner/holder assignment; retained 1.3.6.10 trusted audit and TURN protections. SQL transaction rollback and source tests cover negative/positive access cases. Actual Netlify production publication and signed-in acceptance remain pending until operator deploy authorization is configured.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -28,7 +28,8 @@
       "vice_1375_invite_only_chat_media_membership_acl",
       "vice_1376_vip_channel_membership_acl",
       "vice_1377_trusted_audit_and_provisioned_dm",
-      "vice_1378_provisioned_signatures_directory_academy"
+      "vice_1378_provisioned_signatures_directory_academy",
+      "vice_1378_signer_membership_and_directory_hardening"
     ],
     "required_rpc_coverage_checked": true,
     "role_admin_rpc_authorization": "SUPER_ADMIN only; no SUPER_ADMIN promotion",
@@ -96,7 +97,13 @@
     "turn_access": "Netlify validates a logged-in Supabase user AND an owner-scoped provisioned profile before issuing temporary TURN credentials.",
     "document_signing": "Requires provisioned profile, exact typed name, authentic SHA-256 document digest and owner/issuer authorization; writes server-backed signature with audit entry.",
     "member_directory": "Excludes unprovisioned JWT identities at SECURITY DEFINER function boundary.",
-    "academy_grading": "Only provisioned member profiles may submit answers. Actual learning and exam integrity require further independent acceptance."
+    "academy_grading": "Only provisioned member profiles may submit answers. Actual learning and exam integrity require further independent acceptance.",
+    "identity_guards": {
+      "directory": "Existing provisioned profile required",
+      "quiz": "Existing provisioned profile required",
+      "e_signing": "Explicit matching verified profile name and self/holder-client document assignment; hash required",
+      "real_browser_acceptance": false
+    }
   },
   "provider": {
     "name": "MetaApi",
@@ -126,7 +133,9 @@
     "session_logout_reset",
     "owner_change_stale_response_isolation",
     "authenticated_bridge_and_cloud_duplicate_guard",
-    "edge_jwt_and_owner_isolation_mock_tests"
+    "edge_jwt_and_owner_isolation_mock_tests",
+    "Supabase simulated-JWT negative privilege transaction (rolled back)",
+    "Supabase simulated-JWT provisioned member directory transaction (rolled back)"
   ],
   "unverified": [
     "MetaApi token installed",
@@ -166,7 +175,8 @@
     "Netlify production still running old 1.3.6.1 in latest observed smoke",
     "Real cross-role messages and private media access acceptance before user launch",
     "Real Netlify function deploy and TURN cross-network testing still pending",
-    "Operator Netlify GitHub secret provision still missing at prior check"
+    "Operator Netlify GitHub secret provision still missing at prior check",
+    "Netlify publication and real authenticated member signing for 1.3.6.11"
   ],
   "portfolio_integrity": "Exclude DEMO, saved metadata, stale (>120 sec), non-USD, unverified provider mode, and cloud/bridge duplicates",
   "not_yet_certified": [
@@ -176,7 +186,8 @@
     "real MT5 broker authentication",
     "live broker equity and positions",
     "live order execution",
-    "Netlify publication and live browser/login acceptance for 1.3.6.10"
+    "Netlify publication and live browser/login acceptance for 1.3.6.10",
+    "Real-user document signing after production publish"
   ],
   "auth_hotfix": {
     "optional_reset_fails_closed_without_blocking_login": true,
