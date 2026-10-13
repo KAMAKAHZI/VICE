@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-build="1.3.6.6-INTEGRATION-QA" data-pwa="1">
+<html lang="en" data-build="1.3.6.7-GOVERNANCE-PORTFOLIO" data-pwa="1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1347,7 +1347,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.6.6-INTEGRATION-QA', date: '2026-10-13' };
+const BUILD = { version: '1.3.6.7-GOVERNANCE-PORTFOLIO', date: '2026-10-13' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -2413,6 +2413,7 @@ async function hydrateData(){
         period: d.period,
         holderId: d.holder_id,
         holderName: d.holder_name,
+        holderClientId: d.holder_client_id,
         program: d.program || 'VICE',
         total: Number(d.total || 0),
         perUnit: Number(d.per_unit || 0),
@@ -2644,8 +2645,11 @@ function mt5Usd(){
   return total;
 }
 function externalUsd(){
+  // Member-entered bank and custodian balances are not verified assets.
+  // Only demonstrate these estimates in SIM; never add them to LIVE totals.
+  if(APP_MODE==='LIVE')return 0;
   const fx={USD:1,SGD:0.74,EUR:1.08,CHF:1.11,GBP:1.27};
-  return S.externalAccounts.reduce((s,a)=>s+(Number(a.balance||0)*(fx[a.currency]||1)),0);
+  return S.externalAccounts.reduce((sum,a)=>sum+Number(a.balance||0)*(fx[a.currency]||1),0);
 }
 function iruUsd(){
   const v = S.iruClasses.find(c=>c.class==='VICE')?.ouv??2;
@@ -10525,7 +10529,8 @@ function viewExternal(el){
       <div class="ph-acts">${can('exec') || isOwner() ? '<button class="btn btn-p" data-act="ext-add">+ Add account</button>' : ''}</div>
     </div>
     <section class="band">
-      <div class="band-head"><h2>Linked accounts</h2><span class="meta">${accs.length}</span></div>
+      <p class="note warn">These are manually recorded external account details, not verified bank integrations. Their balances are excluded from LIVE consolidated financial totals until independently verified.</p>
+      <div class="band-head"><h2>Recorded accounts</h2><span class="meta">${accs.length}</span></div>
       ${accs.length ? accs.map(a => `
         <div class="row" style="cursor:default">
           <span class="row-l"><b>${esc(a.institution)}</b><span class="meta">${esc(a.accountNumber || '')} · ${esc(a.currency || 'USD')}</span></span>
@@ -11292,13 +11297,13 @@ function paintOI(){
           if(new Date(close)<=new Date(open)){toast('Closing must follow opening','error');return;}
           if(APP_MODE!=='LIVE'){toast('Switch to LIVE to publish proposals','warn');return;}
           try{
-            const row={title,body,status:'OPEN',votes_for:0,votes_against:0,created_by:S.user.id,
+            const row={title,body,status:'OPEN',created_by:S.user.id,
               opens_at:new Date(open).toISOString(),closes_at:new Date(close).toISOString(),
               effective_at:eff?new Date(eff+'T12:00:00Z').toISOString():null};
             const {data,error}=await sb.from('proposals').insert(row).select('*').single();if(error)throw error;
             S.proposals.unshift(denorm(data));closeModal();toast('Governance voting window published','success');
             Realtime.emit('governance',{proposalId:data.id,title});renderMain();
-          }catch(e){toast('Proposal failed (check v1.0.3 SQL): '+e.message,'error');}
+          }catch(e){toast('Proposal failed: '+e.message,'error');}
         })();return;
       }
       case 'prop-vote': {
@@ -11465,7 +11470,7 @@ function paintOI(){
           const institution=$('extInstitution')?.value.trim(),last4=$('extLast4')?.value.trim(),
             currency=$('extCurrency')?.value,balance=Number($('extBalance')?.value);
           if(!institution||!/^[0-9]{4}$/.test(last4)||!Number.isFinite(balance)||balance<0){toast('Institution, four digits and nonnegative balance required','error');return;}
-          const row={id:uuid(),profile_id:S.user.id,institution,account_number:'••••'+last4,
+          const row={id:uuid(),owner_id:S.user.id,institution,account_number:'••••'+last4,
             currency,balance,status:'UNVERIFIED',created_at:nowIso()};
           try{
             if(APP_MODE==='LIVE'){const r=await sb.from('external_accounts').insert(row);if(r.error)throw r.error;}
