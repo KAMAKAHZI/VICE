@@ -24,7 +24,7 @@ assert(html.includes("if(APP_MODE==='LIVE')return 0;"),'unverified manual extern
 assert(html.includes("const row={id:uuid(),owner_id:S.user.id,institution"),'external accounts must be owner scoped');
 assert(html.includes("holderClientId: d.holder_client_id"),'distribution must remain mapped to holder client ID');
 assert(!html.includes("status:'OPEN',votes_for:0,votes_against:0,created_by:S.user.id"),'proposal vote totals must be server controlled');
-assert(html.includes("1.3.6.7-GOVERNANCE-PORTFOLIO"),'current release identity missing');
+assert(html.includes("1.3.6.8-BACKEND-INTEGRITY"),'current release identity missing');
 const ballot=read('supabase/migrations/20261013030938_vice_1366_governance_votes_distribution_fields.sql');
 assert(ballot.includes('CREATE OR REPLACE FUNCTION public.vice_cast_proposal_vote'),'server ballot RPC missing');
 assert(ballot.includes('UNIQUE (proposal_id,voter_id)'),'one vote per holder guard missing');
@@ -71,3 +71,9 @@ assert(award.includes('v_passed <> 7'),'server verified Academy requirement miss
 
 console.log('PASS',meta.version,'— syntax, session isolation, live verified equity, password refusal, and no-credential storage.');
 console.log('Reminder: automated tests do NOT certify MetaApi token activation or Netlify publication.');
+
+const roleAndHealth=read('supabase/migrations/20261013034008_vice_1369_complete_role_price_and_operational_health_rpcs.sql');
+assert(roleAndHealth.includes('CREATE OR REPLACE FUNCTION public.vice_assign_member_role'), 'Role administrator RPC missing');
+assert(roleAndHealth.includes('CREATE OR REPLACE FUNCTION public.vice_set_dao_prices'), 'Canonical pricing attestation RPC missing');
+assert(roleAndHealth.includes('CREATE OR REPLACE FUNCTION public.vice_operational_health'), 'Issuer health backend RPC missing');
+assert(html.includes("sb.rpc('vice_operational_health')"), 'Live admin self diagnostics not connected to server');
