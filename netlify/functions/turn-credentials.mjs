@@ -17,7 +17,21 @@ export async function handler(event){
     try {auth=await fetch(url.replace(/\/$/,'')+'/auth/v1/user',{headers:{'Authorization':'Bearer '+token,'apikey':anon},signal:controller.signal});}
     finally {clearTimeout(timer);}
     if(!auth.ok)return json(401,{error:'Invalid Supabase session'});
-    const user=await auth.json();if(!user.id)return json(401,{error:'Missing identity'});
+    const user=await auth.json();if(!user.id || !/^[a-f0-9-]{36}$/i.test(user.id))return json(401,{error:'Missing identity'});
+    // Supabase Auth users without a provisioned VICE OS profile are not
+    // invited members and must not consume the operator's paid TURN relay.
+    const membershipUrl=new URL(url.replace(/[/]+$/,'')+'/rest/v1/profiles');
+    membershipUrl.searchParams.set('select','id');
+    membershipUrl.searchParams.set('id','eq.'+user.id);
+    membershipUrl.searchParams.set('limit','1');
+    const member=await fetch(membershipUrl,{
+      headers:{'Authorization':'Bearer '+token,'apikey':anon,'Accept':'application/json'},
+      signal:controller.signal
+    });
+    if(!member.ok)return json(503,{error:'Membership verification unavailable'});
+    const rows=await member.json();
+    if(!Array.isArray(rows)||rows.length!==1||rows[0]?.id!==user.id)
+      return json(403,{error:'Approved VICE membership required'});
     const expires=Math.floor(Date.now()/1000)+600;
     const username=`${expires}:${user.id}`;
     const credential=createHmac('sha1',secret).update(username).digest('base64');
