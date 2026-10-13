@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 # SQL migrations, service role keys, archived bootstraps nor Github internals
 # belong under the Netlify web root.
 target="dist/site"
+rm -rf "$target"
 mkdir -p "$target"
 assets=(
   index.html guide.html verify.html version.json
