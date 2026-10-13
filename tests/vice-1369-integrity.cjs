@@ -50,4 +50,13 @@ const channelStream=read('supabase/migrations/20261013041304_vice_1374_authorize
 assert(channelStream.includes('ALTER PUBLICATION supabase_realtime ADD TABLE public.messages'),
  'Channel changes must publish through RLS-protected postgres_changes');
 
+
+const inviteGate=read('supabase/migrations/20261013041502_vice_1375_invite_only_chat_media_membership_acl.sql');
+assert(inviteGate.includes('public.profiles pr WHERE pr.id=(SELECT auth.uid())'),
+ 'Uninvited auth identities cannot read chat');
+assert(inviteGate.includes('ALTER POLICY %I ON storage.objects'),
+ 'Media access must be additionally restricted to provisioned members');
+const vipGate=read('supabase/migrations/20261013041544_vice_1376_vip_channel_membership_acl.sql');
+assert(vipGate.includes('pr.vip_access IS TRUE'),'Non-VIP accounts must not read VIP messages');
+
 console.log('PASS',manifest.version,'— backend RBAC, private media, signed playback, recorder controls and realtime DMs.');
