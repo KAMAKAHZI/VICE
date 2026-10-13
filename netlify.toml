@@ -1,6 +1,11 @@
+# Production publishes only public assets; server source/SQL is not web-accessible.
 [build]
-  publish = "."
+  command = "bash scripts/vice-publish-netlify.sh"
+  publish = "dist/site"
   functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
 
 [functions]
   node_bundler = "esbuild"
