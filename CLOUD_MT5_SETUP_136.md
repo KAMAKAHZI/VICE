@@ -10,8 +10,10 @@
 
 **Legacy Windows bridge:** Still supported as an optional method. The Add Bridge Account dialog does not collect broker passwords; it is informational until a separately maintained WSS/MT5 exporter verifies the account.
 
-**Accounting:** Only fresh (<= 2 minutes) verified USD cloud equity is included in consolidated portfolio. Verified non-USD accounts display original currency but require a trusted FX quote for USD aggregation. Connected duplicates already represented in existing MT5 records are excluded. Internal IRU reference valuations remain separate from independently observed broker equity.
+**Accounting:** Only fresh (<= 5 minutes) verified USD cloud equity is included in consolidated portfolio. Verified non-USD accounts display original currency but require a trusted FX quote for USD aggregation. Connected duplicates already represented in existing MT5 records are excluded. Internal IRU reference valuations remain separate from independently observed broker equity.
 
 **Security:** JWT verified at Edge; every registry operation owner-scoped; users cannot query/write registry directly via anon/authenticated table grants; MetaApi token resides in Edge secrets; no password fields in VICE cloud UI; no trading endpoints; request size/rate limits; provider configuration link allowlisted to app.metaapi.cloud. The operator should review broker terms, token permissions and MetaApi fees before provisioning.
 
 **Not yet a certified real login:** Activation and one demo connection remain necessary, followed by end-to-end confirmation of actual MetaApi broker status and account equity. Do not call this an authorized broker API/OAuth login; it is a provider-hosted credential handoff.
+
+**Source-controlled backend:** Supabase Edge Function source is tracked at `supabase/functions/vice-mt5-cloud/index.ts`; the idempotent registry schema is tracked in `supabase/migrations/20261012_vice_mt5_cloud_accounts.sql`. Production Edge Function code is separately deployed to the existing Supabase project, not through Netlify.
