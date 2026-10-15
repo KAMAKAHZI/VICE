@@ -31,6 +31,18 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
    // Explicit SIM fixtures exercise rendering only, never real accounts/allocations.
    await page.route('https://*.supabase.co/**',route=>route.abort());
    await page.evaluate(()=>enterSimMode());
+   await page.waitForFunction(()=>S.ch.candles.length>100);
+   await page.evaluate(()=>{S.tab='markets';renderMain();});
+   const canvas=page.locator('#cv');await canvas.waitFor({state:'visible'});
+   const box=await canvas.boundingBox();assert(box&&box.width>100);
+   const x=box.x+Math.max(25,(box.width-84)/2),y=box.y+box.height/2;
+   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+35,y+30,{steps:8});await page.mouse.up();
+   assert(await page.evaluate(()=>S.view2.end!==null&&S.view2.priceRange?.max>S.view2.priceRange?.min),'Chart drag pans time and price');
+   const before=await page.evaluate(()=>S.view2.priceRange.max-S.view2.priceRange.min);
+   await page.mouse.move(box.x+box.width-25,y);await page.mouse.down();await page.mouse.move(box.x+box.width-25,y+35,{steps:8});await page.mouse.up();
+   assert(await page.evaluate(span=>S.view2.priceRange.max-S.view2.priceRange.min>span,before),'Price-axis drag changes scale');
+   assert.equal(await page.evaluate(()=>S.tab),'markets','Chart dragging does not activate navigation');
+   console.log('PASS chart body/price-axis drag',viewport.width);
    const renderFailures=await page.evaluate(()=>{
      const failures=[];
      for(const tab of TABS){S.tab=tab;renderMain();const text=document.getElementById('view')?.textContent||'';if(/^Error:/.test(text.trim()))failures.push(tab+': '+text);}

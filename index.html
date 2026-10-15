@@ -3818,47 +3818,32 @@ async function fetchCandlesUnified(symbol, tf, limit) {
   return await fetchCandlesBinance(ticker, tf, limit);
 }
 
-async function loadLtfCandles() {
-  const ltf = Solace.LTF_FOR_TF[S.sel.tf];
-  if (!ltf) { S.ch.ltfCandles = []; S.ch.ltfTf = null; return; }
-  S.ch.ltfTf = ltf;
-  try {
-    if (APP_MODE === 'SIM' || S.ch.pair === PRACTICE) {
-      S.ch.ltfCandles = sampleSeries(500, 20260921, (TF_SEC[ltf]||900)*1000, Date.now() - 500*(TF_SEC[ltf]||900)*1000);
-      return;
-    }
-    const { source, ticker } = parseSymbol(S.ch.pair);
-    if (source === 'BINANCE') {
-      S.ch.ltfCandles = await fetchCandlesBinance(ticker, ltf, 500);
-    } else {
-      let raw = await fetchCandlesYahoo(ticker, ltf);
-      if (YAHOO_TF[ltf] && YAHOO_TF[ltf] !== ltf && (TF_SEC[ltf]||0) > (TF_SEC[YAHOO_TF[ltf]]||0)) {
-        raw = resample(raw, ltf);
-      }
-      S.ch.ltfCandles = raw;
-    }
-  } catch(_) { S.ch.ltfCandles = []; }
+async function loadLtfCandles(current=()=>true) {
+  const ltf=Solace.LTF_FOR_TF[S.ch.tf];
+  if(!ltf){if(current()){S.ch.ltfCandles=[];S.ch.ltfTf=null;}return;}
+  try{
+    const raw=await fetchCandlesUnified(S.ch.pair,ltf,500);
+    if(current()){S.ch.ltfCandles=raw;S.ch.ltfTf=ltf;}
+  }catch(e){if(current()){S.ch.ltfCandles=[];S.ch.ltfTf=ltf;console.warn('Lower timeframe unavailable:',e.message);}}
 }
-
+let chartRequestId=0;
 async function loadCandles() {
+  const request=++chartRequestId,pair=S.ch.pair,tf=S.ch.tf,epoch=authEpoch;
+  const current=()=>request===chartRequestId&&pair===S.ch.pair&&tf===S.ch.tf&&epoch===authEpoch;
+  const key=pair+'|'+tf;
+  if(S.view2.datasetKey!==key){S.view2.priceRange=null;S.view2.end=null;S.view2.datasetKey=key;}
   try {
-    const cs = await fetchCandlesUnified(S.ch.pair, S.ch.tf, 500);
-    S.ch.candles = cs;
-    S.ch.source = APP_MODE === 'SIM' || S.ch.pair === PRACTICE
-      ? 'SIM'
-      : parseSymbol(S.ch.pair).source;
-    computeATR();
-    await loadLtfCandles();
-    S.res = Solace.run(cs, S.engine, S.ch.ltfCandles);
-    if (typeof drawAll === 'function') drawAll();
-  } catch(e) {
-    S.ch.candles = sampleSeries(500, 20260921, (TF_SEC[S.ch.tf]||3600)*1000, Date.now() - 500*(TF_SEC[S.ch.tf]||3600)*1000);
-    S.ch.source = 'SIM';
-    computeATR();
-    S.ch.ltfCandles = [];
-    S.res = Solace.run(S.ch.candles, S.engine, null);
-    toast('Live feed unavailable — simulated data', 'warn');
-    if (typeof drawAll === 'function') drawAll();
+    const cs=await fetchCandlesUnified(pair,tf,500);
+    if(!current())return;
+    if(!Array.isArray(cs)||!cs.length)throw Error('Provider returned no candles');
+    S.ch.candles=cs;S.ch.error=null;
+    S.ch.source=APP_MODE==='SIM'||pair===PRACTICE?'SIM':parseSymbol(pair).source;
+    computeATR();await loadLtfCandles(current);if(!current())return;
+    S.res=Solace.run(cs,S.engine,S.ch.ltfCandles);drawAll();
+  }catch(e){
+    if(!current())return;
+    S.ch.candles=[];S.ch.ltfCandles=[];S.ch.source='UNAVAILABLE';S.ch.error=e.message||'Provider unavailable';S.res=null;
+    toast('Market data unavailable: '+S.ch.error,'warn');drawAll();
   }
 }
 
@@ -8096,44 +8081,96 @@ const PAD = { t:22, r:84, b:42, l:10 };
 function initCanvas(){
   _cv = $('cv');
   if (!_cv) return;
+  if(!S.view2.preferenceLoaded){
+    S.view2.preferenceLoaded=true;
+    try{const saved=Number(localStorage.getItem('vice-chart-count'));if(Number.isFinite(saved)&&saved>=30&&saved<=10000)S.view2.count=saved;}catch(_){}
+  }
   _ctx = _cv.getContext('2d');
-  resizeCanvas();
-  drawAll();
+  resizeCanvas();drawAll();
   if (_cv._wired) return;
-  _cv._wired = true;
-
-  _cv.addEventListener('mousemove', e => {
-    const r = _cv.getBoundingClientRect();
-    _cv._mx = e.clientX - r.left;
-    _cv._my = e.clientY - r.top;
-    drawAll();
+  const cv=_cv;cv._wired=true;cv.style.touchAction='none';cv.tabIndex=0;
+  cv.setAttribute('aria-label','Market chart. Drag to pan; wheel to zoom; drag the price axis to scale. Arrow keys pan, plus and minus zoom, zero resets.');
+  const pointers=new Map();let gesture=null,moved=false,frame=0;
+  const paint=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;if(_cv===cv)drawAll();});};
+  const point=e=>{const r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
+  const persist=()=>{try{localStorage.setItem('vice-chart-count',String(S.view2.count));}catch(_){}};
+  const begin=()=>{
+    const pts=[...pointers.values()];if(!pts.length){gesture=null;return;}
+    const p=pts[0],q=pts[1];
+    gesture={x:q?(p.x+q.x)/2:p.x,y:q?(p.y+q.y)/2:p.y,
+      distance:q?Math.max(1,Math.hypot(q.x-p.x,q.y-p.y)):null,
+      count:Math.min(S.ch.candles.length,S.view2.count),end:S.view2.end??S.ch.candles.length,
+      range:cv._priceRange?{...cv._priceRange}:null,
+      axis:p.x>=_W-PAD.r?'price':p.y>=_H-PAD.b?'time':'body'};
+  };
+  cv.addEventListener('pointerdown',e=>{
+    if(e.button!==0||!S.ch.candles.length)return;
+    e.preventDefault();cv.focus({preventScroll:true});pointers.set(e.pointerId,point(e));
+    cv.setPointerCapture(e.pointerId);moved=false;begin();
   });
-  _cv.addEventListener('mouseleave', () => {
-    _cv._mx = null;
-    _cv._my = null;
-    drawAll();
+  cv.addEventListener('pointermove',e=>{
+    if(_cv!==cv)return;const p=point(e);cv._mx=p.x;cv._my=p.y;
+    if(!pointers.has(e.pointerId)||!gesture){paint();return;}
+    e.preventDefault();pointers.set(e.pointerId,p);
+    const g=gesture,pts=[...pointers.values()],cw=Math.max(1,_W-PAD.l-PAD.r),ch=Math.max(1,_H-PAD.t-PAD.b);
+    const clampEnd=v=>{const n=S.ch.candles.length,end=Math.max(Math.min(n,S.view2.count),Math.min(n,Math.round(v)));S.view2.end=end>=n?null:end;};
+    if(pts.length===2&&g.distance){
+      const a=pts[0],b=pts[1],x=(a.x+b.x)/2,y=(a.y+b.y)/2;
+      const factor=g.distance/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y));
+      const fraction=Math.max(0,Math.min(1,(g.x-PAD.l)/cw)),anchor=g.end-g.count+fraction*g.count;
+      S.view2.count=Math.max(Math.min(30,S.ch.candles.length),Math.min(S.ch.candles.length,Math.round(g.count*factor)));
+      clampEnd(anchor+(1-fraction)*S.view2.count-(x-g.x)/cw*S.view2.count);
+      if(g.range){const span=(g.range.max-g.range.min)*Math.max(.02,Math.min(50,factor));
+        const anchorPrice=g.range.max-(g.y-PAD.t)/ch*(g.range.max-g.range.min);
+        const max=anchorPrice+(y-PAD.t)/ch*span;S.view2.priceRange={min:max-span,max};}
+      moved=true;
+    }else{
+      const dx=p.x-g.x,dy=p.y-g.y;moved=moved||Math.hypot(dx,dy)>4;
+      if(g.axis==='price'&&g.range){
+        const mid=(g.range.min+g.range.max)/2,span=(g.range.max-g.range.min)*Math.exp(Math.max(-4,Math.min(4,dy/180)));
+        S.view2.priceRange={min:mid-span/2,max:mid+span/2};
+      }else if(g.axis==='time'){
+        S.view2.count=Math.max(Math.min(30,S.ch.candles.length),Math.min(S.ch.candles.length,Math.round(g.count*Math.exp(dx/180))));clampEnd(g.end);
+      }else{
+        clampEnd(g.end-dx/cw*g.count);
+        if(g.range){const offset=dy/ch*(g.range.max-g.range.min);S.view2.priceRange={min:g.range.min+offset,max:g.range.max+offset};}
+      }
+    }
+    paint();
   });
-  _cv.addEventListener('touchstart', e => {
-    if (e.touches.length !== 1) return;
-    const t = e.touches[0], r = _cv.getBoundingClientRect();
-    _cv._mx = t.clientX - r.left;
-    _cv._my = t.clientY - r.top;
-    _cv._drag = { x:t.clientX, end:S.view2.end };
-  }, { passive:true });
-  _cv.addEventListener('touchmove', e => {
-    if (e.touches.length !== 1 || !_cv._drag) return;
-    const dx = e.touches[0].clientX - _cv._drag.x;
-    const n = S.ch.candles.length;
-    const bw = (_W - PAD.l - PAD.r) / Math.max(1, Math.min(n, Math.max(30, S.view2.count)));
-    S.view2.end = Math.max(Math.min(n, S.view2.count), Math.min(n, Math.round(_cv._drag.end - dx / bw)));
-    if (S.view2.end >= n) S.view2.end = null;
-    drawAll();
-  }, { passive:true });
-  _cv.addEventListener('touchend', () => { _cv._drag = null; });
-  _cv.addEventListener('wheel', e => {
-    e.preventDefault();
-    zoomChart(e.deltaY < 0 ? 0.8 : 1.25);
-  }, { passive:false });
+  const finish=e=>{if(!pointers.has(e.pointerId))return;pointers.delete(e.pointerId);
+    if(cv.hasPointerCapture(e.pointerId))cv.releasePointerCapture(e.pointerId);
+    if(moved)cv._suppressClick=true;begin();persist();};
+  cv.addEventListener('pointerup',finish);cv.addEventListener('pointercancel',finish);
+  cv.addEventListener('lostpointercapture',e=>{pointers.delete(e.pointerId);begin();});
+  cv.addEventListener('click',e=>{if(cv._suppressClick){e.preventDefault();e.stopImmediatePropagation();cv._suppressClick=false;}},true);
+  cv.addEventListener('pointerleave',()=>{if(!pointers.size){cv._mx=null;cv._my=null;paint();}});
+  cv.addEventListener('wheel',e=>{
+    e.preventDefault();e.stopPropagation();const p=point(e),factor=Math.exp(Math.max(-1,Math.min(1,e.deltaY/400)));
+    if((p.x>=_W-PAD.r||e.shiftKey)&&cv._priceRange){
+      const r=cv._priceRange,ch=Math.max(1,_H-PAD.t-PAD.b),f=Math.max(0,Math.min(1,(p.y-PAD.t)/ch));
+      const span=(r.max-r.min)*factor,anchor=r.max-f*(r.max-r.min);
+      S.view2.priceRange={min:anchor-(1-f)*span,max:anchor+f*span};
+    }else if(Math.abs(e.deltaX)>Math.abs(e.deltaY)){
+      const n=S.ch.candles.length,end=(S.view2.end??n)+e.deltaX/Math.max(1,_W-PAD.l-PAD.r)*S.view2.count;
+      S.view2.end=Math.max(Math.min(n,S.view2.count),Math.min(n,Math.round(end)));
+      if(S.view2.end>=n)S.view2.end=null;
+    }else zoomChart(factor,p.x);
+    paint();persist();
+  },{passive:false});
+  cv.addEventListener('dblclick',()=>{S.view2.priceRange=null;paint();});
+  cv.addEventListener('keydown',e=>{
+    const r=cv._priceRange,n=S.ch.candles.length;
+    if(e.key==='+'||e.key==='=')zoomChart(.8);else if(e.key==='-')zoomChart(1.25);
+    else if(e.key==='0'){S.view2={count:Math.min(140,n),end:null,priceRange:null};}
+    else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
+      const end=(S.view2.end??n)+(e.key==='ArrowLeft'?-10:10);
+      S.view2.end=Math.max(Math.min(n,S.view2.count),Math.min(n,end));if(S.view2.end>=n)S.view2.end=null;
+    }else if((e.key==='ArrowUp'||e.key==='ArrowDown')&&r){
+      const d=(r.max-r.min)*(e.key==='ArrowUp'?.1:-.1);S.view2.priceRange={min:r.min+d,max:r.max+d};
+    }else return;
+    e.preventDefault();e.stopPropagation();paint();persist();
+  });
 }
 
 function resizeCanvas(){
@@ -8149,11 +8186,14 @@ function resizeCanvas(){
   _H = r.height;
 }
 
-function zoomChart(f){
-  if (!S.ch.candles.length) return;
-  const n = S.ch.candles.length;
-  S.view2.count = Math.max(30, Math.min(n, Math.round(S.view2.count * f)));
-  drawAll();
+function zoomChart(f,x=_W-PAD.r){
+  if (!S.ch.candles.length||!Number.isFinite(f)||f<=0) return;
+  const n=S.ch.candles.length,old=Math.min(n,S.view2.count),end=S.view2.end??n;
+  const fraction=Math.max(0,Math.min(1,(x-PAD.l)/Math.max(1,_W-PAD.l-PAD.r)));
+  const anchor=end-old+fraction*old;
+  S.view2.count=Math.max(Math.min(30,n),Math.min(n,Math.round(old*f)));
+  const next=Math.max(S.view2.count,Math.min(n,Math.round(anchor+(1-fraction)*S.view2.count)));
+  S.view2.end=next>=n?null:next;drawAll();
 }
 
 function fmtP(v){
@@ -8166,7 +8206,13 @@ function fmtP(v){
 function drawAll(){ drawSolace(); }
 
 function drawSolace(){
-  if (!_cv || !_ctx || !S.ch.candles.length || !S.res) return;
+  if (!_cv || !_ctx) return;
+  if(!S.ch.candles.length||!S.res){
+    _ctx.fillStyle=S.chart.colors.bg;_ctx.fillRect(0,0,_W,_H);_ctx.fillStyle=S.chart.colors.text;
+    _ctx.font='14px sans-serif';_ctx.textAlign='center';
+    _ctx.fillText(S.ch.error?'Market data unavailable — retry or import verified data':'Select an instrument and load data',_W/2,_H/2);
+    _cv._priceRange=null;return;
+  }
   const P = S.chart.colors, cs = S.ch.candles, res = S.res;
   _ctx.fillStyle = P.bg;
   _ctx.fillRect(0, 0, _W, _H);
@@ -8203,6 +8249,9 @@ function drawSolace(){
   const rng = (vmax - vmin) || 1;
   vmin -= rng * 0.06;
   vmax += rng * 0.06;
+  const manual=S.view2.priceRange;
+  if(manual&&Number.isFinite(manual.min)&&Number.isFinite(manual.max)&&manual.max>manual.min){vmin=manual.min;vmax=manual.max;}
+  _cv._priceRange={min:vmin,max:vmax};
 
   const xAt = i => PAD.l + (i - startIdx) / Math.max(1, end - startIdx - 1) * cw;
   const yAt = v => PAD.t + (1 - (v - vmin) / (vmax - vmin)) * ch;
@@ -11240,7 +11289,7 @@ function paintOI(){
       }
       case 'zoom-in':  { zoomChart(0.8); return; }
       case 'zoom-out': { zoomChart(1.25); return; }
-      case 'chart-reset': { S.view2.count = 140; S.view2.end = null; drawAll(); return; }
+      case 'chart-reset': { S.view2.count = 140; S.view2.end = null; S.view2.priceRange=null; drawAll(); return; }
       case 'toggle-fullscreen': { toggleChartFullscreen(); return; }
       case 'toggle-chart-overlay': {
         const k=t.dataset.overlay;

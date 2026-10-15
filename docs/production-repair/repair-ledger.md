@@ -33,3 +33,8 @@ No authorized staging user accounts/isolated database supplied or provisioned. N
 
 - Public IRU verification exposed identity, full holdings snapshots and internal revocation notes. The verification RPC now returns a strict status/integrity allowlist. Holder detail access remains behind the existing authenticated certificate-table RLS. PostgreSQL privacy fixtures passed before live migration 20261015190802.
 - Academy chapter marks were browser-only and new awards did not enforce reading completion. Added owner-scoped backend receipts, validated module/chapter RPC, confirmed frontend marks, stale-response guards, duplicate-submit prevention, 21-core-chapter issuance gate, matching profile identity, canonical course title and idempotent active awards. Existing certificates are retained. Four new client tests pass; isolated PostgreSQL acceptance is required before live installation. Prior local-only marks are retained locally but must be reconfirmed through Mark read to become backend receipts.
+
+## Chart interaction and market outage repair
+
+- Canvas had no mouse-drag path, no vertical price viewport, and touch drags treated a null latest-candle index as zero. Replaced separate mouse/touch handlers with pointer capture, frame-throttled body/axis dragging, cursor-anchored wheel zoom, pinch zoom and keyboard controls. Manual price range resets when instrument/timeframe changes; chart count preference persists.
+- Live-feed errors generated fallback candles. Failed live feeds now clear the chart and show an unavailable state. Explicit practice mode remains labeled simulation. Request IDs/session checks reject stale instrument responses. Four behavioral tests pass; real browser chart drag checks are included in hosted acceptance.
