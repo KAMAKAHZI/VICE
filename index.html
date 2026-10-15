@@ -5406,6 +5406,7 @@ const Realtime = (() => {
   async function send(channelId, text){
     const t=String(text||'').trim();
     if(!t) return false;
+    if(t.length>10000)throw Error('Message exceeds 10,000 characters');
     if(!channelId) throw Error('Open a channel first');
     const id=uuid(),at=Date.now(),senderName=S.profile.name||'Me';
     const encrypted=await MsgCrypto.encrypt('ch:'+channelId,t);
@@ -5424,6 +5425,7 @@ const Realtime = (() => {
   async function sendDm(peerId, text){
     const t=String(text||'').trim();
     if(!t) return false;
+    if(t.length>10000)throw Error('Message exceeds 10,000 characters');
     if(!peerId||peerId===S.user?.id) throw Error('Select another member');
     const id=uuid(),at=Date.now(),senderName=S.profile.name||'Me';
     const threadId=[S.user.id,peerId].sort().join('|');
@@ -5458,7 +5460,7 @@ const Realtime = (() => {
       }
       existing.sort((a,b) => a.at - b.at);
       S.comms.messages[channelId] = existing;
-    } catch(_){}
+    } catch(e){ console.error('Channel history processing failed:',e); toast('Unable to display channel messages: '+(e?.message||'unknown error'),'error'); }
   }
 
   async function loadDmHistory(peerId){
@@ -5486,7 +5488,7 @@ const Realtime = (() => {
       }
       existing.sort((a,b) => a.at - b.at);
       S.comms.dms[peerId] = existing;
-    } catch(_){}
+    } catch(e){ console.error('DM history processing failed:',e); toast('Unable to display direct messages: '+(e?.message||'unknown error'),'error'); }
   }
 
   /* ─── CALLS ─── */
