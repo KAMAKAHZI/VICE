@@ -3143,6 +3143,7 @@ const Solace = (() => {
 
     const events = [];
     const pivots = [];
+    const fractals = [];
     const f0History = [];
     const f100History = [];
 
@@ -3177,6 +3178,8 @@ const Solace = (() => {
       const ph = (i - R >= 0 && pivotHigh(bars, i - R, L, R)) ? bars[i - R].h : null;
       const pl = (i - R >= 0 && pivotLow(bars, i - R, L, R))  ? bars[i - R].l : null;
 
+      if(ph!==null)fractals.push({bar:i-R,confirmedAt:i,side:'HIGH',price:ph});
+      if(pl!==null)fractals.push({bar:i-R,confirmedAt:i,side:'LOW',price:pl});
       let zChanged = false;
 
       /* ─── Confirmed pivot high ─── */
@@ -3416,7 +3419,7 @@ const Solace = (() => {
     }));
 
     return {
-      f0, f100, s0, s100, legIds, events, pivots, atr: A,
+      f0, f100, s0, s100, legIds, events, pivots, fractals, atr: A,
       f0History, f100History, internal, internalArmed,
       choch: { dir: chochDir, level: chochLevel, bar: chochBar },
       trade, last, markers,
@@ -8463,25 +8466,15 @@ function drawSolace(){
     }
   }
 
-  /* Fractal markers */
-  if (S.chart.show.poles && res.pivots) {
+  /* Confirmed fractals: each candle is evaluated, with its confirmation
+     index retained. Future confirmation cannot appear in an earlier viewport. */
+  if(S.chart.show.poles&&res.fractals){
     _ctx.save();
-    const drawDiamond = (x, y, color, size) => {
-      if (!isFinite(x) || !isFinite(y)) return;
-      _ctx.fillStyle = color;
-      _ctx.beginPath();
-      _ctx.moveTo(x, y - size); _ctx.lineTo(x + size, y);
-      _ctx.lineTo(x, y + size); _ctx.lineTo(x - size, y);
-      _ctx.closePath();
-      _ctx.fill();
-    };
-    for (const p of res.pivots.slice(-200)) {
-      if (p.zHiBar < startIdx || p.zHiBar >= end) continue;
-      drawDiamond(xAt(p.zHiBar), yAt(p.zHi) - 6, P.f100, 3);
-    }
-    for (const p of res.pivots.slice(-200)) {
-      if (p.zLoBar < startIdx || p.zLoBar >= end) continue;
-      drawDiamond(xAt(p.zLoBar), yAt(p.zLo) + 6, P.f0, 3);
+    for(const f of res.fractals){
+      if(f.bar<startIdx||f.bar>=end||f.confirmedAt>=end)continue;
+      const high=f.side==='HIGH',x=xAt(f.bar),y=yAt(f.price)+(high?-6:6);
+      if(!Number.isFinite(x)||!Number.isFinite(y)||y<PAD.t||y>_H-PAD.b)continue;
+      _ctx.fillStyle=high?P.f100:P.f0;_ctx.beginPath();_ctx.arc(x,y,3,0,Math.PI*2);_ctx.fill();
     }
     _ctx.restore();
   }
