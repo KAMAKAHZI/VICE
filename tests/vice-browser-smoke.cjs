@@ -16,8 +16,8 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
  try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
    const page=await browser.newPage({viewport});const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto(process.env.VICE_BROWSER_ORIGIN||'http://127.0.0.1:'+server.address().port,{waitUntil:'networkidle'});
-   await page.locator('#loginForm').waitFor({state:'visible'});
+   await page.goto(process.env.VICE_BROWSER_ORIGIN||'http://127.0.0.1:'+server.address().port,{waitUntil:'domcontentloaded',timeout:45000});
+   await page.locator('#loginForm').waitFor({state:'visible',timeout:45000});
    assert.equal(await page.evaluate(()=>typeof onAuthenticated),'function','Application initialized');
    await page.locator('#loginBtn').click();
    assert.equal(await page.locator('#loginBtn').isDisabled(),false,'Empty credentials do not trap submit');
