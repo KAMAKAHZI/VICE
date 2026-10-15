@@ -2565,7 +2565,13 @@ async function logout(){
   if(APP_MODE === 'SIM'){ exitSimMode(); return; }
   if(!confirm('Sign out?')) return;
   viceAbortVoiceRecording();
-  try{ await sb.auth.signOut(); }catch(_){}
+  try{
+    const {error}=await sb.auth.signOut();
+    if(error)throw error;
+  }catch(e){
+    toast('Sign out failed; your session is still active: '+(e.message||'try again'),'error');
+    return;
+  }
   try { Realtime.disconnect(); } catch(_) {}
   try{Link.stop()}catch(_){}
   safeResetCloudMt5Session();
