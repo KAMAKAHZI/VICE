@@ -2290,7 +2290,14 @@ async function completeAuthenticatedSetup(user){
       // Returning members can safely reuse historical invite links.
       sessionStorage.removeItem('pending_invite');
     }
-    if(!prof){await sb.auth.signOut();toast('VICE OS is invite-only. Use a valid invitation.','error');return;}
+    if(!prof){
+      // A delayed profile provisioning transaction must not destroy a valid auth session.
+      await new Promise(resolve=>setTimeout(resolve,900));
+      const retry=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+      if(retry.error) throw retry.error;
+      prof=retry.data;
+      if(!prof){toast('Member profile not provisioned. Contact an administrator; your session is preserved.','error');return;}
+    }
     S.profile={name:prof.name||'Member',username:prof.username||'',email:prof.email||user.email||'',
       role:prof.role||'HOLDER',title:prof.title||'Member',phone:prof.phone||'',
       jurisdiction:prof.jurisdiction||'CH',timezone:prof.timezone||'UTC',
