@@ -5,6 +5,7 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { matchesPublishedAsset } from './vice-published-assets.mjs';
 
 const ORIGIN = (process.env.VICE_PRODUCTION_ORIGIN || 'https://vice4x.netlify.app').replace(/[/]+$/,'');
 const expected = JSON.parse(readFileSync('version.json','utf8')).version;
@@ -51,10 +52,10 @@ for(let attempt=1;attempt<=attempts;attempt++){
    const response=await request('/'+file+'?release='+Date.now());
    const bytes=Buffer.from(await response.arrayBuffer());
    const expectedBytes=readFileSync(file);
-   if(!response.ok||!bytes.equals(expectedBytes))mismatches.push(file);
+   if(!response.ok||!matchesPublishedAsset(file,bytes,expectedBytes))mismatches.push(file);
   }catch(e){mismatches.push(file+': '+e.message)}
  }
- if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Nine public asset bodies match checked-out source bytes');break;}
+ if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Nine public assets match source; only the verified Netlify guide-link rewrite is permitted');break;}
  if(attempt===attempts)record('exact_public_assets','FAIL','Mismatched or unavailable: '+mismatches.join(', '));
  else await pause(delayMs);
 }
