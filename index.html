@@ -5442,7 +5442,8 @@ const Realtime = (() => {
       const { data, error } = await sb.from('messages')
         .select('*').eq('channel_id', channelId)
         .order('created_at', { ascending:true }).limit(200);
-      if(error || !data) return;
+      if(error){console.warn('Channel history unavailable:',error.message);toast('Channel history could not load: '+error.message,'error');return;}
+      if(!data)return;
       const existing = S.comms.messages[channelId] || [];
       const ids = new Set(existing.map(m => m.id));
       for(const m of data){
@@ -5469,7 +5470,8 @@ const Realtime = (() => {
         .or(`and(sender_id.eq.${a},peer_id.eq.${b}),and(sender_id.eq.${b},peer_id.eq.${a})`)
         .order('created_at', { ascending:true })
         .limit(200);
-      if(error || !data) return;
+      if(error){console.warn('DM history unavailable:',error.message);toast('Direct message history could not load: '+error.message,'error');return;}
+      if(!data)return;
       const existing = S.comms.dms[peerId] || [];
       const ids = new Set(existing.map(m => m.id));
       for(const m of data){
@@ -5525,8 +5527,14 @@ const Realtime = (() => {
           startTimer();
           paintCallOverlay();
         }
-        if(pc.connectionState === 'failed' || pc.connectionState === 'disconnected'){
+        if(pc.connectionState === 'failed'){
           endCall('lost');
+        } else if(pc.connectionState === 'disconnected'){
+          // Temporary network changes are recoverable; avoid dropping calls immediately.
+          const activePc=pc,activeId=currentCall.id;
+          setTimeout(()=>{
+            if(pc===activePc&&currentCall?.id===activeId&&pc.connectionState==='disconnected')endCall('lost');
+          },12000);
         }
       };
 
@@ -5574,8 +5582,14 @@ const Realtime = (() => {
           startTimer();
           paintCallOverlay();
         }
-        if(pc.connectionState === 'failed' || pc.connectionState === 'disconnected'){
+        if(pc.connectionState === 'failed'){
           endCall('lost');
+        } else if(pc.connectionState === 'disconnected'){
+          // Temporary network changes are recoverable; avoid dropping calls immediately.
+          const activePc=pc,activeId=currentCall.id;
+          setTimeout(()=>{
+            if(pc===activePc&&currentCall?.id===activeId&&pc.connectionState==='disconnected')endCall('lost');
+          },12000);
         }
       };
 
