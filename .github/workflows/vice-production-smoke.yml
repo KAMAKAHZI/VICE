@@ -9,6 +9,7 @@ on:
       - 'verify.html'
       - 'netlify/**'
       - 'tests/vice-production-smoke.mjs'
+      - 'tests/vice-browser-smoke.cjs'
       - '.github/workflows/vice-production-smoke.yml'
   workflow_dispatch:
   schedule:
