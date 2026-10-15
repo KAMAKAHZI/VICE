@@ -41,6 +41,23 @@ async function route(path,label,check){
   else record(label,'FAIL',`HTTP ${r.status}: incorrect or missing release asset`);
  }catch(e){record(label,'FAIL',e.message)}
 }
+// Version alone cannot identify a repair: multiple commits share 1.3.8.0.
+// Require byte identity for every published asset, allowing native deploy propagation.
+let assetsMatch=false;
+for(let attempt=1;attempt<=attempts;attempt++){
+ const mismatches=[];
+ for(const file of ['index.html','guide.html','verify.html','vice-mega.js','vice-mega.css','sw.js','manifest.json','manifest.webmanifest','version.json']){
+  try{
+   const response=await request('/'+file+'?release='+Date.now());
+   const bytes=Buffer.from(await response.arrayBuffer());
+   const expectedBytes=readFileSync(file);
+   if(!response.ok||!bytes.equals(expectedBytes))mismatches.push(file);
+  }catch(e){mismatches.push(file+': '+e.message)}
+ }
+ if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Nine public asset bodies match checked-out source bytes');break;}
+ if(attempt===attempts)record('exact_public_assets','FAIL','Mismatched or unavailable: '+mismatches.join(', '));
+ else await pause(delayMs);
+}
 await route('/?smoke='+Date.now(),'application',s=>s.includes('VICE OS')&&s.includes('safeResetCloudMt5Session')&&s.includes('viceServiceDiagnostics'));
 await route('/guide.html?smoke='+Date.now(),'member_guide',s=>s.includes('APPLICATION MANUAL')&&s.includes('VICE OS'));
 await route('/verify.html?smoke='+Date.now(),'certificate_verify',s=>s.includes('VICE')&&s.includes('verify'));

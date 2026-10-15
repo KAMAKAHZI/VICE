@@ -2263,27 +2263,60 @@ function safeResetCloudMt5Session(){
 // Both getSession() and SIGNED_IN can fire on startup. Share one initialization
 // operation so the second callback never resets a successful session.
 let authSetupTask = null;
+let authSetupOwner = null;
+let authEpoch = 0;
+function clearMemberSession(){
+  authEpoch++;
+  if(viceSyncTimer){clearInterval(viceSyncTimer);viceSyncTimer=null;}
+  try{Realtime.disconnect();}catch(_){}
+  try{Link.stop();}catch(_){}
+  try{viceAbortVoiceRecording();}catch(_){}
+  safeResetCloudMt5Session();
+  S.user=null;
+  S.profile={name:'',username:'',email:'',role:null,vipAccess:false,memberId:null,clientId:null};
+  ['holders','ouvVersions','proposals','proposalVotes','distributions','documents','dataRooms',
+   'complianceCases','treasuryTx','mt5','externalAccounts','invites','audit','signatures','docFolders','reconJobs'].forEach(k=>S[k]=[]);
+  Object.assign(S.comms,{messages:{},dms:{},unread:{},lastRead:{},peers:[],calls:[],online:new Set(),activeDm:null,lastInvite:null});
+  Object.assign(S.academy,{read:{},quiz:{},certs:[],view:null,answers:{},result:null,msg:''});
+  S.support.tickets=[];
+  S.oi.messages=[];
+  S.tokenCerts={list:[],loaded:false,loading:false,error:null,kind:'ALL',program:'ALL'};
+  S.estateHolderBalances=null;S.estateAdminLedger=null;S.strategicBackendVerified=false;
+  S.personalHoldings={viceUnits:0,v4xUnits:0};S.iru.state=null;S.iru.registryReady=false;
+  closeModal();closeSheet();
+}
 function onAuthenticated(user){
   if(APP_MODE === 'SIM') return Promise.resolve();
   if(!user?.id) return Promise.reject(new Error('Missing authenticated user'));
   if(S.user?.id === user.id && $('login')?.hidden === true) return Promise.resolve();
-  if(authSetupTask) return authSetupTask;
-  authSetupTask = completeAuthenticatedSetup(user).finally(() => { authSetupTask = null; });
+  if(authSetupTask){
+    if(authSetupOwner===user.id)return authSetupTask;
+    clearMemberSession();
+    return authSetupTask.then(()=>onAuthenticated(user));
+  }
+  clearMemberSession();
+  authSetupOwner=user.id;
+  const epoch=authEpoch;
+  authSetupTask = completeAuthenticatedSetup(user,epoch).finally(() => { authSetupTask = null;authSetupOwner=null; });
   return authSetupTask;
 }
-async function completeAuthenticatedSetup(user){
+async function completeAuthenticatedSetup(user,epoch=authEpoch){
+  const current=()=>epoch===authEpoch;
   try {
     const inviteCode=sessionStorage.getItem('pending_invite') ||
       new URLSearchParams(location.search).get('invite');
     let {data:prof,error:profileError}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+    if(!current())return;
     if(profileError) throw profileError;
     // An existing provisioned member must never be forced to redeem an old
     // or already-used URL invitation; that fails even after valid authentication.
     if(inviteCode && !prof){
       const redeemed=await sb.rpc('redeem_invite',{p_code:inviteCode});
+    if(!current())return;
       if(redeemed.error) throw redeemed.error;
       sessionStorage.removeItem('pending_invite');
       const result=await sb.from('profiles').select('*').eq('id',user.id).single();
+    if(!current())return;
       if(result.error)throw result.error;
       prof=result.data;
     } else if(inviteCode && prof){
@@ -2294,10 +2327,12 @@ async function completeAuthenticatedSetup(user){
       // A delayed profile provisioning transaction must not destroy a valid auth session.
       await new Promise(resolve=>setTimeout(resolve,900));
       const retry=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+    if(!current())return;
       if(retry.error) throw retry.error;
       prof=retry.data;
       if(!prof){toast('Member profile not provisioned. Contact an administrator; your session is preserved.','error');return;}
     }
+    if(!current())return;
     S.profile={name:prof.name||'Member',username:prof.username||'',email:prof.email||user.email||'',
       role:prof.role||'HOLDER',title:prof.title||'Member',phone:prof.phone||'',
       jurisdiction:prof.jurisdiction||'CH',timezone:prof.timezone||'UTC',
@@ -2306,6 +2341,7 @@ async function completeAuthenticatedSetup(user){
     safeResetCloudMt5Session();
     try{Link.stop()}catch(_){} // prevent bridge portfolio from prior user
     S.user={id:user.id,email:user.email,name:S.profile.name,role:S.profile.role};
+    Academy.restore();
     S.tokenCerts={list:[],loaded:false,loading:false,error:null,kind:'ALL',program:'ALL'};
     try{Link.start()}catch(e){console.warn('Optional VICE Link:',e)}
     // A holder-registry RPC failure must not hide every other module.
@@ -2318,11 +2354,13 @@ async function completeAuthenticatedSetup(user){
     }
     // Show the authenticated interface immediately; optional data can hydrate
     // afterward and a failed IRU read should not blank the sidebar.
+    if(!current())return;
     showApp();
     try { await hydrateData(); } catch(e) {
       console.error('Data hydration failed:',e);
       toast('Some records could not load. Check browser Console.','warn');
     }
+    if(!current())return;
     // Refresh current view with hydrated records while preserving navigation.
     try { renderMain(); paintUserBadges(); } catch(e) { console.warn('Refresh after hydrate:',e); }
     // Nonblocking, owner-scoped read after account hydration; never requests MT5 credentials.
@@ -2332,9 +2370,11 @@ async function completeAuthenticatedSetup(user){
       }
     }catch(e){console.warn('Optional MT5 cloud refresh did not block sign-in:',e);}
     try{await Realtime.connect();await Realtime.loadProfiles();}catch(e){console.warn('Realtime:',e);}
+    if(!current())return;
     startViceSync();
     setTimeout(()=>loadCandles().catch(e=>console.warn(e)),250);
   }catch(e){
+    if(!current())return;
     console.error('Authentication setup:',e);
     // The account profile determines access. An optional plugin must never
     // invalidate a member's authenticated Supabase session.
@@ -2350,8 +2390,10 @@ async function completeAuthenticatedSetup(user){
 }
 
 async function ensureHolderForCurrentUser(){
+  const epoch=authEpoch;
   if(!S.user||S.user.id==='sim-user')return null;
   const {data,error}=await sb.rpc('get_or_create_holder');
+  if(epoch!==authEpoch)return null;
   if(error)throw error;
   S.profile.clientId=data.client_id;
   S.personalHoldings={viceUnits:Number(data.vice_units||0),v4xUnits:Number(data.v4x_units||0)};
@@ -2360,16 +2402,21 @@ async function ensureHolderForCurrentUser(){
 
 
 async function refreshGovernance(){
+  const epoch=authEpoch;
   if(!S.user||APP_MODE!=='LIVE')return;
   const {data,error}=await sb.from('proposals').select('*').order('created_at',{ascending:false}).limit(250);
+  if(epoch!==authEpoch)return;
   if(error)throw error;
   S.proposals=(data||[]).map(denorm);
   const vote=await sb.from('vice_proposal_votes').select('proposal_id,choice').eq('voter_id',S.user.id).limit(500);
+  if(epoch!==authEpoch)return;
   if(!vote.error)S.proposalVotes=vote.data||[];
 }
 async function refreshIssuerReferences(){
+  const epoch=authEpoch;
   if(!S.user||APP_MODE!=='LIVE')return;
   const {data,error}=await sb.from('ouv_versions').select('*').order('effective_at',{ascending:false}).limit(100);
+  if(epoch!==authEpoch)return;
   if(error)throw error;
   S.ouvVersions=(data||[]).map(denorm);
   const current=S.ouvVersions[0];
@@ -2379,8 +2426,10 @@ async function refreshIssuerReferences(){
   await refreshDaoConfig(); // Canonical public display value; supersedes prior OUV versions.
 }
 async function refreshDaoConfig(){
+  const epoch=authEpoch;
   if(!S.user||APP_MODE!=='LIVE') return;
   const {data,error}=await sb.from('vice_dao_config').select('vice_price,v4x_price,updated_at').eq('id',1).maybeSingle();
+  if(epoch!==authEpoch)return;
   if(error || !data){
     S.daoPriceSyncStatus='UNVERIFIED';
     // Historical ouv_versions MUST NOT silently supersede the latest
@@ -2418,6 +2467,8 @@ function startViceSync(){
   },45000);
 }
 async function hydrateData(){
+  const epoch=authEpoch;
+  const current=()=>epoch===authEpoch&&!!S.user;
   const tables = {
     holders:'holders', ouvVersions:'ouv_versions', proposals:'proposals', distributions:'distributions',
     documents:'documents', dataRooms:'data_rooms', complianceCases:'compliance_cases', treasuryTx:'treasury_tx',
@@ -2427,6 +2478,7 @@ async function hydrateData(){
   for(const [key, table] of Object.entries(tables)){
     try{
       const { data, error } = await sb.from(table).select('*').order('created_at',{ascending:false}).limit(500);
+      if(!current())return;
       if(error) throw error;
       if(data) S[key] = data.map(denorm);
     }catch(e){ console.warn('VICE OS table load failed [' + table + ']:', e); }
@@ -2435,6 +2487,7 @@ async function hydrateData(){
   /* Distributions keep the enriched shape we write */
   try {
     const { data } = await sb.from('distributions').select('*').order('created_at',{ascending:false}).limit(500);
+      if(!current())return;
     if(data) {
       S.distributions = data.map(d => ({
         id: d.id,
@@ -2455,6 +2508,7 @@ async function hydrateData(){
   // Votes contain only the current user's ballot; server enforces membership and one vote per proposal.
   try{
     const {data,error}=await sb.from('vice_proposal_votes').select('proposal_id,choice').eq('voter_id',S.user.id).limit(500);
+      if(!current())return;
     if(!error)S.proposalVotes=data||[];
   }catch(e){console.warn('Governance votes unavailable until migration:',e);}
 
@@ -2467,11 +2521,14 @@ async function hydrateData(){
       S.iruClasses[0].ouv=a; S.iruClasses[1].ouv=b;
     }
   }
+  if(!current())return;
   await refreshDaoConfig();
+  if(!current())return;
 
   /* Push every holder from the holders table into S.holders so the Registry is complete */
   try {
     const { data: rows } = await sb.from('holders').select('*').limit(500);
+      if(!current())return;
     if (rows) {
       const ids = new Set(S.holders.map(h => h.clientId));
       for (const r of rows) {
@@ -2492,8 +2549,10 @@ async function hydrateData(){
     }
   } catch(_) {}
 
+  if(!current())return;
   /* Fire the holder IRU auto-enrollment after everything else is loaded */
   try { await ensureHolderForCurrentUser(); } catch(_){}
+  if(!current())return;
   /* Rebuild IRU state exclusively from the persisted, ordered event ledger. */
   try {
     // Cursor/keyset pages: Supabase may cap any single response below the
@@ -2508,6 +2567,7 @@ async function hydrateData(){
         .gt('seq',lastSeq)
         .order('seq',{ascending:true})
         .limit(pageSize);
+      if(!current())return;
       if(error)throw error;
       if(!Array.isArray(data))throw new Error('IRU registry response was not an array');
       if(data.length===0)break;
@@ -2533,22 +2593,27 @@ async function hydrateData(){
     console.error('IRU registry fetch/replay failed:',e);
     toast('IRU registry: ' + S.iru.registryError, 'warn');
   }
+  if(!current())return;
   try { await refreshEstateRegistry(); } catch(e) { console.warn('Estate book unavailable:',e); }
   try {
     const {data}=await sb.rpc('get_my_holder');
+      if(!current())return;
     if(data?.[0])S.personalHoldings={viceUnits:Number(data[0].vice_units),v4xUnits:Number(data[0].v4x_units)};
   }catch(_){}
   try{
     const {data}=await sb.from('support_tickets').select('*').order('created_at',{ascending:false}).limit(100);
+      if(!current())return;
     if(data)S.support.tickets=data.map(r=>({id:r.id,subject:r.subject,text:r.body,status:r.status,at:r.created_at}));
   }catch(e){console.warn('Support sync:',e);}
   try {
     const {data}=await sb.from('certificates').select('cert_id,holder_name,course_title,issued_at,scores,overall_score,digest')
       .eq('profile_id',S.user.id).order('issued_at',{ascending:false}).limit(100);
+      if(!current())return;
     if(data) Academy.state.certs=data.map(c=>({id:c.cert_id,name:c.holder_name,course:c.course_title,
       issuedAt:c.issued_at,scores:c.scores,overallScore:c.overall_score,digest:c.digest}));
     const {data:attempts}=await sb.from('academy_attempts').select('module,score,passed,submitted_at')
       .eq('profile_id',S.user.id).order('submitted_at',{ascending:false});
+      if(!current())return;
     if(attempts){Academy.state.quiz={};for(const a of attempts){if(!Academy.state.quiz[a.module] || a.score>Academy.state.quiz[a.module].score*100)
       Academy.state.quiz[a.module]={score:a.score/100,passed:a.passed,at:a.submitted_at};}}
   }catch(e){console.warn('Academy hydrate:',e);}
@@ -2560,8 +2625,25 @@ function denorm(row){
   return out;
 }
 
+async function saveMemberProfile(updates){
+  if(!S.user?.id)throw Error('Sign in before updating your profile');
+  const epoch=authEpoch;
+  const fields={name:'name',username:'username',title:'title',phone:'phone',jurisdiction:'jurisdiction',timezone:'timezone',avatarInitials:'avatar_initials',avatarUrl:'avatar_url'};
+  const row={},safe={};
+  for(const [key,value] of Object.entries(updates)){
+    if(!fields[key])continue;
+    row[fields[key]]=value;safe[key]=value;
+  }
+  if(APP_MODE==='LIVE'){
+    const result=await sb.from('profiles').update(row).eq('id',S.user.id).select('id').single();
+    if(result.error)throw result.error;
+    if(!result.data?.id)throw Error('Profile update was not confirmed');
+  }
+  if(epoch!==authEpoch)throw Error('Session changed; reopen your profile');
+  Object.assign(S.profile,safe);
+}
+
 async function logout(){
-  if(viceSyncTimer){clearInterval(viceSyncTimer);viceSyncTimer=null;}
   if(APP_MODE === 'SIM'){ exitSimMode(); return; }
   if(!confirm('Sign out?')) return;
   viceAbortVoiceRecording();
@@ -2572,10 +2654,7 @@ async function logout(){
     toast('Sign out failed; your session is still active: '+(e.message||'try again'),'error');
     return;
   }
-  try { Realtime.disconnect(); } catch(_) {}
-  try{Link.stop()}catch(_){}
-  safeResetCloudMt5Session();
-  S.user = null;
+  clearMemberSession();
   S.estateHolderBalances=null; S.estateAdminLedger=null; S.strategicBackendVerified=false;
   S.personalHoldings={viceUnits:0,v4xUnits:0};
   S.iru.state=null; S.iru.registryReady=false;
@@ -2623,8 +2702,10 @@ async function audit(eventType, action, objectType, objectId, outcome='SUCCESS')
 // They are not included in the strategic 2.5M issuance counter and do not
 // constitute verified blockchain custody or guaranteed external transfer.
 async function refreshEstateRegistry(){
+  const epoch=authEpoch;
   if(APP_MODE!=='LIVE'||!S.user)return;
   const own=await sb.rpc('vice_get_my_estate_holdings');
+  if(epoch!==authEpoch)return;
   if(own.error){
     S.estateHolderBalances=null;
     console.warn('Estate holder ledger RPC unavailable:',own.error.message);
@@ -2634,6 +2715,7 @@ async function refreshEstateRegistry(){
   }
   if(isOwner()){
     const admin=await sb.rpc('vice_get_estate_admin_dashboard');
+  if(epoch!==authEpoch)return;
     if(admin.error){
       S.estateAdminLedger=null;
       console.warn('Estate admin ledger RPC unavailable:',admin.error.message);
@@ -2788,8 +2870,6 @@ function paintCmTabs(){
 document.addEventListener('DOMContentLoaded', () => {
   const bv = $('buildv');
   if (bv) bv.textContent = `v${BUILD.version}`;
-  const lf = $('loginForm');
-  if(lf) lf.addEventListener('submit', e => { e.preventDefault(); login(); });
 });
 /* ═══════════════════════════════════════════════════════════════════
    GLOBAL CLICK DELEGATION
@@ -3686,7 +3766,7 @@ async function fetchCandlesBinance(ticker, tf, limit) {
 async function fetchCandlesYahoo(ticker, tf) {
   const interval = YAHOO_TF[tf] || '1h';
   const range = YAHOO_RANGE[tf] || '3mo';
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}`;
+  const url = `/.netlify/functions/yahoo?symbol=${encodeURIComponent(ticker)}&interval=${interval}&range=${range}`;
   const r = await fetch(url);
   if (!r.ok) throw new Error('Yahoo HTTP ' + r.status);
   const j = await r.json();
@@ -3695,13 +3775,17 @@ async function fetchCandlesYahoo(ticker, tf) {
   const ts = res.timestamp, q = res.indicators?.quote?.[0] || {};
   const out = [];
   for (let i = 0; i < ts.length; i++) {
-    if (q.open[i] == null || q.close[i] == null) continue;
+    const prices=[q.open?.[i],q.high?.[i],q.low?.[i],q.close?.[i]];
+    if(!Number.isFinite(ts[i])||ts[i]<=0||!prices.every(x=>typeof x==='number'&&Number.isFinite(x)))continue;
+    const [o,h,l,c]=prices;
+    if(l>Math.min(o,c)||h<Math.max(o,c)||l>h)continue;
     out.push({
       t: ts[i]*1000,
       o:q.open[i], h:q.high[i], l:q.low[i], c:q.close[i],
       v:q.volume?.[i] || 0
     });
   }
+  if(!out.length)throw new Error('Yahoo: no valid price candles');
   return out;
 }
 
@@ -5042,9 +5126,10 @@ const Realtime = (() => {
   if(localBus){
     localBus.onmessage = ev => {
       const m = ev.data;
-      if(!m || !m.type || !m.payload) return;
+      if(!S.user || !m || !m.type || !m.payload) return;
       if(m.payload.senderId === S.user?.id) return;
-      if(m.type === 'chat') receiveChat(m.payload);
+      // Database subscriptions enforce channel ACLs; never trust cross-tab chat payloads.
+      if(m.type === 'chat') return;
       if(m.type === 'call') { handlers.call.forEach(h => h(m.payload)); handleCallSignal(m.payload); }
     };
   }
@@ -5206,7 +5291,7 @@ const Realtime = (() => {
       /* Authorized channel stream: RLS hides reserve/treasury staff records. */
       channelDb=sb.channel('vice-os-rbac-channel-inbox-'+S.user.id)
         .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},({new:row})=>{
-          if(row && row.sender_id!==S.user.id)receiveChat({
+          if(S.user && row && row.sender_id!==S.user.id)receiveChat({
             id:row.id,channelId:row.channel_id,senderId:row.sender_id,
             senderName:row.sender_name,text:row.text,
             at:new Date(row.created_at).getTime()
@@ -5218,7 +5303,7 @@ const Realtime = (() => {
         .on('postgres_changes',{
           event:'INSERT',schema:'public',table:'dm_messages',filter:'peer_id=eq.'+S.user.id
         },({new:row})=>{
-          if(row && row.sender_id!==S.user.id)receiveChat({
+          if(S.user && row && row.sender_id!==S.user.id)receiveChat({
             id:row.id,peerId:S.user.id,senderId:row.sender_id,senderName:row.sender_name,
             text:row.text,at:new Date(row.created_at).getTime()
           });
@@ -5242,6 +5327,8 @@ const Realtime = (() => {
   }
 
   function disconnect(){
+    cleanup();
+    st.profiles={};
     clearInterval(heartbeatTimer);
     heartbeatTimer = null;
     if(presenceChannel){
@@ -5275,8 +5362,10 @@ const Realtime = (() => {
 
   /* ─── PEERS ─── */
   async function loadProfiles(){
+    const epoch=authEpoch;
     try {
       const { data } = await sb.rpc('list_member_directory');
+      if(epoch!==authEpoch||!S.user)return;
       if(!data) return;
       const peers = [];
       for(const p of data){
@@ -5324,6 +5413,7 @@ const Realtime = (() => {
 
   /* ─── MESSAGING ─── */
   async function receiveChat(payload){
+    const epoch=authEpoch;
     let plaintext = payload.text;
     try {
       if(payload.channelId){
@@ -5334,6 +5424,7 @@ const Realtime = (() => {
       }
     } catch(_){}
 
+    if(epoch!==authEpoch||!S.user)return;
     if(payload.channelId){
       const list = S.comms.messages[payload.channelId] || (S.comms.messages[payload.channelId] = []);
       if(!list.some(m => m.id === payload.id)){
@@ -5398,22 +5489,27 @@ const Realtime = (() => {
   // Realtime broadcast is an optimization; it is not proof of delivery or read receipt.
   async function persist(table, row){
     if(!S.user?.id) throw Error('Sign in before sending messages');
+    if(String(row.text||'').length>10000)throw Error('Message is too large after encoding; shorten it and try again');
     const {error}=await sb.from(table).insert({...row,created_at:new Date().toISOString()});
     if(error) throw Error(error.message || 'Database rejected message');
     return true;
   }
 
   async function send(channelId, text){
+    const epoch=authEpoch;
     const t=String(text||'').trim();
     if(!t) return false;
     if(t.length>10000)throw Error('Message exceeds 10,000 characters');
     if(!channelId) throw Error('Open a channel first');
     const id=uuid(),at=Date.now(),senderName=S.profile.name||'Me';
     const encrypted=await MsgCrypto.encrypt('ch:'+channelId,t);
+    if(epoch!==authEpoch||!S.user)throw Error('Session changed; reopen the conversation');
     const payload={id,channelId,senderId:S.user.id,senderName,text:encrypted,at};
+    if(epoch!==authEpoch||!S.user)throw Error('Session changed; reopen the conversation');
     await persist('messages',{
       id,channel_id:channelId,sender_id:S.user.id,sender_name:senderName,text:encrypted
     });
+    if(epoch!==authEpoch)return false;
     const list=S.comms.messages[channelId]||(S.comms.messages[channelId]=[]);
     if(!list.some(m=>m.id===id)) list.push({id,from:senderName,at,text:t,self:true,_decrypted:true});
     // The subscriber receives this through postgres_changes after server RLS.
@@ -5423,6 +5519,7 @@ const Realtime = (() => {
   }
 
   async function sendDm(peerId, text){
+    const epoch=authEpoch;
     const t=String(text||'').trim();
     if(!t) return false;
     if(t.length>10000)throw Error('Message exceeds 10,000 characters');
@@ -5430,9 +5527,11 @@ const Realtime = (() => {
     const id=uuid(),at=Date.now(),senderName=S.profile.name||'Me';
     const threadId=[S.user.id,peerId].sort().join('|');
     const encrypted=await MsgCrypto.encrypt('dm:'+threadId,t);
+    if(epoch!==authEpoch||!S.user)throw Error('Session changed; reopen the conversation');
     await persist('dm_messages',{
       id,peer_id:peerId,sender_id:S.user.id,sender_name:senderName,text:encrypted
     });
+    if(epoch!==authEpoch)return false;
     const list=S.comms.dms[peerId]||(S.comms.dms[peerId]=[]);
     if(!list.some(m=>m.id===id)) list.push({id,from:senderName,at,text:t,self:true,_decrypted:true});
     // Recipient receives this through the authenticated RLS-scoped realtime stream.
@@ -5440,17 +5539,19 @@ const Realtime = (() => {
   }
 
   async function loadHistory(channelId){
+    const epoch=authEpoch;
     try {
       const { data, error } = await sb.from('messages')
         .select('*').eq('channel_id', channelId)
-        .order('created_at', { ascending:true }).limit(200);
+        .order('created_at', { ascending:false }).limit(200);
       if(error){console.warn('Channel history unavailable:',error.message);toast('Channel history could not load: '+error.message,'error');return;}
-      if(!data)return;
+      if(!data||epoch!==authEpoch)return;
       const existing = S.comms.messages[channelId] || [];
       const ids = new Set(existing.map(m => m.id));
       for(const m of data){
         if(ids.has(m.id)) continue;
         const plain = await MsgCrypto.decrypt('ch:' + channelId, m.text);
+        if(epoch!==authEpoch)return;
         existing.push({
           id:m.id, from:m.sender_name,
           at:new Date(m.created_at).getTime(),
@@ -5464,21 +5565,23 @@ const Realtime = (() => {
   }
 
   async function loadDmHistory(peerId){
+    const epoch=authEpoch;
     try {
       const a = S.user.id, b = peerId;
       const threadId = [a, b].sort().join('|');
       const { data, error } = await sb.from('dm_messages')
         .select('*')
         .or(`and(sender_id.eq.${a},peer_id.eq.${b}),and(sender_id.eq.${b},peer_id.eq.${a})`)
-        .order('created_at', { ascending:true })
+        .order('created_at', { ascending:false })
         .limit(200);
       if(error){console.warn('DM history unavailable:',error.message);toast('Direct message history could not load: '+error.message,'error');return;}
-      if(!data)return;
+      if(!data||epoch!==authEpoch)return;
       const existing = S.comms.dms[peerId] || [];
       const ids = new Set(existing.map(m => m.id));
       for(const m of data){
         if(ids.has(m.id)) continue;
         const plain = await MsgCrypto.decrypt('dm:' + threadId, m.text);
+        if(epoch!==authEpoch)return;
         existing.push({
           id:m.id, from:m.sender_name,
           at:new Date(m.created_at).getTime(),
@@ -7399,21 +7502,18 @@ const Academy = (() => {
   const PASS = 0.75;
   const TITLE = 'VICE4X Sovereign Trading & Wealth Architecture — Core Program (Modules I–VII)';
   const st = S.academy;
-  try {
-    Object.assign(st, JSON.parse(localStorage.getItem('vice-academy') || '{}'), {
-      view:null, answers:{}, result:null, msg:''
-    });
-  } catch(_) {}
+  const restore=()=>{
+    st.read={};st.quiz={};st.certs=[];
+    if(!S.user?.id)return;
+    try{st.read=JSON.parse(localStorage.getItem('vice-academy:'+S.user.id)||'{}').read||{};}catch(_){}
+  };
   const save = () => {
-    try {
-      localStorage.setItem('vice-academy', JSON.stringify({
-        read:st.read, quiz:st.quiz, certs:st.certs
-      }));
-    } catch(_) {}
+    if(!S.user?.id)return;
+    try{localStorage.setItem('vice-academy:'+S.user.id,JSON.stringify({read:st.read}));}catch(_){}
   };
   const core = () => COURSE.filter(m => m.core);
   const api = {
-    state:st, course:COURSE, quiz:QUIZ, TITLE, PASS, onChange:() => {},
+    state:st, restore, course:COURSE, quiz:QUIZ, TITLE, PASS, onChange:() => {},
     chapterKey:(m,n) => `${m}.${n}`,
     open(view) {
       st.view = view;
@@ -11056,7 +11156,7 @@ function paintOI(){
       }
       case 'comms-send': {
         const input = $('cmIn');
-        if(!input) return;
+        if(!input||input.disabled) return;
         const txt = input.value.trim();
         if(!txt) return;
         if(txt.startsWith(MsgCrypto.PREFIX)){ toast('Cannot send pre-encrypted text','warn'); return; }
@@ -11079,7 +11179,7 @@ function paintOI(){
       }
       case 'comms-dm-send': {
         const input = $('cmIn');
-        if(!input) return;
+        if(!input||input.disabled) return;
         const txt = input.value.trim();
         if(!txt) return;
         if(txt.startsWith(MsgCrypto.PREFIX)){ toast('Cannot send pre-encrypted text','warn'); return; }
@@ -11298,24 +11398,12 @@ function paintOI(){
           if(k === 'email') return;
           updates[k] = inp.value.trim();
         });
-        Object.assign(S.profile, updates);
-        S.profile.avatarInitials = (S.profile.name || 'NA').replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase() || 'NA';
-        (async () => {
-          try {
-            if(S.user && S.user.id !== 'sim-user'){
-              await sb.from('profiles').update({
-                name: S.profile.name,
-                username: S.profile.username || null,
-                title: S.profile.title,
-                phone: S.profile.phone,
-                jurisdiction: S.profile.jurisdiction,
-                timezone: S.profile.timezone,
-                avatar_initials: S.profile.avatarInitials,
-              }).eq('id', S.user.id);
-            }
-            toast('Profile saved','success');
-          } catch(e) { toast('Save failed: ' + e.message,'error'); }
-          showApp();
+        updates.avatarInitials=(updates.name||S.profile.name||'NA').replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase()||'NA';
+        t.disabled=true;
+        (async()=>{
+          try{await saveMemberProfile(updates);toast('Profile saved','success');showApp();}
+          catch(e){toast('Save failed: '+e.message,'error');}
+          finally{t.disabled=false;}
         })();
         return;
       }
@@ -11373,14 +11461,10 @@ function paintOI(){
       }
       case 'avatar-upload': { $('avatarUpload')?.click(); return; }
       case 'avatar-remove': {
-        (async () => {
-          S.profile.avatarUrl = null;
-          try { if(S.user && S.user.id !== 'sim-user') await sb.from('profiles').update({ avatar_url: null }).eq('id', S.user.id); } catch(_){}
-          toast('Photo removed','success');
-          showApp();
-          renderMain();
-        })();
-        return;
+        (async()=>{
+          try{await saveMemberProfile({avatarUrl:null});toast('Photo removed','success');showApp();renderMain();}
+          catch(e){toast('Save failed: '+e.message,'error');}
+        })();return;
       }
 
       /* ─── ISSUER CONTROL ─── */
@@ -12625,14 +12709,14 @@ document.addEventListener('change', async (e) => {
     const file = f.files && f.files[0];
     if(!file) return;
     if(file.size > 2 * 1024 * 1024){ toast('Image must be under 2 MB','error'); f.value = ''; return; }
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)){toast('Choose a PNG, JPEG or WebP image','error');return;}
+    const avatarEpoch=authEpoch;
     const reader = new FileReader();
     reader.onload = async () => {
+      if(avatarEpoch!==authEpoch)return;
       const dataUrl = reader.result;
-      S.profile.avatarUrl = dataUrl;
       try {
-        if(S.user && S.user.id !== 'sim-user'){
-          await sb.from('profiles').update({ avatar_url: dataUrl }).eq('id', S.user.id);
-        }
+        await saveMemberProfile({avatarUrl:dataUrl});
         toast('Photo updated','success');
       } catch(e) { toast('Save failed: ' + e.message, 'error'); }
       showApp();
@@ -12701,16 +12785,14 @@ window.addEventListener('resize', () => {
 sb.auth.onAuthStateChange((event, session) => {
   try {
     if(event === 'SIGNED_OUT'){
-      safeResetCloudMt5Session();
-      try{Link.stop()}catch(_){}
-      S.user = null;
+      clearMemberSession();
       try { Realtime.disconnect(); } catch(_){}
       const login = $('login'); if(login) login.hidden = false;
       ['tb','bnr','sb'].forEach(id => { const el=$(id); if(el) el.style.display='none'; });
       const mn = document.querySelector('.mn'); if(mn) mn.style.display = 'none';
       $('cmTabs')?.classList.remove('on');
     } else if(event === 'SIGNED_IN' && session && session.user){
-      if(!S.user){
+      if(S.user?.id!==session.user.id){
         setTimeout(() => onAuthenticated(session.user).catch(e => console.warn('Auth state sync failed:', e)), 0);
       }
     } else if(event === 'TOKEN_REFRESHED'){
