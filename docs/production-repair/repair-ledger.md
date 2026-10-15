@@ -22,3 +22,9 @@ Predictable legacy message keys; private signaling and camera/screenshare requir
 ## Genuine external dependencies
 
 No authorized staging user accounts/isolated database supplied or provisioned. No TURN relay/SFU provider configuration verified. No signing provider credentials/license. No private SMTP worker delivery verification. No authorized broker sandbox credentials or provider feed entitlements verified. Browser binary download failed locally; hosted CI is the alternative. No production data was fabricated to replace these dependencies.
+
+## Direct issuance correction and recipient policy checkpoint
+
+- Reproduced the private-profile recipient lookup failure in disposable PostgreSQL 17; fixed DM and attachment INSERT policies without broadening profile/message reads. Staging and hosted acceptance run 38729325335 passed. Migration applied to production as 20261015132937. No message or financial records changed by that policy migration.
+- Added an exact-source issuance reversal with issuer authorization, a separate restricted database-operator entry point, idempotent source-event handling, atomic balance/counter reconciliation, certificate revocation, and append-only correction/audit records. Existing estate reserves are not modified. Source events and certificates are retained.
+- Added frontend ledger replay and admin review for reversal events. Two replay tests pass. PostgreSQL staging tests must pass before installing or invoking the correction function in production. No actual financial correction is claimed at this checkpoint.

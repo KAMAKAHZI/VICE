@@ -2573,7 +2573,7 @@ async function hydrateData(){
     const pageSize=500;
     for(let batch=0;batch<20000;batch++){
       const {data,error}=await sb.from('iru_events')
-        .select('seq,payload,actor_id,created_at')
+        .select('seq,payload,actor_id,actor_role,created_at')
         .gt('seq',lastSeq)
         .order('seq',{ascending:true})
         .limit(pageSize);
@@ -2585,7 +2585,7 @@ async function hydrateData(){
         const seq=Number(e.seq);
         if(!Number.isSafeInteger(seq)||seq<=lastSeq)throw new Error('Non-monotonic IRU event cursor');
         if(!e.payload||typeof e.payload!=='object')throw new Error('Invalid IRU event payload at '+seq);
-        pages.push({...e.payload,by:e.actor_id,at:e.created_at});
+        pages.push({...e.payload,seq,by:e.actor_id||e.actor_role||'DATABASE_OPERATOR',at:e.created_at});
         lastSeq=seq;
       }
       if(batch===19999)throw new Error('IRU replay safety bound reached; use server checkpoints');
@@ -3925,7 +3925,7 @@ const IruEngine = (() => {
   const ACTIVE_STATES = new Set(['PENDING','APPROVED','RESERVED','FROZEN']);
   const TYPES = new Set([
     'HOLDER_ADDED','HOLDER_UPDATED','HOLDER_FROZEN','HOLDER_UNFROZEN',
-    'UNITS_ISSUED','UNITS_RETIRED',
+    'UNITS_ISSUED','UNITS_RETIRED','UNITS_ISSUANCE_REVERSED',
     'ALLOCATION_CREATED','ALLOCATION_APPROVED','ALLOCATION_RESERVED','ALLOCATION_DISTRIBUTED',
     'ALLOCATION_REVOKED','ALLOCATION_FROZEN','ALLOCATION_UNFROZEN',
     'VALUATION_PROPOSED','VALUATION_APPROVED','VALUATION_REJECTED',
@@ -4070,7 +4070,16 @@ const IruEngine = (() => {
         st.supply[p.id] += u;
         break;
       }
-      case 'UNITS_RETIRED': {
+      case 'UNITS_RETIRED':
+      case 'UNITS_ISSUANCE_REVERSED': {
+        if(ev.type==='UNITS_ISSUANCE_REVERSED'){
+          const original=st.journal.find(e=>e.seq===Number(ev.sourceEventSeq));
+          if(!original || original.type!=='UNITS_ISSUED' || original.holderId!==ev.holderId
+            || original.program!==ev.program || parseUnits(original.units)!==parseUnits(ev.units))
+            throw new Error('Correction does not match its original issuance.');
+          if(st.journal.some(e=>e.type==='UNITS_ISSUANCE_REVERSED' && Number(e.sourceEventSeq)===Number(ev.sourceEventSeq)))
+            throw new Error('Issuance already corrected.');
+        }
         const p = program(ev.program);
         const h = st.holders[ev.holderId];
         if (!h) throw new Error('Unknown holder.');
@@ -11580,6 +11589,8 @@ function paintOI(){
       case 'strategic-manager': { openStrategicManager(); return; }
       case 'strategic-create': { submitStrategicAllocation(); return; }
       case 'strategic-advance': { advanceStrategicAllocation(t.dataset.id,t.dataset.step); return; }
+      case 'strategic-correction': { reviewStrategicCorrection(t.dataset.seq); return; }
+      case 'strategic-correction-submit': { submitStrategicCorrection(); return; }
       case 'estate-manager': { openEstateManager(); return; }
       case 'estate-create': { submitEstateAllocation(); return; }
       case 'estate-advance': { advanceEstateAllocation(t.dataset.id,t.dataset.step); return; }
@@ -11966,14 +11977,17 @@ async function openStrategicManager(){
   }
   try{
     const backendReady=await verifyStrategicBackend();
-    const [hr,ar]=await Promise.all([
+    const [hr,ar,er]=await Promise.all([
       sb.from('holders').select('id,name,client_id,holder_type,status')
         .order('created_at',{ascending:true}).limit(250),
       sb.from('allocations').select('id,holder_id,class,units,status,price,created_at')
-        .order('created_at',{ascending:false}).limit(100)
+        .order('created_at',{ascending:false}).limit(100),
+      sb.from('iru_events').select('seq,payload,created_at').eq('event_type','UNITS_ISSUED')
+        .order('seq',{ascending:false}).limit(50)
     ]);
     if(hr.error)throw hr.error;
     if(ar.error)throw ar.error;
+    if(er.error)throw er.error;
     const holders=(hr.data||[]).filter(h=>h.holder_type!=='ESTATE_RESERVE'
       && h.status!=='ESTATE_RESERVE' && h.status!=='FROZEN');
     const options=holders.map(h=>`<option value="${esc(h.id)}">${esc(h.client_id||'Holder')} · ${esc(h.name||'Unnamed')}</option>`).join('');
@@ -11994,8 +12008,37 @@ async function openStrategicManager(){
       <div class="mact"><button class="btn btn-g" data-act="modal-close">Close</button>
         <button class="btn btn-p" data-act="strategic-create" ${(options&&backendReady)?'':'disabled'}>Create pending allocation</button></div>
       <h3 style="margin:16px 0 6px">Allocation register</h3>
-      ${rows||'<p class="meta">No allocations recorded.</p>'}`);
+      ${rows||'<p class="meta">No allocations recorded.</p>'}
+      <h3 style="margin-top:16px">Direct issuance corrections</h3>
+      <p class="meta">Review a mistaken direct issuance to reverse it once, retain its audit record, and revoke its certificate. Estate reserves are separate.</p>
+      ${(er.data||[]).filter(e=>!e.payload?.allocationId).map(e=>`<div class="rw"><span class="rw-l">Event ${esc(e.seq)} · ${esc(e.payload?.program)} · ${esc(e.payload?.units)} units</span><button class="btn btn-xs btn-g" data-act="strategic-correction" data-seq="${esc(e.seq)}">Review correction</button></div>`).join('')||'<p class="meta">No direct issuances recorded.</p>'}`);
   }catch(e){toast('Strategic allocation control unavailable: '+e.message,'error');}
+}
+async function reviewStrategicCorrection(seq){
+  if(APP_MODE!=='LIVE'||!isOwner())return;
+  try{
+    const {data,error}=await sb.from('iru_events').select('seq,payload').eq('seq',Number(seq)).eq('event_type','UNITS_ISSUED').single();
+    if(error)throw error;
+    const p=data.payload;if(p.allocationId)throw Error('Use the approved allocation correction workflow for this record');
+    openModal('Review strategic issuance correction',`<p class="note warn">Reverse exactly ${esc(p.units)} ${esc(p.program)} units from holder ${esc(p.holderId)} for source event ${esc(data.seq)}. The original event remains in the ledger and its certificate will be revoked.</p>
+      <input type="hidden" id="correctionSeq" value="${esc(data.seq)}"><input type="hidden" id="correctionHolder" value="${esc(p.holderId)}"><input type="hidden" id="correctionProgram" value="${esc(p.program)}"><input type="hidden" id="correctionUnits" value="${esc(p.units)}">
+      <label class="field">Correction reason and authority<textarea id="correctionReason" maxlength="500"></textarea></label>
+      <div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button><button class="btn btn-r" data-act="strategic-correction-submit">Record correction</button></div>`);
+  }catch(e){toast('Correction review unavailable: '+e.message,'error');}
+}
+async function submitStrategicCorrection(){
+  if(strategicActionBusy||APP_MODE!=='LIVE'||!isOwner())return;
+  const reason=($('correctionReason')?.value||'').trim();
+  if(reason.length<16){toast('Provide at least 16 characters explaining the correction and authority','error');return;}
+  strategicActionBusy=true;
+  try{
+    const {data,error}=await sb.rpc('reverse_strategic_issuance',{
+      p_source_seq:Number($('correctionSeq').value),p_expected_holder:$('correctionHolder').value,
+      p_expected_program:$('correctionProgram').value,p_expected_units:Number($('correctionUnits').value),p_reason:reason});
+    if(error)throw error;if(!data?.seq)throw Error('Correction not confirmed; reconcile before retrying');
+    closeModal();await hydrateData();renderMain();toast(data.already_reversed?'This issuance was already corrected':'Issuance corrected and certificate revoked','success');
+  }catch(e){toast('Correction not confirmed: '+e.message,'error');}
+  finally{strategicActionBusy=false;}
 }
 async function submitStrategicAllocation(){
   if(strategicActionBusy)return;strategicActionBusy=true;
