@@ -20,6 +20,19 @@ exports.handler=async(event={})=>{
    let parsed;try{parsed=JSON.parse(raw)}catch{return json(502,{error:'Invalid chart provider payload'})}
    const result=parsed?.chart?.result?.[0]; 
    if(!result||!Array.isArray(result.timestamp)||!result.timestamp.length||!result.indicators?.quote?.[0])return json(502,{error:'Market data unavailable for this symbol/interval',symbol:sym,interval,range});
+   const q=result.indicators.quote[0];
+   const valid=result.timestamp.map((t,i)=>({t,i})).filter(({t,i})=>{
+     const a=[q.open?.[i],q.high?.[i],q.low?.[i],q.close?.[i]];
+     return Number.isFinite(t)&&t>0&&a.every(x=>typeof x==='number'&&Number.isFinite(x))
+       &&a[2]<=Math.min(a[0],a[3])&&a[1]>=Math.max(a[0],a[3])&&a[2]<=a[1];
+   });
+   if(!valid.length)return json(502,{error:'Provider returned no valid OHLC candles'});
+   result.timestamp=valid.map(({t})=>t);
+   for(const key of ['open','high','low','close','volume']){
+     if(Array.isArray(q[key]))q[key]=valid.map(({i})=>q[key][i]);
+   }
+   // Expose provenance without implying exchange-certified real-time delivery.
+   parsed.viceSource={provider:'Yahoo Finance',retrievedAt:new Date().toISOString(),timing:'provider-dependent'};
    return {statusCode:200,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'public, max-age=30','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'},body:JSON.stringify(parsed)};
  }catch{return json(502,{error:'Chart provider connection timeout or outage'})}
  finally{clearTimeout(timer)}

@@ -1,0 +1,983 @@
+{
+  "baseline": "9b681f00b0a593d7b47de2498af32ddf0a939fc5",
+  "files": [
+    {
+      "path": ".github/workflows/generator-generic-ossf-slsa3-publish.yml",
+      "bytes": 2428,
+      "sha256": "18d683e0b62f9499e7c55c6be00195c36deeb37714be96840ea5d379d622a5fd"
+    },
+    {
+      "path": ".github/workflows/jekyll-docker.yml",
+      "bytes": 476,
+      "sha256": "7d1920c8ed11d9575abef54900ba115dd8f050c0e9ebcb0386ced5bea2323ccd"
+    },
+    {
+      "path": ".github/workflows/vice-backend-acceptance.yml",
+      "bytes": 883,
+      "sha256": "d581e2392e5625c639033c28f762253b06312e7fad24cc4daceb52c06925b53c"
+    },
+    {
+      "path": ".github/workflows/vice-elite-staging-acceptance.yml",
+      "bytes": 1734,
+      "sha256": "02eb66b24325b4bcfd6a8ba04fa160dcf9a9f122ff08ed06d40ef314fbfab6d8"
+    },
+    {
+      "path": ".github/workflows/vice-netlify-production.yml",
+      "bytes": 2444,
+      "sha256": "8b53d3ca3709e4c69e20e79318d3a13126fa2c0a4ee797efac4d606cf69fa26f"
+    },
+    {
+      "path": ".github/workflows/vice-os-release-guard.yml",
+      "bytes": 1452,
+      "sha256": "19e3375291eb785d2358fe78f2a2c359efb7d8b41417e8476acb94c36d40bb74"
+    },
+    {
+      "path": ".github/workflows/vice-production-smoke.yml",
+      "bytes": 1376,
+      "sha256": "cd8d5a55dc6cc3ce7cb7452dadc314ef53669a72aaa50f36e4c88ca8e4ef2a31"
+    },
+    {
+      "path": ".github/workflows/vice-release-package.yml",
+      "bytes": 1581,
+      "sha256": "f1f015f5511c50b16491c8263d22eff0e0b6c1bd15ee5b3985daee8402c09c71"
+    },
+    {
+      "path": ".github/workflows/vice-repair-acceptance.yml",
+      "bytes": 2584,
+      "sha256": "82f12023e0e670cbc35c15fc380f8659814681b2f3560b7061d56f6a9b055587"
+    },
+    {
+      "path": "CLOUD_MT5_SETUP_136.md",
+      "bytes": 3240,
+      "sha256": "ffdab64eb0ba594da1a39b57e420957451a7707a18712419211291caebc2e1f2"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6915,
+      "sha256": "dcd83f0c543b0edef0a89abda0f245718ea56ff4498c02de2dfc9493b0efebe8"
+    },
+    {
+      "path": "RELEASE_NOTES_1364.md",
+      "bytes": 1681,
+      "sha256": "46cfd09bf93f2f52138b05833cc962911b23c9130ac5d5ede29caf21228d470d"
+    },
+    {
+      "path": "_headers",
+      "bytes": 432,
+      "sha256": "e5eb106c8487a78c1f7c1d5c81a1e917cc3e50843d8eabb636e6a7193130461b"
+    },
+    {
+      "path": "_redirects",
+      "bytes": 18,
+      "sha256": "a1bdc12f6fb189a5f170419133275d498f3b335d940257e46c1e226e07fa21dc"
+    },
+    {
+      "path": "docs/VICE_MT5_1363_INTEGRITY.md",
+      "bytes": 2543,
+      "sha256": "6a176864b75d72d069e60441001d728017b1861088d2b9327417bf0ed7f0095a"
+    },
+    {
+      "path": "docs/VICE_MT5_1363_RELEASE_STATUS.md",
+      "bytes": 2605,
+      "sha256": "ee0af80cb98bf3545d5cd16d0a40af0ec46041e14a336d5ebc97926d2536c4a6"
+    },
+    {
+      "path": "docs/VICE_MT5_CLOUD_136.md",
+      "bytes": 2862,
+      "sha256": "2e3ea65e075b51a14065cc683ee2202356e0ee8bd0adf790eff45e29e2bf6e35"
+    },
+    {
+      "path": "docs/VICE_OS_13610_BACKEND_SECURITY_AND_DEPLOYMENT.md",
+      "bytes": 5936,
+      "sha256": "e1979affba17b80f7244ad87745b132ebc2e583fdd5a367e7fccc028421f19bb"
+    },
+    {
+      "path": "docs/VICE_OS_1368_BACKEND_PRODUCTION_READINESS.md",
+      "bytes": 3952,
+      "sha256": "0d7d6d78f7b092888187b1dfc54a84b03f69e677873e9991b39f71ebb6584252"
+    },
+    {
+      "path": "docs/VICE_OS_1380_RELEASE_STATUS.md",
+      "bytes": 1920,
+      "sha256": "2e8a13045f2cb1c829d288f5483352c0847bcaea4964cb9fbbbe2502ff298ef8"
+    },
+    {
+      "path": "docs/VICE_OS_FINAL_DEPLOYMENT_RUNBOOK_1380.md",
+      "bytes": 10610,
+      "sha256": "2933500f452e5878bcffc581c1efc413ed14c6803396a0d0f6eedb4617576127"
+    },
+    {
+      "path": "docs/VICE_OS_RELEASE_1365_SECURITY_AUDIT.md",
+      "bytes": 4928,
+      "sha256": "ac2bc887059533a40b4f4271a03ae3fad3831eb47efa53c92f7fffadcf212dd8"
+    },
+    {
+      "path": "docs/legacy/supabase-setup-LEGACY-INSECURE-DO-NOT-RUN.sql",
+      "bytes": 10233,
+      "sha256": "28c6db73647a595a8ab237a6cbd6c66362c74202021b2cf54a29bd4572d2cb04"
+    },
+    {
+      "path": "guide.html",
+      "bytes": 24665,
+      "sha256": "ad1644a165dbc83106ff8a7c86d2118d7be6e4635aefb7ffa67c23a96db60e98"
+    },
+    {
+      "path": "index.html",
+      "bytes": 703301,
+      "sha256": "4933022625b3ff8372d45fec3e679d4a27909718a2496286de833eb17a4bac2a"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 511,
+      "sha256": "fa87e0ecad430e951021646fad945fafc447fab42665917580bbf310eb4b7afc"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "bytes": 572,
+      "sha256": "aa373ca4acf2a54b6ec774053731ee4d0c3660858a03e8fff9290d2a4ab24b98"
+    },
+    {
+      "path": "netlify.toml",
+      "bytes": 393,
+      "sha256": "ddb611630852f2f5a33444db07d8c155c3219e7acdfba70b842464095f66e04a"
+    },
+    {
+      "path": "netlify/functions/turn-credentials.mjs",
+      "bytes": 2826,
+      "sha256": "bae52f92e0eaed64c5a7147f338fc0998451b66c11fd9b1c4456a59661ef20fe"
+    },
+    {
+      "path": "netlify/functions/yahoo-search.js",
+      "bytes": 1934,
+      "sha256": "9f1a189d24889de0ded1cdec317c1849c7dfa4e56ff9bb044b961f53ad251eb0"
+    },
+    {
+      "path": "netlify/functions/yahoo.js",
+      "bytes": 3161,
+      "sha256": "5167ce5581c8013f46f9b7eede487666d10e27a59efd4eda8700187286f59d9a"
+    },
+    {
+      "path": "scripts/vice-package-release.sh",
+      "bytes": 1703,
+      "sha256": "096d590e39fe7031815d5a92b2ca1a8c37b09f1760656f8d4ed19182c31d35e0"
+    },
+    {
+      "path": "scripts/vice-publish-netlify.sh",
+      "bytes": 713,
+      "sha256": "570f5a26fbfc6f79a5597e6aba1cdb547b510d3a373237fdb024c0bcb8331a17"
+    },
+    {
+      "path": "scripts/vice-safe-source-package.py",
+      "bytes": 1454,
+      "sha256": "37b2f36efeafca553c5c9327feb6ceb8ce20bbaf099c13f2de7a2a633df4ef1b"
+    },
+    {
+      "path": "server/config.json",
+      "bytes": 325,
+      "sha256": "b298881153176772c1e9b934ed6af2b2f3b9e56831086d1b3bf0a2970938eb51"
+    },
+    {
+      "path": "server/mailer.js",
+      "bytes": 10656,
+      "sha256": "9063a029a826d389f49962e4ea472439a8cbe919819d0ea6dccd1ec3d052fc6a"
+    },
+    {
+      "path": "server/mt5-bridge.js",
+      "bytes": 3624,
+      "sha256": "a8da5fbb039dece0b232329012e01ccb60a5d39bccad0998214926c9a0b3b8a9"
+    },
+    {
+      "path": "server/package.json",
+      "bytes": 328,
+      "sha256": "47710895568c7589b7cb2c5f41080453bc7690b600e56de5ed38db5d40ef6a83"
+    },
+    {
+      "path": "server/server.js",
+      "bytes": 7403,
+      "sha256": "faf16353ca31af1a9dfab0b4a84f6345aa29c3377fd684613e84f25ef247544c"
+    },
+    {
+      "path": "supabase-setup.sql",
+      "bytes": 918,
+      "sha256": "89eec50a239f70771185c596e8f0d2809f340cb7cd28c05aa5e939ad7c153c17"
+    },
+    {
+      "path": "supabase/functions/vice-mt5-cloud/index.ts",
+      "bytes": 14670,
+      "sha256": "115ae612c1075937faa6a6470db76ba4c457fad3f7386201066b8ceb4dbca5b9"
+    },
+    {
+      "path": "supabase/migrations/20261012211632_vice_132_bootstrap_founder_reference_policy.sql",
+      "bytes": 2920,
+      "sha256": "3d39c968a3f016ad22b21bbc0d41dfb3e2f04aa05f9a716e6ad4e30638955fa5"
+    },
+    {
+      "path": "supabase/migrations/20261012212039_vice_132_dual_source_capacity_policy.sql",
+      "bytes": 1188,
+      "sha256": "3bc2b1c0b10fd9dad49ad54c86145b2c98089eb1d8a03e4dd51b206b4d115787"
+    },
+    {
+      "path": "supabase/migrations/20261012213446_vice_6m3_estate_allocation_table.sql",
+      "bytes": 761,
+      "sha256": "dbd8a09a5932336fb6276d42067d863ca7ad0f1f59ac4923a1b3397128f892f1"
+    },
+    {
+      "path": "supabase/migrations/20261012213451_vice_6m4_estate_holder_balance_table.sql",
+      "bytes": 503,
+      "sha256": "107aa787ab65c0ed4d42335eea783142e1e8d5bd8d5eb7990585587b39c212ed"
+    },
+    {
+      "path": "supabase/migrations/20261012213453_vice_6m5_estate_event_table.sql",
+      "bytes": 635,
+      "sha256": "494d863469dc55ad313d07e59e9e319fcec3f0da39e35c1ed3975c5f4391b7c4"
+    },
+    {
+      "path": "supabase/migrations/20261012213459_vice_6m6_member_estate_balance_rpc.sql",
+      "bytes": 799,
+      "sha256": "08ee5188ab47ecece6cb00e25ae7daf60748b69ff9ec45f5ebba96d49a36891d"
+    },
+    {
+      "path": "supabase/migrations/20261012213509_vice_6m7_estate_admin_read_rpc.sql",
+      "bytes": 1144,
+      "sha256": "bed79517690081f1b8a4094dab536765e9b1928cdcce04e9fe64c90e8db04138"
+    },
+    {
+      "path": "supabase/migrations/20261012213516_vice_6m8_estate_create_pending_rpc.sql",
+      "bytes": 1833,
+      "sha256": "76e5c8927164f23f70c3ba8b230293e6e2d23d96adf779e4c03b8aff60f90729"
+    },
+    {
+      "path": "supabase/migrations/20261012213523_vice_6m9_estate_approve_reserve_rpc.sql",
+      "bytes": 2480,
+      "sha256": "8cad587fe8777c3376d0619d6777698bb7b434d68cf8b02fe11700383cba8c0a"
+    },
+    {
+      "path": "supabase/migrations/20261012213530_vice_6m10_estate_internal_distribution_rpc.sql",
+      "bytes": 2713,
+      "sha256": "6416eaf52a155c11924fcbb2fa16ef8bde3d966fb350dff4e67baa4247c9bf90"
+    },
+    {
+      "path": "supabase/migrations/20261012213536_vice_6m11_strategic_allocation_canonical_price.sql",
+      "bytes": 1569,
+      "sha256": "ad1bb0b8ba7fe9a5b892e6145d463805cf9d0fc8656f12210b0ba5e2cf1b6d8e"
+    },
+    {
+      "path": "supabase/migrations/20261012214106_vice_133_replay_safe_strategic_distribution_and_capability_gate.sql",
+      "bytes": 3334,
+      "sha256": "82cf25ba1e48dce1e0a40e34bdd4e0ade01809c9bfeb7ea8918ee01e06ee5204"
+    },
+    {
+      "path": "supabase/migrations/20261012214226_vice_133_estate_admin_reserved_quantity_reconciliation.sql",
+      "bytes": 1366,
+      "sha256": "bb0af5dfc38e644ac916c03521c940482826aed9ecbedaefe7b56a4fa0228d31"
+    },
+    {
+      "path": "supabase/migrations/20261012214348_vice_134_certificate_search_path_and_event_trigger_grants.sql",
+      "bytes": 372,
+      "sha256": "67cba548745cbaf3f601e08399580dca1f390470298fc1280132fd4f1ed015ca"
+    },
+    {
+      "path": "supabase/migrations/20261013005821_vice_136_mt5_cloud_account_registry_owner_scoped.sql",
+      "bytes": 1297,
+      "sha256": "56c302f4de5b1d71b022819ba750739f9777776f06fe0f8605b36a9b73938881"
+    },
+    {
+      "path": "supabase/migrations/20261013025508_vice_1365_foreign_key_performance_indexes.sql",
+      "bytes": 1505,
+      "sha256": "fb90f4a5ed24c891de9365f914d67a6e3503f091da53d7414563dac46b1d5e18"
+    },
+    {
+      "path": "supabase/migrations/20261013025843_vice_1366_high_priority_row_security_hardening.sql",
+      "bytes": 10673,
+      "sha256": "9b029c55609d1af63feff7f34a676d44157f423ad439023fd3248b7b6fb5eabc"
+    },
+    {
+      "path": "supabase/migrations/20261013030015_vice_1366_verified_academy_certificate_awards.sql",
+      "bytes": 3053,
+      "sha256": "c177067d7c56d9d048c67deccb1ad38fc8c7998fc4973f7429de2f63830eac6c"
+    },
+    {
+      "path": "supabase/migrations/20261013030938_vice_1366_governance_votes_distribution_fields.sql",
+      "bytes": 5268,
+      "sha256": "26ae5c80abe8a35b20d1658775f9bd0a3d04129f52cbd728634a5bda5e849540"
+    },
+    {
+      "path": "supabase/migrations/20261013031634_vice_1367_proposal_author_fk_index.sql",
+      "bytes": 88,
+      "sha256": "ca85a01b59f9f80a52f1e28b949db58f0b50bc26db276ee170f01fb345d4dbb9"
+    },
+    {
+      "path": "supabase/migrations/20261013032406_vice_1368_certificate_integrity_rls_initplan.sql",
+      "bytes": 2167,
+      "sha256": "d810d74fc7191b6a63ea52bc238391d22c188f6710695d5580630b1ac878bbaf"
+    },
+    {
+      "path": "supabase/migrations/20261013034008_vice_1369_complete_role_price_and_operational_health_rpcs.sql",
+      "bytes": 8161,
+      "sha256": "99b9829d3cd563f2aa46a0bdb613a86f95b8643f7f522fed8685b902b0447bab"
+    },
+    {
+      "path": "supabase/migrations/20261013040033_vice_1370_unverified_external_and_legacy_mt5_provenance.sql",
+      "bytes": 2237,
+      "sha256": "09c6546c9a13b0647386a6c29ca057b41102c6d286eb5be45c520ee2c9ce3bfb"
+    },
+    {
+      "path": "supabase/migrations/20261013040147_vice_1370_channel_acl_and_chat_identity_integrity.sql",
+      "bytes": 2847,
+      "sha256": "c7617c2b05339c240281d249adf83aab08cec400e27d2e198c187191c6e7a6e9"
+    },
+    {
+      "path": "supabase/migrations/20261013040801_vice_1371_private_chat_media_bucket_storage_acl.sql",
+      "bytes": 2962,
+      "sha256": "4afb5df80c5fd2bdc2f5f33bf7f6ad6694235c8e3dc01ab06e9deeee38ad953d"
+    },
+    {
+      "path": "supabase/migrations/20261013041046_vice_1372_dm_media_storage_correlated_acl_fix.sql",
+      "bytes": 1578,
+      "sha256": "b1c8e399c338e3f3817f2c1ca8d8112aff1aee68c4f877caddde814a5ee8bfe9"
+    },
+    {
+      "path": "supabase/migrations/20261013041130_vice_1373_realtime_direct_message_replication.sql",
+      "bytes": 417,
+      "sha256": "3237f594e817de77edca21b39317c6cc4b56066850f60467d9c551cd8a88e8cb"
+    },
+    {
+      "path": "supabase/migrations/20261013041304_vice_1374_authorized_channel_postgres_realtime.sql",
+      "bytes": 481,
+      "sha256": "83bb477fad6ee110c1bdf5c89856cca15af9b945affdedc14ac6856bb36bc559"
+    },
+    {
+      "path": "supabase/migrations/20261013041502_vice_1375_invite_only_chat_media_membership_acl.sql",
+      "bytes": 2549,
+      "sha256": "6669c62513da69ea5d9b72957dd42727df87275cb79191c7f20a63fd828f6c9c"
+    },
+    {
+      "path": "supabase/migrations/20261013041544_vice_1376_vip_channel_membership_acl.sql",
+      "bytes": 1459,
+      "sha256": "0b7a86610f1315264cfe742a61bd16e5416bc54c8bb8768e6173d4ba3c607cca"
+    },
+    {
+      "path": "supabase/migrations/20261013044725_vice_1377_trusted_audit_and_provisioned_dm.sql",
+      "bytes": 3197,
+      "sha256": "2b17a05731194d0844a1e6155bbef0b05973c19b452c7430da7a67f5e1db147a"
+    },
+    {
+      "path": "supabase/migrations/20261013045325_vice_1378_signer_membership_and_directory_hardening.sql",
+      "bytes": 4935,
+      "sha256": "9b2fc6a74c9befddf5a2fc1873b2a8898efc15bdc3c8036378fbc9678d0b75eb"
+    },
+    {
+      "path": "supabase/migrations/20261013045400_vice_1378_provisioned_signatures_directory_academy.sql",
+      "bytes": 4659,
+      "sha256": "425e508b285a9813af74db287686cd88ff87d21c8b5e9d46fc2bdef855453dd7"
+    },
+    {
+      "path": "supabase/migrations/20261013052749_vice_1380_verified_portfolio_token_certificates.sql",
+      "bytes": 13949,
+      "sha256": "50af13b23e0ae920f6322c80df2bc1644ed55060d4c96aa7a5612cd637c15cac"
+    },
+    {
+      "path": "supabase/migrations/20261013053513_vice_1381_bind_all_certified_portfolio_fields.sql",
+      "bytes": 1097,
+      "sha256": "e257b9a4ff098f37d914480436520364f57513871b768745a6d1984b6da5a8a0"
+    },
+    {
+      "path": "supabase/migrations/20261013053903_vice_1382_transactional_mail_outbox.sql",
+      "bytes": 2773,
+      "sha256": "3481622018e2cc981acc891f2363c36d98fcc5f10cf98ff51bf44b92fb1ce733"
+    },
+    {
+      "path": "supabase/migrations/20261013053953_vice_1383_distribution_certificate_on_issuer_paid.sql",
+      "bytes": 4625,
+      "sha256": "ecb02d419944b8b9c6010f016c45a80f61d5edb31d0fe5c08442baf999fe90f4"
+    },
+    {
+      "path": "supabase/migrations/20261013125523_vice_1384_additive_complete_operational_registries.sql",
+      "bytes": 9985,
+      "sha256": "dd22804520059b45e101131881a228f192565a4e6ec116fad074a3ddf6fd4056"
+    },
+    {
+      "path": "supabase/migrations/20261015132937_vice_dm_recipient_membership_acl.sql",
+      "bytes": 2247,
+      "sha256": "ca35ed8e83a895672b132e1e9dffd7e69c87ae834ee8993a94b9110c99cadedd"
+    },
+    {
+      "path": "supabase/migrations/20261015140648_vice_audited_strategic_issuance_reversal.sql",
+      "bytes": 5605,
+      "sha256": "137f8450897f932ae7954e0a70c100d9592d869e24f0b0404c32130e9e7d58d9"
+    },
+    {
+      "path": "supabase/migrations/APPLIED_VERSION_MAPPING.md",
+      "bytes": 925,
+      "sha256": "7280533ecc6a04ec259fb4b6ee46b4e595d4768d8b28f142b831d0db71339625"
+    },
+    {
+      "path": "sw.js",
+      "bytes": 442,
+      "sha256": "c57d3810440471e126c58e680baf4c8a7e1d2fa7bd74c88b96e60e7dc4b8096b"
+    },
+    {
+      "path": "tests/sql/vice-dm-assertions.sql",
+      "bytes": 2847,
+      "sha256": "7a2f584f8704e1a11a555d38c727c13052dad69658a1dd2e09bd3cf7d4566465"
+    },
+    {
+      "path": "tests/sql/vice-dm-staging.sql",
+      "bytes": 2388,
+      "sha256": "34f32f268a10638ddb514ca0a26ec62044bb229380efcc82b5be51cfd894b9eb"
+    },
+    {
+      "path": "tests/sql/vice-iru-assertions.sql",
+      "bytes": 4165,
+      "sha256": "37d675c578e5a47e4272680eb30cd1d19c9ef02c64ba0dcd0042a8c86014745a"
+    },
+    {
+      "path": "tests/sql/vice-iru-staging.sql",
+      "bytes": 2990,
+      "sha256": "c68068643969228426e9539ff60691fae7e4f21f2157cd053f9049d2da849755"
+    },
+    {
+      "path": "tests/vice-1367-contracts.cjs",
+      "bytes": 2008,
+      "sha256": "c07caaabb4dfb6d7accddc403248c0c2b1ff71808256aac3395deb13b2b95009"
+    },
+    {
+      "path": "tests/vice-1369-integrity.cjs",
+      "bytes": 6169,
+      "sha256": "d7785dbf3e370958c16a4828b8cc02d6120f7bf7bbb84054b27d1649528b23d3"
+    },
+    {
+      "path": "tests/vice-1378-audit-turn.cjs",
+      "bytes": 3052,
+      "sha256": "ecb0350bdfddce92176c13acd9690388c9c7df90f41ea92a71d37ef212e2e938"
+    },
+    {
+      "path": "tests/vice-1379-membership-signature.cjs",
+      "bytes": 3063,
+      "sha256": "383ff2d670aed469992ab5601d852ad11d20190d298352b90c207b7eddabeaf7"
+    },
+    {
+      "path": "tests/vice-backend-acceptance.mjs",
+      "bytes": 5112,
+      "sha256": "1c09970cfe429e4455271f3967c84914e8967a543bb47e46900e2ed9e43daccb"
+    },
+    {
+      "path": "tests/vice-browser-smoke.cjs",
+      "bytes": 3308,
+      "sha256": "2edb863eadd7539b7f6d430fb3cd78f1ab811c60053abb7cccd43b53831ad1b0"
+    },
+    {
+      "path": "tests/vice-calls.cjs",
+      "bytes": 3813,
+      "sha256": "3bca3b448c864bc1b06da011dd01c7caca927983e201ffc0c308cfa6236f35ff"
+    },
+    {
+      "path": "tests/vice-deploy-privacy.cjs",
+      "bytes": 977,
+      "sha256": "86264afa5943f36c7bd19c0e64b9fcc9ee27494c173e4fbc90c9ba6991142c3a"
+    },
+    {
+      "path": "tests/vice-iru-corrections.cjs",
+      "bytes": 1428,
+      "sha256": "5dfa632af76a31ef674aa08a9753237e2718c3a9c3e73862dcae98437e4b359b"
+    },
+    {
+      "path": "tests/vice-pdf-forms.cjs",
+      "bytes": 2329,
+      "sha256": "9ce16f74e613619e398945b5baea26f1c381b1aa55fac917e0b56d8491d7a16e"
+    },
+    {
+      "path": "tests/vice-production-repairs.cjs",
+      "bytes": 6663,
+      "sha256": "8bb3e41d1b61dc81539971a1cf718b6d6ac25c7e734591aea314c56c168b7944"
+    },
+    {
+      "path": "tests/vice-production-smoke.mjs",
+      "bytes": 5791,
+      "sha256": "21e643f2fb7e6c4ad6d36af08d8e1bff8c64cdc79aa9fa7138508666629f494a"
+    },
+    {
+      "path": "tests/vice-public-release-smoke.mjs",
+      "bytes": 1410,
+      "sha256": "9df51aea292c4195a94f804ad9aed5b15a5fd262e2f13f110b0ef3f757da4322"
+    },
+    {
+      "path": "tests/vice-release-safety.cjs",
+      "bytes": 7107,
+      "sha256": "9e275b94e1d897ace61649322995bf4e8a7cff5dd51cb3fbea231b0a98c49e4e"
+    },
+    {
+      "path": "tests/vice-token-certificates.cjs",
+      "bytes": 3931,
+      "sha256": "69b1978fb9aa8ad531e5efe8cdb5cefd2707e862161e43352a691a8599b919dc"
+    },
+    {
+      "path": "verify.html",
+      "bytes": 15196,
+      "sha256": "ff1bba408ee679bd678f8a5c592b381317a9a563047c643d9a35000ef4243c17"
+    },
+    {
+      "path": "version.json",
+      "bytes": 11266,
+      "sha256": "e50ede950021d379ae294e14c758e7f449d6fc7e7c97cb3e4bd5cd0fd07ccc9e"
+    },
+    {
+      "path": "vice-mega.css",
+      "bytes": 3935,
+      "sha256": "58707a925ddc9b2d0a5e313f7e01f2230d3313db2b380858e0e29d4323572292"
+    },
+    {
+      "path": "vice-mega.js",
+      "bytes": 19356,
+      "sha256": "336242385942b75c91b501d548aaaf94fdcbe240b77c879cc13b7d0e68bd6b6b"
+    }
+  ],
+  "tables": [
+    "academy_attempts",
+    "allocations",
+    "certificates",
+    "distributions",
+    "dm_messages",
+    "documents",
+    "external_accounts",
+    "holders",
+    "invites",
+    "iru_events",
+    "messages",
+    "ouv_versions",
+    "profiles",
+    "proposals",
+    "service_requests",
+    "support_tickets",
+    "token_certificates",
+    "vice-chat-media",
+    "vice-documents",
+    "vice_dao_config",
+    "vice_proposal_votes"
+  ],
+  "rpcs": [
+    "append_iru_event",
+    "create_iru_allocation",
+    "get_my_holder",
+    "get_or_create_holder",
+    "issue_certificate",
+    "issue_holdings_consolidation",
+    "list_member_directory",
+    "lookup_email_for_login",
+    "redeem_invite",
+    "reverse_strategic_issuance",
+    "revoke_certificate",
+    "revoke_token_certificate",
+    "sign_document",
+    "submit_academy_quiz",
+    "validate_invite",
+    "vice_assign_member_role",
+    "vice_cast_proposal_vote",
+    "vice_estate_create_allocation",
+    "vice_financial_release_capabilities",
+    "vice_get_estate_admin_dashboard",
+    "vice_get_my_estate_holdings",
+    "vice_operational_health",
+    "vice_record_client_activity",
+    "vice_set_dao_prices"
+  ],
+  "actions": [
+    "acad-answer",
+    "acad-back",
+    "acad-grade",
+    "acad-issue",
+    "acad-mark-read",
+    "acad-open",
+    "acad-preview-cert",
+    "acad-retake",
+    "acad-view-cert",
+    "admin-clear-local",
+    "admin-role-submit",
+    "admin-roles",
+    "apply-invite",
+    "auth-reset",
+    "auth-reset-complete",
+    "avatar-remove",
+    "avatar-upload",
+    "bnr-close",
+    "bnr-reset",
+    "call-accept",
+    "call-decline",
+    "call-end",
+    "call-mute",
+    "cert-copy-url",
+    "cert-download",
+    "cert-open-verify",
+    "cert-print",
+    "cert-revoke",
+    "chain-run",
+    "chart-reset",
+    "chart-style",
+    "chart-style-reset",
+    "chart-style-save",
+    "cloud-mt5-configure",
+    "cloud-mt5-deploy",
+    "cloud-mt5-open",
+    "cloud-mt5-open-link",
+    "cloud-mt5-open-portal",
+    "cloud-mt5-portal",
+    "cloud-mt5-prepare",
+    "cloud-mt5-refresh",
+    "cloud-mt5-remove",
+    "comms-back",
+    "comms-call",
+    "comms-close-dm",
+    "comms-dm-send",
+    "comms-new-dm",
+    "comms-open",
+    "comms-open-dm",
+    "comms-reconnect",
+    "comms-refresh",
+    "comms-send",
+    "comms-start-call",
+    "comms-tab",
+    "copy",
+    "desk-kill",
+    "desk-next",
+    "desk-play-25",
+    "desk-prepare",
+    "desk-reset",
+    "desk-send",
+    "desk-start-replay",
+    "desk-stop-replay",
+    "desk-to-setup",
+    "dist-advance",
+    "dist-new",
+    "dist-submit",
+    "doc-download",
+    "doc-sign",
+    "doc-sign-submit",
+    "doc-upload",
+    "estate-advance",
+    "estate-create",
+    "estate-manager",
+    "ext-add",
+    "ext-submit",
+    "forgot",
+    "google-sign-in",
+    "gov-refresh",
+    "holder-add",
+    "holder-add-submit",
+    "holder-entry",
+    "holder-entry-submit",
+    "holder-issue",
+    "holder-issue-submit",
+    "holder-legacy",
+    "holder-legacy-submit",
+    "holder-tier",
+    "holder-tier-submit",
+    "holder-view",
+    "import-bars",
+    "invite-copy-code",
+    "invite-copy-url",
+    "invite-create-submit",
+    "invite-email",
+    "invite-help",
+    "invite-new",
+    "invite-revoke",
+    "iru-cert-consolidate",
+    "iru-cert-copy",
+    "iru-cert-download",
+    "iru-cert-filter",
+    "iru-cert-preview",
+    "iru-cert-print",
+    "iru-cert-refresh",
+    "iru-cert-revoke",
+    "iru-cert-verify",
+    "lab-adv",
+    "lab-cc",
+    "lab-mc",
+    "lab-run",
+    "lab-stress",
+    "lab-wf",
+    "market-request",
+    "modal-close",
+    "mt5-add",
+    "mt5-add-submit",
+    "mt5-refresh",
+    "mt5-remove",
+    "mt5-set-url",
+    "mt5-test",
+    "notify-enable",
+    "oi-ask",
+    "oi-clear",
+    "oi-close",
+    "oi-listen",
+    "oi-open",
+    "open-mode",
+    "open-symbol-sheet",
+    "open-user",
+    "ouv-edit",
+    "ouv-save",
+    "pick-custom-symbol",
+    "pick-symbol",
+    "profile-2fa",
+    "profile-2fa-confirm",
+    "profile-change-pass",
+    "profile-save",
+    "prop-new",
+    "prop-submit",
+    "prop-vote",
+    "refresh-chart",
+    "scrub-range",
+    "set-ctype",
+    "set-mode",
+    "set-preset",
+    "set-tf",
+    "sheet-close",
+    "sign-out",
+    "signup-invite",
+    "spec-save",
+    "strategic-advance",
+    "strategic-create",
+    "strategic-manager",
+    "support-new",
+    "support-open",
+    "toggle-chart-overlay",
+    "toggle-engine",
+    "toggle-fullscreen",
+    "toggle-show",
+    "vice-attach",
+    "vice-health-check",
+    "vice-voice",
+    "w-cancel",
+    "w-copy-phrase",
+    "w-create",
+    "w-do-import",
+    "w-finish",
+    "w-forget",
+    "w-hide-phrase",
+    "w-import-start",
+    "w-lock",
+    "w-refresh",
+    "w-reveal",
+    "w-set-rpc",
+    "w-unlock",
+    "zoom-in",
+    "zoom-out"
+  ],
+  "handlers": [
+    "ALLOCATION_APPROVED",
+    "ALLOCATION_CREATED",
+    "ALLOCATION_DISTRIBUTED",
+    "ALLOCATION_FROZEN",
+    "ALLOCATION_RESERVED",
+    "ALLOCATION_REVOKED",
+    "ALLOCATION_UNFROZEN",
+    "ENTRY_CLASS_RECORDED",
+    "HOLDER_ADDED",
+    "HOLDER_FROZEN",
+    "HOLDER_UNFROZEN",
+    "HOLDER_UPDATED",
+    "LEGACY_RECORDED",
+    "LEGAL_STATUS_RECORDED",
+    "TIER_ASSIGNED",
+    "UNITS_ISSUED",
+    "UNITS_RETIRED",
+    "VALUATION_APPROVED",
+    "VALUATION_PROPOSED",
+    "VALUATION_REJECTED",
+    "acad-answer",
+    "acad-back",
+    "acad-grade",
+    "acad-issue",
+    "acad-mark-read",
+    "acad-open",
+    "acad-preview-cert",
+    "acad-retake",
+    "acad-view-cert",
+    "admin",
+    "admin-clear-local",
+    "admin-role-submit",
+    "admin-roles",
+    "apply-invite",
+    "audit",
+    "auth-reset",
+    "auth-reset-complete",
+    "authed",
+    "avatar-remove",
+    "avatar-upload",
+    "bar",
+    "bnr-close",
+    "bnr-reset",
+    "call-accept",
+    "call-decline",
+    "call-end",
+    "call-mute",
+    "cert-copy-url",
+    "cert-download",
+    "cert-open-verify",
+    "cert-print",
+    "cert-revoke",
+    "chain-run",
+    "chart-reset",
+    "chart-style",
+    "chart-style-reset",
+    "chart-style-save",
+    "cloud-mt5-configure",
+    "cloud-mt5-deploy",
+    "cloud-mt5-open",
+    "cloud-mt5-open-link",
+    "cloud-mt5-open-portal",
+    "cloud-mt5-portal",
+    "cloud-mt5-prepare",
+    "cloud-mt5-refresh",
+    "cloud-mt5-remove",
+    "comms-back",
+    "comms-call",
+    "comms-close-dm",
+    "comms-dm-send",
+    "comms-new-dm",
+    "comms-open",
+    "comms-open-dm",
+    "comms-reconnect",
+    "comms-refresh",
+    "comms-send",
+    "comms-start-call",
+    "comms-tab",
+    "copy",
+    "desk-kill",
+    "desk-next",
+    "desk-play-25",
+    "desk-prepare",
+    "desk-reset",
+    "desk-send",
+    "desk-start-replay",
+    "desk-stop-replay",
+    "desk-to-setup",
+    "dist-advance",
+    "dist-new",
+    "dist-submit",
+    "doc-download",
+    "doc-sign",
+    "doc-sign-submit",
+    "doc-upload",
+    "error",
+    "estate-advance",
+    "estate-create",
+    "estate-manager",
+    "ext-add",
+    "ext-submit",
+    "forgot",
+    "google-sign-in",
+    "gov-refresh",
+    "history",
+    "holder-add",
+    "holder-add-submit",
+    "holder-entry",
+    "holder-entry-submit",
+    "holder-issue",
+    "holder-issue-submit",
+    "holder-legacy",
+    "holder-legacy-submit",
+    "holder-tier",
+    "holder-tier-submit",
+    "holder-view",
+    "holder-view-close",
+    "import-bars",
+    "invite-copy-code",
+    "invite-copy-url",
+    "invite-create-submit",
+    "invite-email",
+    "invite-help",
+    "invite-new",
+    "invite-revoke",
+    "lab-adv",
+    "lab-cc",
+    "lab-mc",
+    "lab-run",
+    "lab-stress",
+    "lab-wf",
+    "market-request",
+    "mt5-account",
+    "mt5-add",
+    "mt5-add-submit",
+    "mt5-refresh",
+    "mt5-remove",
+    "mt5-set-url",
+    "mt5-test",
+    "mt5-verify",
+    "notify-enable",
+    "oi-ask",
+    "oi-clear",
+    "oi-close",
+    "oi-listen",
+    "oi-open",
+    "open-mode",
+    "open-symbol-sheet",
+    "open-user",
+    "ouv-edit",
+    "ouv-save",
+    "paired",
+    "pairing",
+    "pick-custom-symbol",
+    "pick-symbol",
+    "portfolio",
+    "profile-2fa",
+    "profile-2fa-confirm",
+    "profile-change-pass",
+    "profile-save",
+    "prop-new",
+    "prop-submit",
+    "prop-vote",
+    "refresh-chart",
+    "revoked",
+    "set-ctype",
+    "set-mode",
+    "set-preset",
+    "set-tf",
+    "sign-out",
+    "signup-invite",
+    "sources",
+    "spec-save",
+    "strategic-advance",
+    "strategic-create",
+    "strategic-manager",
+    "support-new",
+    "support-open",
+    "symbols",
+    "tick",
+    "toggle-chart-overlay",
+    "toggle-engine",
+    "toggle-fullscreen",
+    "toggle-show",
+    "vice-health-check",
+    "w-cancel",
+    "w-copy-phrase",
+    "w-create",
+    "w-do-import",
+    "w-finish",
+    "w-forget",
+    "w-hide-phrase",
+    "w-import-start",
+    "w-lock",
+    "w-refresh",
+    "w-reveal",
+    "w-set-rpc",
+    "w-unlock",
+    "zoom-in",
+    "zoom-out"
+  ],
+  "actions_without_switch_case": [
+    "iru-cert-consolidate",
+    "iru-cert-copy",
+    "iru-cert-download",
+    "iru-cert-filter",
+    "iru-cert-preview",
+    "iru-cert-print",
+    "iru-cert-refresh",
+    "iru-cert-revoke",
+    "iru-cert-verify",
+    "modal-close",
+    "scrub-range",
+    "sheet-close",
+    "vice-attach",
+    "vice-voice"
+  ],
+  "inventory_note": "Tracked source inventory excludes this documentation suite to avoid recursive/self-changing hashes. Listed code paths are dependencies, not proof of complete functional acceptance."
+}

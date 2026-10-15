@@ -7,7 +7,7 @@ permissions:
   contents: read
 concurrency:
   group: vice-netlify-prod
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          npx --yes netlify-cli@latest deploy --prod --dir=dist/site --functions=netlify/functions --site="$NETLIFY_SITE_ID" --message="VICE OS ${{ github.sha }} — verified frontend + cloud functions" 
+          npx --yes netlify-cli@latest deploy --prod --no-build --dir=dist/site --functions=netlify/functions --site="$NETLIFY_SITE_ID" --message="VICE OS ${{ github.sha }} — verified frontend + cloud functions"
       - name: Run independent live smoke
         run: |
           node tests/vice-production-smoke.mjs

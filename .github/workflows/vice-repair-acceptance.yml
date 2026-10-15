@@ -1,0 +1,59 @@
+name: VICE repair behavioral and browser acceptance
+on:
+  push:
+    branches: ['repair/production-acceptance-20261015']
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+          POSTGRES_DB: vice_staging
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate recipient policy in disposable PostgreSQL
+        env:
+          PGPASSWORD: isolated-test-only
+        run: |
+          psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-dm-staging.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015132937_vice_dm_recipient_membership_acl.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015132937_vice_dm_recipient_membership_acl.sql
+          psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-dm-assertions.sql
+      - name: Validate audited issuance reversal in disposable PostgreSQL
+        env:
+          PGPASSWORD: isolated-test-only
+        run: |
+          psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-iru-staging.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015140648_vice_audited_strategic_issuance_reversal.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015140648_vice_audited_strategic_issuance_reversal.sql
+          psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-iru-assertions.sql
+      - run: npm install --no-save --package-lock=false playwright@1.64.1 pdf-lib@1.17.1
+      - run: |
+          bash scripts/vice-publish-netlify.sh
+          for f in tests/*.cjs; do
+            if [ "$f" != tests/vice-browser-smoke.cjs ]; then node "$f"; fi
+          done
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/vice-browser-smoke.cjs
+      - run: node tests/vice-backend-acceptance.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VICE_REPAIR_BACKEND_ACCEPTANCE
+          path: backend-acceptance-report.json
