@@ -15,7 +15,7 @@ Every criterion below refers to the supplied release specification. PARTIAL is n
 | Communications | Presence updates | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Communications | Calls connect | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Communications | Calls terminate correctly | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
-| Communications | Screen sharing works where supported | NOT IMPLEMENTED | No screen-sharing media path in current implementation. |
+| Communications | Screen sharing works where supported | PARTIAL | One-to-one display-media path and stop/permission tests pass; real desktop/mobile/NAT acceptance remains unverified. |
 | Trading | Charts load genuine provider data | PARTIAL | Proxy and invalid-OHLC tests pass; live provider and instrument coverage unverified. |
 | Trading | Zoom works | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Trading | Horizontal dragging works | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
@@ -31,8 +31,8 @@ Every criterion below refers to the supplied release specification. PARTIAL is n
 | Certificates | Verification works | PARTIAL | Unknown certificate rejection passed read-only API; legitimate/revoked records untested. |
 | Certificates | Duplicate issuance is prevented | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Documents | PDFs load | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
-| Documents | Supported edits save | NOT IMPLEMENTED | No genuine PDF form-edit/version workflow. |
-| Documents | Profile autofill works | NOT IMPLEMENTED | No completed profile-driven PDF template workflow. |
+| Documents | Supported edits save | PARTIAL | AcroForm PDF roundtrip tests pass; private save-copy path implemented but authenticated storage E2E unverified. |
+| Documents | Profile autofill works | PARTIAL | Exact field-name identity/contact mapping implemented from backend profile; authenticated E2E unverified. |
 | Documents | Downloads work | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Documents | Signature requests work | NOT IMPLEMENTED | Typed-name attestation exists; requests/sequence/reminders do not. |
 | Documents | Signed documents are retained | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |

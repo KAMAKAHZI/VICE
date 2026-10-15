@@ -27,6 +27,18 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
    assert.equal(await page.locator('#modal').evaluate(e=>e.classList.contains('on')),false);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,'No horizontal overflow');
    assert.deepEqual(errors,[]);console.log('PASS public browser',viewport.width,'login, validation, modal, layout, runtime');
+   // Explicit SIM fixtures exercise rendering only, never real accounts/allocations.
+   await page.route('https://*.supabase.co/**',route=>route.abort());
+   await page.evaluate(()=>enterSimMode());
+   const renderFailures=await page.evaluate(()=>{
+     const failures=[];
+     for(const tab of TABS){S.tab=tab;renderMain();const text=document.getElementById('view')?.textContent||'';if(/^Error:/.test(text.trim()))failures.push(tab+': '+text);}
+     APP_MODE='LIVE';clearMemberSession();
+     if(!document.getElementById('view'))failures.push('Session cleanup removed the view mount');
+     return failures;
+   });
+   assert.deepEqual(renderFailures,[],'Every existing navigation view renders with explicit SIM fixtures');
+   console.log('PASS navigation render and session DOM cleanup',viewport.width);
    await page.close();
   }
  }finally{await browser.close();await new Promise(r=>server.close(r));}

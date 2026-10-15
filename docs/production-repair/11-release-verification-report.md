@@ -11,3 +11,13 @@ Local results before release: 11 behavioral tests passed, seven pre-existing sta
 Live read-only metadata: 50 public tables; zero without RLS; 38 migrations; two private storage buckets. No production data/schema mutations. Security warnings and missing features are documented in the other guides and acceptance matrix.
 
 This is a partial production repair, not fulfillment of the ultimate production-ready specification. Missing application features are not mislabeled as credential blockers. No provider subscription or paid infrastructure was purchased. Release SHA, deployment ID/time and hosted test results must be appended from actual evidence after deployment.
+
+## Second implementation checkpoint
+
+Added AcroForm editor using pinned pdf-lib 1.17.1 with SHA-384 subresource integrity. Text/date, checkbox, dropdown/radio inputs; backend profile autofill; PDF export; private edited-copy save; originals retained. Three PDF roundtrip/validation/read-only tests pass. Added wallet locking and stale upload checks.
+
+First hosted acceptance run 38678471312 passed both desktop/mobile public-browser cases and all 17 backend checks. Final-source rerun remains required. No authenticated signing/issuance/provider tests were substituted.
+
+## Third implementation checkpoint
+
+Added recipient-scoped call signaling over existing DM RLS, database-bound sender identity, stale/foreign signal rejection, bounded ICE buffering, camera and screen-share controls with media cleanup, truthful connection states and timer-only DOM updates. Seven additional tests pass (21 new tests total). Browser coverage now includes every existing navigation view using isolated SIM fixtures, never real records. Final hosted results pending.

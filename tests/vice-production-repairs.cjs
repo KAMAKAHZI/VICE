@@ -35,7 +35,7 @@ test('Message persistence rejects encoded overflow before database write',async(
  await c.persist('messages',{text:'ok'});assert.equal(writes,1);
 });
 test('Authentication coalesces duplicate initialization',async()=>{
- let calls=0,resolve;const c=run('let authSetupTask=null,authSetupOwner=null,authEpoch=0;'+section('function onAuthenticated(', 'async function completeAuthenticatedSetup('),{
+ let calls=0,resolve;const c=run('let authSetupTask=null,authSetupOwner=null,authSetupEpoch=-1,authEpoch=0;'+section('function onAuthenticated(', 'async function completeAuthenticatedSetup('),{
  APP_MODE:'LIVE',S:{user:null},$:()=>({hidden:false}),clearMemberSession:()=>{},completeAuthenticatedSetup:()=>{calls++;return new Promise(r=>resolve=r)}});
  const a=c.onAuthenticated({id:'a'}),b=c.onAuthenticated({id:'a'});assert.equal(a,b);assert.equal(calls,1);resolve();await a;
 });

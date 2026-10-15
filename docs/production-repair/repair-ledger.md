@@ -17,7 +17,7 @@
 
 ## Open implementation defects, not credential excuses
 
-Predictable legacy message keys; globally broadcast call signaling; missing video/screenshare/SFU; no complete read receipts/edit/delete/search/channel administration; incomplete PDF editing/versioning and signature requests; no backend reading-progress sync; incomplete stochastic/MTF/marker and nine-position broker acceptance; controls not fully browser exercised; CSP and dependency scanning incomplete. These remain release acceptance failures until implemented and tested.
+Predictable legacy message keys; private signaling and camera/screenshare require two-party acceptance; missing group SFU; no complete read receipts/edit/delete/search/channel administration; incomplete PDF editing/versioning and signature requests; no backend reading-progress sync; incomplete stochastic/MTF/marker and nine-position broker acceptance; controls not fully browser exercised; CSP and dependency scanning incomplete. These remain release acceptance failures until implemented and tested.
 
 ## Genuine external dependencies
 

@@ -8,7 +8,7 @@ Flow: browser → Supabase Auth → own profile → RLS-protected tables/RPCs. D
 
 Markets: browser → Netlify yahoo function → Yahoo Finance; Binance uses its provider endpoint. Broker records use JWT-protected vice-mt5-cloud and the separately hosted VICE Link service. Broker credentials remain outside the public bundle.
 
-Communications: RLS-scoped Postgres change streams carry channel/DM records; presence and legacy call signaling use Realtime broadcast. Predictable legacy thread keys are not E2EE. No SFU is deployed by this repair.
+Communications: RLS-scoped Postgres change streams carry channel/DM records; presence uses Realtime broadcast; call signaling now uses recipient-scoped dm_messages with sender identity bound to database columns. Predictable legacy thread keys are not E2EE. No SFU is deployed by this repair.
 
 Documents: private Storage + documents metadata → sign_document RPC → signatures/audit record. Certificates use allocation and portfolio RPCs, verification pages and browser print/PDF output.
 

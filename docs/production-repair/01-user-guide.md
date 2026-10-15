@@ -6,7 +6,7 @@ Sign in using email or username and password. Google sign-in requires configured
 
 The sidebar opens existing modules. Account → Run Diagnostics checks public endpoints and authorized reads. Diagnostics are connectivity checks, not proof of financial correctness.
 
-Communications provides channels and direct messages. Failed writes display an error and retain the draft. History currently loads the most recent 200 messages; older-history pagination, server read receipts, editing and search are not completed. Images and voice notes use private storage. Calls currently provide one-to-one audio. Video, screen sharing and group conferencing are not available.
+Communications provides channels and direct messages. Failed writes display an error and retain the draft. History currently loads the most recent 200 messages; older-history pagination, server read receipts, editing and search are not completed. Images and voice notes use private storage. Calls provide audio with camera/screen-sharing controls after a connection is established. Camera and screen sharing are implemented for one-to-one calls; cross-network verification remains open. Group SFU conferencing remains unavailable.
 
 Charts use provider candles or explicitly selected imports/practice data. Yahoo requests use the same-origin function. No valid data produces an unavailable state. Do not treat provider-dependent timing as guaranteed real time.
 

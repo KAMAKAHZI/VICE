@@ -193,3 +193,102 @@
     return prior?.(t,e);
   };
 })();
+
+/* AcroForm editing: preserves originals; never edits signed PDFs or issues certificates. */
+window.VicePdf = (()=>{
+  let libraryTask=null;
+  function library(){
+    if(window.PDFLib)return Promise.resolve(window.PDFLib);
+    if(!libraryTask)libraryTask=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      script.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+      script.integrity='sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI';
+      script.crossOrigin='anonymous';
+      script.onload=()=>resolve(window.PDFLib);
+      script.onerror=()=>{script.remove();libraryTask=null;reject(Error('PDF engine unavailable; check connectivity and retry'));};
+      document.head.appendChild(script);
+    });
+    return libraryTask;
+  }
+  function fields(pdf,lib){
+    const form=pdf.getForm();
+    if(form.hasXFA())throw Error('XFA forms require an external compatible editor');
+    if(form.getFields().some(f=>f instanceof lib.PDFSignature))throw Error('Signature fields detected. Preserve this file and use its signing provider.');
+    return form.getFields().filter(f=>!f.isReadOnly()).map(f=>{
+      if(f instanceof lib.PDFTextField)return {name:f.getName(),kind:'text',value:f.getText()||'',max:f.getMaxLength()||10000};
+      if(f instanceof lib.PDFCheckBox)return {name:f.getName(),kind:'checkbox',value:f.isChecked()};
+      if(f instanceof lib.PDFDropdown||f instanceof lib.PDFRadioGroup)return {name:f.getName(),kind:'select',value:[f.getSelected()].flat()[0]||'',options:f.getOptions()};
+      return null;
+    }).filter(Boolean);
+  }
+  async function edit(bytes,values,lib){
+    const pdf=await lib.PDFDocument.load(bytes);
+    const editable=fields(pdf,lib),form=pdf.getForm();
+    for(const item of editable){
+      if(!Object.prototype.hasOwnProperty.call(values,item.name))continue;
+      const field=form.getField(item.name),value=values[item.name];
+      if(item.kind==='checkbox'){if(value===true)field.check();else if(value===false)field.uncheck();else throw Error('Checkbox value must be boolean');}
+      if(item.kind==='text'){const text=String(value);if(text.length>item.max)throw Error('Field exceeds maximum length: '+item.name);field.setText(text);}
+      if(item.kind==='select'){if(!item.options.includes(value))throw Error('Invalid selection: '+item.name);field.select(value);}
+    }
+    return pdf.save();
+  }
+  async function open(id){
+    const epoch=authEpoch,owner=S.user?.id,doc=S.documents.find(d=>d.id===id);
+    if(!owner||!doc?.url)throw Error('Sign in and select an available document');
+    if(doc.signed)throw Error('Signed documents are immutable. Upload an authorized unsigned template.');
+    if(doc.type!=='application/pdf')throw Error('Form editing supports PDF documents only');
+    const current=()=>{if(epoch!==authEpoch||owner!==S.user?.id)throw Error('Session changed; reopen the document');};
+    openModal('PDF form editor','<p role="status">Loading private document…</p>');
+    const lib=await library();current();
+    const downloaded=await sb.storage.from('vice-documents').download(doc.url);
+    if(downloaded.error)throw downloaded.error;
+    if(downloaded.data.size>10*1024*1024)throw Error('PDF exceeds 10 MB');
+    const bytes=await downloaded.data.arrayBuffer();current();
+    if(doc.sha256){
+      const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
+      if(digest!==doc.sha256)throw Error('Document integrity mismatch; contact an administrator');
+    }
+    const pdf=await lib.PDFDocument.load(bytes),items=fields(pdf,lib);current();
+    if(!items.length)throw Error('This PDF has no supported editable form fields. Full-page content editing requires an external PDF editor.');
+    openModal('PDF form editor',`<p>${esc(doc.name)} · Original preserved. Text, date text, checkboxes and selections are supported.</p>
+      <form id="vicePdfForm">${items.map((f,i)=>`<label class="ff" for="pdfField${i}">${esc(f.name)}${f.kind==='checkbox'?`<input id="pdfField${i}" type="checkbox" ${f.value?'checked':''}>`:f.kind==='select'?`<select id="pdfField${i}">${f.options.map(o=>`<option ${o===f.value?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input id="pdfField${i}" value="${esc(f.value)}" maxlength="${f.max}">`}</label>`).join('')}</form>
+      <p class="note">Review every field before export. Profile autofill uses your stored member profile and never supplies financial values.</p>
+      <div class="mact"><button class="btn btn-g" id="pdfAutofill">Autofill profile</button><button class="btn btn-g" id="pdfExport">Export PDF</button><button class="btn btn-p" id="pdfSave">Save new copy</button></div><p id="pdfResult" role="status" aria-live="polite"></p>`);
+    const form=$('vicePdfForm'),result=$('pdfResult');
+    const values=()=>Object.fromEntries(items.map((f,i)=>[f.name,f.kind==='checkbox'?form.querySelector('#pdfField'+i).checked:form.querySelector('#pdfField'+i).value]));
+    $('pdfAutofill').onclick=async()=>{
+      try{current();const r=await sb.from('profiles').select('name,email,phone,member_id,client_id').eq('id',owner).single();if(r.error)throw r.error;current();
+        const mapping={name:r.data.name,full_name:r.data.name,legal_name:r.data.name,email:r.data.email,phone:r.data.phone,member_id:r.data.member_id,client_id:r.data.client_id};
+        let count=0;items.forEach((f,i)=>{const key=f.name.toLowerCase().replace(/\s+/g,'_');if(f.kind==='text'&&mapping[key]!=null){form.querySelector('#pdfField'+i).value=String(mapping[key]);count++;}});
+        result.textContent=count+' fields filled. Review before saving.';
+      }catch(e){result.textContent=e.message;}
+    };
+    let busy=false;
+    async function output(save){
+      if(busy)return;busy=true;
+      try{
+        current();const outputBytes=await edit(bytes,values(),lib);current();
+        const name=doc.name.replace(/\.pdf$/i,'')+'-edited-'+new Date().toISOString().replace(/[:.]/g,'-')+'.pdf';
+        const blob=new Blob([outputBytes],{type:'application/pdf'});
+        if(!save){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);result.textContent='PDF exported. The original is unchanged.';return;}
+        const newId=uuid(),storagePath=owner+'/'+newId+'/'+name.replace(/[^A-Za-z0-9._-]/g,'_');
+        const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',outputBytes)),x=>x.toString(16).padStart(2,'0')).join('');current();
+        const upload=await sb.storage.from('vice-documents').upload(storagePath,blob,{contentType:'application/pdf',upsert:false});if(upload.error)throw upload.error;current();
+        const row={id:newId,name,type:'application/pdf',size:blob.size,url:storagePath,sha256:digest,uploaded_by:owner};
+        const saved=await sb.from('documents').insert(row).select('id').single();
+        if(saved.error)throw Error('File uploaded but document registration failed: '+saved.error.message+'; contact administration with reference '+newId);
+        current();S.documents.unshift(denorm({...row,created_at:new Date().toISOString(),signed:false}));
+        await audit('DOCUMENT_COPY_SAVED','Edited PDF copy of '+doc.id,'documents',newId);
+        result.textContent='New private copy saved. Original retained.';
+      }catch(e){result.textContent='PDF operation failed: '+e.message;}
+      finally{busy=false;}
+    }
+    $('pdfExport').onclick=()=>output(false);$('pdfSave').onclick=()=>output(true);
+  }
+  document.addEventListener('click',e=>{
+    const button=e.target.closest('[data-act="doc-edit-form"]');if(!button)return;
+    void open(button.dataset.id).catch(error=>{closeModal();toast(error.message,'error');});
+  });
+  return {fields,edit,open};
+})();

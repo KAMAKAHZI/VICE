@@ -1348,7 +1348,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.8.0-IRU-CERTIFICATES', date: '2026-10-13' };
+const BUILD = { version: '1.3.8.0-IRU-CERTIFICATES', date: '2026-10-15' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -2264,12 +2264,14 @@ function safeResetCloudMt5Session(){
 // operation so the second callback never resets a successful session.
 let authSetupTask = null;
 let authSetupOwner = null;
+let authSetupEpoch = -1;
 let authEpoch = 0;
 function clearMemberSession(){
   authEpoch++;
   if(viceSyncTimer){clearInterval(viceSyncTimer);viceSyncTimer=null;}
   try{Realtime.disconnect();}catch(_){}
   try{Link.stop();}catch(_){}
+  try{if(Wallet.state.unlocked)Wallet.lock();}catch(_){}
   try{viceAbortVoiceRecording();}catch(_){}
   safeResetCloudMt5Session();
   S.user=null;
@@ -2284,18 +2286,26 @@ function clearMemberSession(){
   S.estateHolderBalances=null;S.estateAdminLedger=null;S.strategicBackendVerified=false;
   S.personalHoldings={viceUnits:0,v4xUnits:0};S.iru.state=null;S.iru.registryReady=false;
   closeModal();closeSheet();
+  try{
+    ['tb','bnr','sb'].forEach(id=>{const el=$(id);if(el)el.style.display='none';});
+    const main=document.querySelector('main.mn');if(main)main.style.display='none';
+    if($('view'))$('view').innerHTML='';
+    if($('login'))$('login').hidden=false;
+    $('cmTabs')?.classList.remove('on');
+  }catch(_){}
 }
 function onAuthenticated(user){
   if(APP_MODE === 'SIM') return Promise.resolve();
   if(!user?.id) return Promise.reject(new Error('Missing authenticated user'));
   if(S.user?.id === user.id && $('login')?.hidden === true) return Promise.resolve();
   if(authSetupTask){
-    if(authSetupOwner===user.id)return authSetupTask;
+    if(authSetupOwner===user.id&&authSetupEpoch===authEpoch)return authSetupTask;
     clearMemberSession();
-    return authSetupTask.then(()=>onAuthenticated(user));
+    const requestedEpoch=authEpoch;
+    return authSetupTask.then(()=>requestedEpoch===authEpoch?onAuthenticated(user):undefined);
   }
   clearMemberSession();
-  authSetupOwner=user.id;
+  authSetupOwner=user.id;authSetupEpoch=authEpoch;
   const epoch=authEpoch;
   authSetupTask = completeAuthenticatedSetup(user,epoch).finally(() => { authSetupTask = null;authSetupOwner=null; });
   return authSetupTask;
@@ -5130,7 +5140,7 @@ const Realtime = (() => {
       if(m.payload.senderId === S.user?.id) return;
       // Database subscriptions enforce channel ACLs; never trust cross-tab chat payloads.
       if(m.type === 'chat') return;
-      if(m.type === 'call') { handlers.call.forEach(h => h(m.payload)); handleCallSignal(m.payload); }
+      // Calls use the authenticated recipient-scoped database stream.
     };
   }
 
@@ -5242,8 +5252,7 @@ const Realtime = (() => {
       broadcastChannel
         .on('broadcast', { event:'call' }, ({ payload }) => {
           if(!payload) return;
-          handlers.call.forEach(h => h(payload));
-          handleCallSignal(payload);
+          // Legacy public broadcasts are not authenticated call signaling.
         })
         .on('broadcast', { event:'profile' }, ({ payload }) => {
           if(payload && payload.id){
@@ -5303,6 +5312,9 @@ const Realtime = (() => {
         .on('postgres_changes',{
           event:'INSERT',schema:'public',table:'dm_messages',filter:'peer_id=eq.'+S.user.id
         },({new:row})=>{
+          if(S.user && row?.peer_id===S.user.id && String(row.text||'').startsWith('VICE_CALL_V1:')){
+            receiveCallRow(row);return;
+          }
           if(S.user && row && row.sender_id!==S.user.id)receiveChat({
             id:row.id,peerId:S.user.id,senderId:row.sender_id,senderName:row.sender_name,
             text:row.text,at:new Date(row.created_at).getTime()
@@ -5572,6 +5584,7 @@ const Realtime = (() => {
       const { data, error } = await sb.from('dm_messages')
         .select('*')
         .or(`and(sender_id.eq.${a},peer_id.eq.${b}),and(sender_id.eq.${b},peer_id.eq.${a})`)
+        .not('text','like','VICE_CALL_V1:%')
         .order('created_at', { ascending:false })
         .limit(200);
       if(error){console.warn('DM history unavailable:',error.message);toast('Direct message history could not load: '+error.message,'error');return;}
@@ -5579,6 +5592,7 @@ const Realtime = (() => {
       const existing = S.comms.dms[peerId] || [];
       const ids = new Set(existing.map(m => m.id));
       for(const m of data){
+        if(String(m.text||'').startsWith('VICE_CALL_V1:'))continue;
         if(ids.has(m.id)) continue;
         const plain = await MsgCrypto.decrypt('dm:' + threadId, m.text);
         if(epoch!==authEpoch)return;
@@ -5607,22 +5621,34 @@ const Realtime = (() => {
     };
     pendingIceCandidates = [];
 
+    const activeCall=currentCall;
+    const requireActive=()=>{if(currentCall!==activeCall)throw Error('Call canceled');};
+    activeCall.signalReady=false;activeCall.outgoingIce=[];
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
-      pc = new RTCPeerConnection(await viceIceConfig());
+      const acquired=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+      if(currentCall!==activeCall){acquired.getTracks().forEach(t=>t.stop());return;}
+      localStream=acquired;
+      const ice=await viceIceConfig();requireActive();
+      pc = new RTCPeerConnection(ice);
       localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+      pc.addTransceiver('video',{direction:'sendrecv'});
 
       pc.onicecandidate = e => {
         if(e.candidate && currentCall){
+          if(!activeCall.signalReady){activeCall.outgoingIce.push(e.candidate);return;}
           signal({ kind:'ice', callId: currentCall.id, to: peerId, candidate: e.candidate });
         }
       };
       pc.ontrack = e => {
-        const audio = new Audio();
-        audio.srcObject = e.streams[0];
-        audio.autoplay = true;
-        audio.play().catch(()=>{});
-        if(currentCall) currentCall.remoteAudio = audio;
+        if(!currentCall)return;
+        if(e.track.kind==='video'){
+          currentCall.remoteVideo=new MediaStream([e.track]);
+          paintCallOverlay();
+        }else{
+          const audio=new Audio();audio.srcObject=new MediaStream([e.track]);audio.autoplay=true;
+          audio.play().catch(()=>toast('Tap the call to enable audio playback','info'));
+          currentCall.remoteAudio=audio;
+        }
       };
       pc.onconnectionstatechange = () => {
         if(!pc || !currentCall) return;
@@ -5643,16 +5669,20 @@ const Realtime = (() => {
         }
       };
 
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+      const offer = await pc.createOffer();requireActive();
+      await pc.setLocalDescription(offer);requireActive();
 
-      signal({ kind:'offer', callId: currentCall.id, to: peerId, sdp: offer, fromName: S.profile.name });
+      await signal({ kind:'offer', callId: currentCall.id, to: peerId, sdp: offer, fromName: S.profile.name });requireActive();
+      activeCall.signalReady=true;
+      for(const candidate of activeCall.outgoingIce)signal({kind:'ice',callId:activeCall.id,to:activeCall.peer,candidate});
+      activeCall.outgoingIce=[];
       S.comms.calls.push({
         id: currentCall.id, peer: peer.name, peerId,
         type:'voice', dir:'outgoing', at:Date.now(), state:'ringing',
       });
       paintCallOverlay();
     } catch(e){
+      if(currentCall!==activeCall)return;
       toast('Cannot start call: ' + e.message, 'error');
       cleanup();
       paintCallOverlay();
@@ -5661,23 +5691,35 @@ const Realtime = (() => {
 
   async function acceptCall(){
     if(!currentCall || currentCall.state !== 'incoming') return;
+    currentCall.state='connecting';
     stopRingtone();
+    const activeCall=currentCall;
+    const requireActive=()=>{if(currentCall!==activeCall)throw Error('Call canceled');};
+    activeCall.signalReady=false;activeCall.outgoingIce=[];
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
-      pc = new RTCPeerConnection(await viceIceConfig());
+      const acquired=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+      if(currentCall!==activeCall){acquired.getTracks().forEach(t=>t.stop());return;}
+      localStream=acquired;
+      const ice=await viceIceConfig();requireActive();
+      pc = new RTCPeerConnection(ice);
       localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
 
       pc.onicecandidate = e => {
         if(e.candidate && currentCall){
+          if(!activeCall.signalReady){activeCall.outgoingIce.push(e.candidate);return;}
           signal({ kind:'ice', callId: currentCall.id, to: currentCall.peer, candidate: e.candidate });
         }
       };
       pc.ontrack = e => {
-        const audio = new Audio();
-        audio.srcObject = e.streams[0];
-        audio.autoplay = true;
-        audio.play().catch(()=>{});
-        if(currentCall) currentCall.remoteAudio = audio;
+        if(!currentCall)return;
+        if(e.track.kind==='video'){
+          currentCall.remoteVideo=new MediaStream([e.track]);
+          paintCallOverlay();
+        }else{
+          const audio=new Audio();audio.srcObject=new MediaStream([e.track]);audio.autoplay=true;
+          audio.play().catch(()=>toast('Tap the call to enable audio playback','info'));
+          currentCall.remoteAudio=audio;
+        }
       };
       pc.onconnectionstatechange = () => {
         if(!pc || !currentCall) return;
@@ -5698,7 +5740,7 @@ const Realtime = (() => {
         }
       };
 
-      await pc.setRemoteDescription(new RTCSessionDescription(currentCall.pendingOffer));
+      await pc.setRemoteDescription(new RTCSessionDescription(currentCall.pendingOffer));requireActive();
 
       /* Flush buffered ICE candidates that arrived while ringing */
       const buffer = pendingIceCandidates.slice();
@@ -5707,15 +5749,17 @@ const Realtime = (() => {
         try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch(_){}
       }
 
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      signal({ kind:'answer', callId: currentCall.id, to: currentCall.peer, sdp: answer });
+      const answer = await pc.createAnswer();requireActive();
+      await pc.setLocalDescription(answer);requireActive();
+      await signal({ kind:'answer', callId: currentCall.id, to: currentCall.peer, sdp: answer });requireActive();
+      activeCall.signalReady=true;
+      for(const candidate of activeCall.outgoingIce)signal({kind:'ice',callId:activeCall.id,to:activeCall.peer,candidate});
+      activeCall.outgoingIce=[];
 
-      currentCall.state = 'live';
-      callStartAt = Date.now();
-      startTimer();
+      if(pc.connectionState!=='connected')currentCall.state = 'connecting';
       paintCallOverlay();
     } catch(e){
+      if(currentCall!==activeCall)return;
       toast('Cannot accept: ' + e.message, 'error');
       declineCall();
     }
@@ -5732,7 +5776,7 @@ const Realtime = (() => {
 
   function endCall(reason){
     if(!currentCall) return;
-    if(currentCall.state === 'live') signal({ kind:'end', callId: currentCall.id, to: currentCall.peer });
+    signal({ kind:'end', callId: currentCall.id, to: currentCall.peer });
     const rec = S.comms.calls.find(c => c.id === currentCall.id);
     if(rec) rec.state = reason || 'ended';
     cleanup();
@@ -5747,16 +5791,65 @@ const Realtime = (() => {
     paintCallOverlay();
   }
 
+  let mediaBusy=false;
+  async function toggleVideoSource(kind){
+    if(mediaBusy)return;
+    if(!pc||!currentCall||pc.connectionState!=='connected')throw Error('Connect a call first');
+    const call=currentCall,activePc=pc;
+    const sender=pc.getTransceivers().find(t=>t.receiver?.track?.kind==='video')?.sender;
+    if(!sender)throw Error('The other client must update before video is available');
+    mediaBusy=true;
+    try{
+      if(call.videoKind===kind){
+        await sender.replaceTrack(null);
+        call.videoStream?.getTracks().forEach(t=>t.stop());call.videoStream=null;call.videoKind=null;
+      }else{
+        const stream=kind==='screen'
+          ? await navigator.mediaDevices.getDisplayMedia({video:true,audio:false})
+          : await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+        if(currentCall!==call||pc!==activePc){stream.getTracks().forEach(t=>t.stop());return;}
+        const track=stream.getVideoTracks()[0];
+        if(!track){stream.getTracks().forEach(t=>t.stop());throw Error('No video track provided');}
+        try{await sender.replaceTrack(track);}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}
+        call.videoStream?.getTracks().forEach(t=>t.stop());call.videoStream=stream;call.videoKind=kind;
+        track.onended=()=>{
+          if(currentCall===call&&call.videoStream===stream){
+            void sender.replaceTrack(null).catch(e=>console.warn('Video stop:',e));
+            call.videoStream=null;call.videoKind=null;paintCallOverlay();
+          }
+        };
+      }
+      paintCallOverlay();
+    }finally{mediaBusy=false;}
+  }
+
   function signal(payload){
-    const envelope = { ...payload, from: S.user.id };
-    if(broadcastChannel && st.connected){
-      try { broadcastChannel.send({ type:'broadcast', event:'call', payload: envelope }); } catch(_){}
-    }
-    try { localBus && localBus.postMessage({ type:'call', payload: envelope }); } catch(_){}
+    const owner=S.user?.id;
+    if(!owner)return;
+    const row={id:uuid(),sender_id:owner,peer_id:payload.to,sender_name:S.profile.name||'Member',
+      text:'VICE_CALL_V1:'+JSON.stringify({...payload,from:owner,at:Date.now()})};
+    // persist validates size and waits for database confirmation. The recipient's
+    // RLS-scoped change stream supplies the authenticated sender identity.
+    return persist('dm_messages',row).then(()=>true).catch(e=>{
+      toast('Call signaling failed: '+e.message,'error');
+      if(currentCall?.id===payload.callId){cleanup();paintCallOverlay();}
+      return false;
+    });
+  }
+  function receiveCallRow(row){
+    if(!S.user||row.peer_id!==S.user.id||row.sender_id===S.user.id)return;
+    try{
+      const payload=JSON.parse(String(row.text).slice('VICE_CALL_V1:'.length));
+      const age=Date.now()-new Date(row.created_at).getTime();
+      if(!Number.isFinite(age)||age< -10000||age>90000)return;
+      if(!['offer','answer','ice','decline','end'].includes(payload.kind)||typeof payload.callId!=='string'||payload.callId.length>80)return;
+      void handleCallSignal({...payload,from:row.sender_id,to:row.peer_id}).catch(e=>toast('Call connection error: '+e.message,'error'));
+    }catch(e){console.warn('Invalid call signal',e.message);}
   }
 
   async function handleCallSignal(payload){
     if(!payload || payload.to !== S.user?.id) return;
+    if(payload.kind!=='offer'&&(!currentCall||currentCall.id!==payload.callId||currentCall.peer!==payload.from))return;
 
     if(payload.kind === 'offer'){
       if(currentCall){
@@ -5786,9 +5879,7 @@ const Realtime = (() => {
           for(const c of buffer){
             try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch(_){}
           }
-          currentCall.state = 'live';
-          callStartAt = Date.now();
-          startTimer();
+          if(pc.connectionState!=='connected')currentCall.state = 'connecting';
           paintCallOverlay();
         } catch(e){
           console.warn('Failed to set remote description (answer)', e);
@@ -5800,7 +5891,7 @@ const Realtime = (() => {
         try { await pc.addIceCandidate(new RTCIceCandidate(payload.candidate)); }
         catch(_){}
       } else {
-        pendingIceCandidates.push(payload.candidate);
+        if(pendingIceCandidates.length<64)pendingIceCandidates.push(payload.candidate);
       }
     }
     else if(payload.kind === 'decline'){
@@ -5831,6 +5922,7 @@ const Realtime = (() => {
       localStream.getTracks().forEach(t => t.stop());
       localStream = null;
     }
+    if(currentCall?.videoStream)currentCall.videoStream.getTracks().forEach(t=>t.stop());
     if(currentCall?.remoteAudio){
       try { currentCall.remoteAudio.pause(); } catch(_){}
     }
@@ -5848,7 +5940,10 @@ const Realtime = (() => {
   }
   function startTimer(){
     stopTimer();
-    callTimer = setInterval(() => paintCallOverlay(), 1000);
+    callTimer = setInterval(() => {
+      const timer=document.querySelector('#call-root .call-timer');
+      if(timer&&callStartAt){const seconds=Math.floor((Date.now()-callStartAt)/1000);timer.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');}
+    },1000);
   }
   function stopTimer(){
     clearInterval(callTimer);
@@ -5883,7 +5978,7 @@ const Realtime = (() => {
         ? 'Incoming call'
         : isLive
           ? 'Connected'
-          : 'Call ended';
+          : c.state==='connecting'?'Connecting…':'Call ended';
     const statusCls = isLive ? 'live' : c.state === 'ringing' || c.state === 'incoming' ? 'ring' : 'end';
     const elapsed = isLive && callStartAt ? Math.floor((Date.now() - callStartAt) / 1000) : 0;
     const mm = String(Math.floor(elapsed / 60)).padStart(2,'0');
@@ -5892,6 +5987,9 @@ const Realtime = (() => {
       <div class="call-card">
         <div class="call-av">${esc(initial)}</div>
         <div class="call-name">${esc(c.peerName)}</div>
+        ${c.remoteVideo?'<video id="viceRemoteVideo" autoplay playsinline muted style="width:100%;max-height:240px;background:#000"></video>':''}
+        ${c.videoStream?'<video id="viceLocalVideo" autoplay playsinline muted style="width:120px;max-height:90px;background:#000"></video>':''}
+        ${isLive?`<div class="mact"><button class="btn btn-g" data-act="call-camera">${c.videoKind==='camera'?'Stop camera':'Camera'}</button><button class="btn btn-g" data-act="call-screen">${c.videoKind==='screen'?'Stop sharing':'Share screen'}</button></div>`:''}
         <div class="call-status ${statusCls}">${esc(statusText)}</div>
         ${isLive ? `<div class="call-timer">${mm}:${ss}</div>` : ''}
         <div class="call-actions">
@@ -5913,13 +6011,15 @@ const Realtime = (() => {
         </div>
       </div>
     `;
+    if($('viceRemoteVideo'))$('viceRemoteVideo').srcObject=c.remoteVideo;
+    if($('viceLocalVideo'))$('viceLocalVideo').srcObject=c.videoStream;
   }
 
   return {
     state: st,
     connect, disconnect,
     send, sendDm, loadHistory, loadDmHistory,
-    startCall, acceptCall, declineCall, endCall, toggleMute,
+    startCall, acceptCall, declineCall, endCall, toggleMute, toggleVideoSource,
     isOnline: id => st.online.has(id),
     profileOf: id => st.profiles[id] || null,
     current: () => currentCall,
@@ -10062,7 +10162,7 @@ function viewDocuments(el){
   el.innerHTML = `
     <div class="ph">
       <div><div class="eb">My Record</div><h1>My <em>Documents</em></h1>
-        <p>Contracts, statements, and notices. Every action is audited.</p></div>
+        <p>Contracts, statements, and notices. Signed originals are preserved.</p></div>
       <div class="ph-acts">
         ${can('create') || isOwner() ? '<button class="btn btn-g" data-act="doc-upload">Upload</button>' : ''}
       </div>
@@ -10085,6 +10185,7 @@ function viewDocuments(el){
           <span class="row-r">
             <span class="bdg ${d.signed ? 'gr' : 'gd'}">${d.signed ? 'Signed' : 'Pending'}</span>
             ${!d.signed ? `<button class="btn btn-xs btn-gd" data-act="doc-sign" data-id="${esc(d.id)}">Sign</button>` : ''}
+            ${!d.signed&&d.type==='application/pdf'?`<button class="btn btn-xs btn-g" data-act="doc-edit-form" data-id="${esc(d.id)}">Edit form</button>`:''}
             <button class="btn btn-xs btn-g" data-act="doc-download" data-id="${esc(d.id)}">Download</button>
           </span>
         </div>
@@ -11239,6 +11340,8 @@ function paintOI(){
       /* ─── CALLS ─── */
       case 'call-accept': { Realtime.acceptCall(); return; }
       case 'call-decline': { Realtime.declineCall(); return; }
+      case 'call-camera': { void Realtime.toggleVideoSource('camera').catch(e=>toast(e.message,'error'));return; }
+      case 'call-screen': { void Realtime.toggleVideoSource('screen').catch(e=>toast(e.message,'error'));return; }
       case 'call-end': { Realtime.endCall('ended'); return; }
       case 'call-mute': { Realtime.toggleMute(); return; }
 
@@ -12676,6 +12779,9 @@ document.addEventListener('change', async (e) => {
 
   /* ─── DOCUMENT UPLOAD — actual private object storage and digest ─── */
   if(f.id==='docUpload'){
+    const uploadEpoch=authEpoch,uploadOwner=S.user?.id;
+    if(!uploadOwner){toast('Sign in to upload documents','error');return;}
+    const currentUpload=()=>{if(uploadEpoch!==authEpoch)throw Error('Session changed; retry the upload');};
     const files=Array.from(f.files||[]);if(!files.length)return;
     const allowed=new Set(['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/msword','text/plain','text/markdown','image/png','image/jpeg']);
@@ -12685,6 +12791,7 @@ document.addEventListener('change', async (e) => {
         if(!allowed.has(file.type))throw Error('File type not permitted');
         if(file.size>10*1024*1024)throw Error('File exceeds 10 MB');
         const id=uuid();const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',await file.arrayBuffer()));
+        currentUpload();
         const sha256=Array.from(digest,b=>b.toString(16).padStart(2,'0')).join('');
         const safeName=file.name.replace(/[^A-Za-z0-9._-]/g,'_').slice(0,140);
         const path=`${S.user?.id||'sim-user'}/${id}/${safeName}`;
@@ -12693,14 +12800,16 @@ document.addEventListener('change', async (e) => {
         if(APP_MODE==='LIVE' && S.user?.id!=='sim-user'){
           const uploaded=await sb.storage.from('vice-documents').upload(path,file,{contentType:file.type,upsert:false});
           if(uploaded.error)throw uploaded.error;
+          currentUpload();
           const saved=await sb.from('documents').insert({id,name:file.name,type:file.type,size:file.size,
             sha256,url:path,holder_client_id:S.profile.clientId,uploaded_by:S.user.id});
           if(saved.error)throw saved.error;
+          currentUpload();
         }
         S.documents.unshift(doc);complete++;
       }catch(e){toast(`Upload failed (${file.name}): ${e.message}`,'error');}
     }
-    if(complete)toast(`${complete} document${complete===1?'':'s'} uploaded into private storage`,'success');
+    if(complete)toast(APP_MODE==='SIM'?'Practice files added locally; nothing uploaded':`${complete} document${complete===1?'':'s'} uploaded into private storage`,'success');
     f.value='';if(S.tab==='documents')renderMain();return;
   }
 

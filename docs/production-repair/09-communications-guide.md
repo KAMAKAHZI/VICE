@@ -8,4 +8,10 @@ Private media uses signed playback URLs. Local channel messages no longer bypass
 
 Current call implementation is one-to-one audio using SDP/ICE and STUN with an authenticated TURN credential function. TURN needs TURN_URLS and TURN_SHARED_SECRET plus a reachable relay. Successful endpoint authentication does not demonstrate a cross-network call.
 
-Group SFU, video, screen sharing, device selection, durable read receipts, message edits/deletion, mentions, search and channel administration remain incomplete. Legacy AES-GCM keys derive from public thread identifiers and provide no independently secure E2EE. Do not describe this as equivalent to a mature conferencing service.
+Group SFU and device selection, durable read receipts, message edits/deletion, mentions, search and channel administration remain incomplete. Legacy AES-GCM keys derive from public thread identifiers and provide no independently secure E2EE. Do not describe this as equivalent to a mature conferencing service.
+
+## Camera and screen-sharing repair
+
+After an audio call connects, Camera requests camera permission; Share screen requests the browser screen picker. One video source is sent at a time. Press the active control to stop; browser stop-sharing also detaches the track. Session changes and call termination stop media. These controls are implemented and seven mocked transport/media tests pass; real two-party and restrictive-NAT acceptance is still open.
+
+Signaling now persists VICE_CALL_V1 envelopes in private dm_messages. The recipient trusts database sender/recipient columns, rejects old signals and foreign call IDs, and excludes signaling rows from chat history. Legacy global/local broadcast call messages are ignored. Both parties must refresh to this release; mixed old/new clients cannot call each other. Signaling rows currently remain in the private database; a reviewed retention policy is still needed. No E2EE or group-call claim is made.
