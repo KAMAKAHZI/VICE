@@ -12016,8 +12016,10 @@ async function openStrategicManager(){
 }
 async function reviewStrategicCorrection(seq){
   if(APP_MODE!=='LIVE'||!isOwner())return;
+  const epoch=authEpoch;
   try{
     const {data,error}=await sb.from('iru_events').select('seq,payload').eq('seq',Number(seq)).eq('event_type','UNITS_ISSUED').single();
+    if(epoch!==authEpoch)return;
     if(error)throw error;
     const p=data.payload;if(p.allocationId)throw Error('Use the approved allocation correction workflow for this record');
     openModal('Review strategic issuance correction',`<p class="note warn">Reverse exactly ${esc(p.units)} ${esc(p.program)} units from holder ${esc(p.holderId)} for source event ${esc(data.seq)}. The original event remains in the ledger and its certificate will be revoked.</p>
@@ -12028,6 +12030,7 @@ async function reviewStrategicCorrection(seq){
 }
 async function submitStrategicCorrection(){
   if(strategicActionBusy||APP_MODE!=='LIVE'||!isOwner())return;
+  const epoch=authEpoch;
   const reason=($('correctionReason')?.value||'').trim();
   if(reason.length<16){toast('Provide at least 16 characters explaining the correction and authority','error');return;}
   strategicActionBusy=true;
@@ -12035,6 +12038,7 @@ async function submitStrategicCorrection(){
     const {data,error}=await sb.rpc('reverse_strategic_issuance',{
       p_source_seq:Number($('correctionSeq').value),p_expected_holder:$('correctionHolder').value,
       p_expected_program:$('correctionProgram').value,p_expected_units:Number($('correctionUnits').value),p_reason:reason});
+    if(epoch!==authEpoch)return;
     if(error)throw error;if(!data?.seq)throw Error('Correction not confirmed; reconcile before retrying');
     closeModal();await hydrateData();renderMain();toast(data.already_reversed?'This issuance was already corrected':'Issuance corrected and certificate revoked','success');
   }catch(e){toast('Correction not confirmed: '+e.message,'error');}

@@ -1,6 +1,6 @@
 # VICE OS / Acceptance matrix
 
-Every criterion below refers to the supplied release specification. PARTIAL is not acceptance. No real financial test records were created.
+Every criterion below refers to the supplied release specification. PARTIAL is not acceptance. No real financial test records were created; separately authorized corrections are recorded as operational changes.
 
 | Area | Criterion | Status | Evidence or next verification |
 |---|---|---|---|
@@ -25,7 +25,7 @@ Every criterion below refers to the supplied release specification. PARTIAL is n
 | Holder system | Holder records load | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Holder system | Allocations reconcile | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Holder system | Tier classifications are correct | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
-| Holder system | Permissions are enforced | PARTIAL | RLS enabled and anonymous access denied; complete authenticated role matrix untested. |
+| Holder system | Permissions are enforced | PARTIAL | RLS and anonymous denial verified; staged DM recipient and issuer correction authorization pass; complete role matrix untested. |
 | Certificates | Verified allocations trigger eligible issuance | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Certificates | Certificates download | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Certificates | Verification works | PARTIAL | Unknown certificate rejection passed read-only API; legitimate/revoked records untested. |
@@ -36,12 +36,12 @@ Every criterion below refers to the supplied release specification. PARTIAL is n
 | Documents | Downloads work | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Documents | Signature requests work | NOT IMPLEMENTED | Typed-name attestation exists; requests/sequence/reminders do not. |
 | Documents | Signed documents are retained | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
-| Academy | Courses load | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
+| Academy | Courses load | PARTIAL | All navigation views render with explicit SIM fixtures at desktop/mobile sizes; live enrollment access unverified. |
 | Academy | Progress persists | PARTIAL | Quiz attempts persist server-side; reading marks remain member-scoped local storage. |
 | Academy | Assessments function | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Academy | Eligible completion certificates issue | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Backend | Required RPCs exist | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
-| Backend | RLS tests pass | PARTIAL | Anonymous public API tests and zero public tables without RLS; authenticated role matrix untested. |
+| Backend | RLS tests pass | PARTIAL | 17 read-only backend checks and staged DM/media/issuer correction authorization pass; complete role matrix untested. |
 | Backend | Storage permissions work | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Backend | Realtime permissions work | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Backend | Audit logging works | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |

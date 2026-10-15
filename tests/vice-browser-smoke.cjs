@@ -16,7 +16,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
  try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
    const page=await browser.newPage({viewport});const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:'+server.address().port,{waitUntil:'networkidle'});
+   await page.goto(process.env.VICE_BROWSER_ORIGIN||'http://127.0.0.1:'+server.address().port,{waitUntil:'networkidle'});
    await page.locator('#loginForm').waitFor({state:'visible'});
    assert.equal(await page.evaluate(()=>typeof onAuthenticated),'function','Application initialized');
    await page.locator('#loginBtn').click();
@@ -27,6 +27,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
    assert.equal(await page.locator('#modal').evaluate(e=>e.classList.contains('on')),false);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,'No horizontal overflow');
    assert.deepEqual(errors,[]);console.log('PASS public browser',viewport.width,'login, validation, modal, layout, runtime');
+   if(process.env.VICE_BROWSER_ORIGIN){await page.close();continue;}
    // Explicit SIM fixtures exercise rendering only, never real accounts/allocations.
    await page.route('https://*.supabase.co/**',route=>route.abort());
    await page.evaluate(()=>enterSimMode());

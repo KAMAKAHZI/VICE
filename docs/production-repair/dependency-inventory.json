@@ -33,13 +33,18 @@
     },
     {
       "path": ".github/workflows/vice-production-smoke.yml",
-      "bytes": 1057,
-      "sha256": "6ea21e87f77640364292e7acd49090456eb6039015e14be25ccebfcff2867367"
+      "bytes": 1376,
+      "sha256": "cd8d5a55dc6cc3ce7cb7452dadc314ef53669a72aaa50f36e4c88ca8e4ef2a31"
     },
     {
       "path": ".github/workflows/vice-release-package.yml",
       "bytes": 1581,
       "sha256": "f1f015f5511c50b16491c8263d22eff0e0b6c1bd15ee5b3985daee8402c09c71"
+    },
+    {
+      "path": ".github/workflows/vice-repair-acceptance.yml",
+      "bytes": 2584,
+      "sha256": "82f12023e0e670cbc35c15fc380f8659814681b2f3560b7061d56f6a9b055587"
     },
     {
       "path": "CLOUD_MT5_SETUP_136.md",
@@ -118,8 +123,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 691918,
-      "sha256": "1ecf14f1ef4cfc61b6125f94bc430b923ce9eed7eaad010c22156cee19681ccc"
+      "bytes": 703301,
+      "sha256": "4933022625b3ff8372d45fec3e679d4a27909718a2496286de833eb17a4bac2a"
     },
     {
       "path": "manifest.json",
@@ -392,6 +397,16 @@
       "sha256": "dd22804520059b45e101131881a228f192565a4e6ec116fad074a3ddf6fd4056"
     },
     {
+      "path": "supabase/migrations/20261015132937_vice_dm_recipient_membership_acl.sql",
+      "bytes": 2247,
+      "sha256": "ca35ed8e83a895672b132e1e9dffd7e69c87ae834ee8993a94b9110c99cadedd"
+    },
+    {
+      "path": "supabase/migrations/20261015140648_vice_audited_strategic_issuance_reversal.sql",
+      "bytes": 5605,
+      "sha256": "137f8450897f932ae7954e0a70c100d9592d869e24f0b0404c32130e9e7d58d9"
+    },
+    {
       "path": "supabase/migrations/APPLIED_VERSION_MAPPING.md",
       "bytes": 925,
       "sha256": "7280533ecc6a04ec259fb4b6ee46b4e595d4768d8b28f142b831d0db71339625"
@@ -400,6 +415,26 @@
       "path": "sw.js",
       "bytes": 442,
       "sha256": "c57d3810440471e126c58e680baf4c8a7e1d2fa7bd74c88b96e60e7dc4b8096b"
+    },
+    {
+      "path": "tests/sql/vice-dm-assertions.sql",
+      "bytes": 2847,
+      "sha256": "7a2f584f8704e1a11a555d38c727c13052dad69658a1dd2e09bd3cf7d4566465"
+    },
+    {
+      "path": "tests/sql/vice-dm-staging.sql",
+      "bytes": 2388,
+      "sha256": "34f32f268a10638ddb514ca0a26ec62044bb229380efcc82b5be51cfd894b9eb"
+    },
+    {
+      "path": "tests/sql/vice-iru-assertions.sql",
+      "bytes": 4165,
+      "sha256": "37d675c578e5a47e4272680eb30cd1d19c9ef02c64ba0dcd0042a8c86014745a"
+    },
+    {
+      "path": "tests/sql/vice-iru-staging.sql",
+      "bytes": 2990,
+      "sha256": "c68068643969228426e9539ff60691fae7e4f21f2157cd053f9049d2da849755"
     },
     {
       "path": "tests/vice-1367-contracts.cjs",
@@ -427,9 +462,34 @@
       "sha256": "1c09970cfe429e4455271f3967c84914e8967a543bb47e46900e2ed9e43daccb"
     },
     {
+      "path": "tests/vice-browser-smoke.cjs",
+      "bytes": 3308,
+      "sha256": "2edb863eadd7539b7f6d430fb3cd78f1ab811c60053abb7cccd43b53831ad1b0"
+    },
+    {
+      "path": "tests/vice-calls.cjs",
+      "bytes": 3813,
+      "sha256": "3bca3b448c864bc1b06da011dd01c7caca927983e201ffc0c308cfa6236f35ff"
+    },
+    {
       "path": "tests/vice-deploy-privacy.cjs",
       "bytes": 977,
       "sha256": "86264afa5943f36c7bd19c0e64b9fcc9ee27494c173e4fbc90c9ba6991142c3a"
+    },
+    {
+      "path": "tests/vice-iru-corrections.cjs",
+      "bytes": 1428,
+      "sha256": "5dfa632af76a31ef674aa08a9753237e2718c3a9c3e73862dcae98437e4b359b"
+    },
+    {
+      "path": "tests/vice-pdf-forms.cjs",
+      "bytes": 2329,
+      "sha256": "9ce16f74e613619e398945b5baea26f1c381b1aa55fac917e0b56d8491d7a16e"
+    },
+    {
+      "path": "tests/vice-production-repairs.cjs",
+      "bytes": 6663,
+      "sha256": "8bb3e41d1b61dc81539971a1cf718b6d6ac25c7e734591aea314c56c168b7944"
     },
     {
       "path": "tests/vice-production-smoke.mjs",
@@ -458,8 +518,8 @@
     },
     {
       "path": "version.json",
-      "bytes": 11832,
-      "sha256": "275859b118def6223107de93172e0cdc415f6e150bf4e347adf72e3fdc800ae6"
+      "bytes": 11266,
+      "sha256": "e50ede950021d379ae294e14c758e7f449d6fc7e7c97cb3e4bd5cd0fd07ccc9e"
     },
     {
       "path": "vice-mega.css",
@@ -468,8 +528,8 @@
     },
     {
       "path": "vice-mega.js",
-      "bytes": 11508,
-      "sha256": "c8221019cc08f095076a8699ee07bebcff5c69ab0f9dc93a869232c47e9e6e3b"
+      "bytes": 19356,
+      "sha256": "336242385942b75c91b501d548aaaf94fdcbe240b77c879cc13b7d0e68bd6b6b"
     }
   ],
   "tables": [
@@ -505,6 +565,7 @@
     "list_member_directory",
     "lookup_email_for_login",
     "redeem_invite",
+    "reverse_strategic_issuance",
     "revoke_certificate",
     "revoke_token_certificate",
     "sign_document",
@@ -917,5 +978,6 @@
     "sheet-close",
     "vice-attach",
     "vice-voice"
-  ]
+  ],
+  "inventory_note": "Tracked source inventory excludes this documentation suite to avoid recursive/self-changing hashes. Listed code paths are dependencies, not proof of complete functional acceptance."
 }
