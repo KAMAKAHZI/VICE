@@ -19,7 +19,8 @@ exports.handler=async(event={})=>{
    if(raw.length>3500000)return json(502,{error:'Chart response exceeds safe size'});
    let parsed;try{parsed=JSON.parse(raw)}catch{return json(502,{error:'Invalid chart provider payload'})}
    const result=parsed?.chart?.result?.[0]; 
-   if(!result||!Array.isArray(result.timestamp)||!result.timestamp.length||!result.indicators?.quote?.[0])return json(502,{error:'Market data unavailable for this symbol/interval',symbol:sym,interval,range});\n   return {statusCode:200,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'public, max-age=30','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'},body:JSON.stringify(parsed)};
+   if(!result||!Array.isArray(result.timestamp)||!result.timestamp.length||!result.indicators?.quote?.[0])return json(502,{error:'Market data unavailable for this symbol/interval',symbol:sym,interval,range});
+   return {statusCode:200,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'public, max-age=30','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'},body:JSON.stringify(parsed)};
  }catch{return json(502,{error:'Chart provider connection timeout or outage'})}
  finally{clearTimeout(timer)}
 };
