@@ -183,6 +183,14 @@ async function verify(id){
         <p class="muted">Verified against the issuer's course certificate registry. Completion is not a professional license.</p>`;
       return;
     }
+    if(data.private_details===false){
+      host.innerHTML=`<div class="verdict valid">✓ IRU certificate verified</div>
+        <div class="stamp"><table>${row('Certificate ID',data.cert_id)}${row('Certificate kind',data.kind)}
+        ${row('Program',data.program)}${row('Issued',issued)}${row('SHA-256 digest',data.digest)}</table>
+        ${qr?`<div class="qr" aria-label="QR linking to certificate verification">${qr}</div>`:''}</div>
+        <p class="muted">The issuer registry confirms this certificate's status and integrity. Holder identity, balances and internal records are private. Authorized holders can access their full certificate after signing in to <a href="/">VICE OS</a>.</p>`;
+      return;
+    }
     const snap=data.snapshot||{};
     const before=data.units_held_before==null?'Not applicable':formatUnits(data.units_held_before);
     const after=data.units_held_after==null?'Not applicable':formatUnits(data.units_held_after);
