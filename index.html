@@ -2279,7 +2279,7 @@ function clearMemberSession(){
   ['holders','ouvVersions','proposals','proposalVotes','distributions','documents','dataRooms',
    'complianceCases','treasuryTx','mt5','externalAccounts','invites','audit','signatures','docFolders','reconJobs'].forEach(k=>S[k]=[]);
   Object.assign(S.comms,{messages:{},dms:{},unread:{},lastRead:{},peers:[],calls:[],online:new Set(),activeDm:null,lastInvite:null});
-  Object.assign(S.academy,{read:{},quiz:{},certs:[],view:null,answers:{},result:null,msg:''});
+  Object.assign(S.academy,{read:{},quiz:{},certs:[],view:null,answers:{},result:null,msg:'',busy:false});
   S.support.tickets=[];
   S.oi.messages=[];
   S.tokenCerts={list:[],loaded:false,loading:false,error:null,kind:'ALL',program:'ALL'};
@@ -2617,7 +2617,7 @@ async function hydrateData(){
   }catch(e){console.warn('Support sync:',e);}
   try {
     const {data}=await sb.from('certificates').select('cert_id,holder_name,course_title,issued_at,scores,overall_score,digest')
-      .eq('profile_id',S.user.id).order('issued_at',{ascending:false}).limit(100);
+      .eq('profile_id',S.user.id).eq('revoked',false).order('issued_at',{ascending:false}).limit(100);
       if(!current())return;
     if(data) Academy.state.certs=data.map(c=>({id:c.cert_id,name:c.holder_name,course:c.course_title,
       issuedAt:c.issued_at,scores:c.scores,overallScore:c.overall_score,digest:c.digest}));
@@ -2626,7 +2626,11 @@ async function hydrateData(){
       if(!current())return;
     if(attempts){Academy.state.quiz={};for(const a of attempts){if(!Academy.state.quiz[a.module] || a.score>Academy.state.quiz[a.module].score*100)
       Academy.state.quiz[a.module]={score:a.score/100,passed:a.passed,at:a.submitted_at};}}
-  }catch(e){console.warn('Academy hydrate:',e);}
+    const {data:progress,error:progressError}=await sb.from('academy_progress')
+      .select('module,chapter,completed_at').eq('profile_id',S.user.id).limit(100);
+    if(!current())return;if(progressError)throw progressError;
+    Academy.state.read=Object.fromEntries((progress||[]).map(p=>[`${p.module}.${p.chapter}`,p.completed_at]));
+  }catch(e){console.warn('Academy hydrate:',e);toast('Academy progress could not synchronize: '+e.message,'warn');}
 }
 
 function denorm(row){
@@ -7612,8 +7616,8 @@ const Academy = (() => {
   const TITLE = 'VICE4X Sovereign Trading & Wealth Architecture — Core Program (Modules I–VII)';
   const st = S.academy;
   const restore=()=>{
-    st.read={};st.quiz={};st.certs=[];
-    if(!S.user?.id)return;
+    st.read={};st.quiz={};st.certs=[];st.busy=false;
+    if(!S.user?.id||APP_MODE==='LIVE')return;
     try{st.read=JSON.parse(localStorage.getItem('vice-academy:'+S.user.id)||'{}').read||{};}catch(_){}
   };
   const save = () => {
@@ -7631,17 +7635,30 @@ const Academy = (() => {
       st.msg = '';
       renderMain();
     },
-    markRead(m,n) {
-      st.read[`${m}.${n}`] = new Date().toISOString();
-      save();
-      renderMain();
+    async markRead(m,n) {
+      if(st.busy)return;
+      const epoch=authEpoch;st.busy=true;renderMain();
+      try{
+        if(!COURSE.some(mod=>mod.id===m&&mod.chapters.some(c=>c.n===n)))throw Error('Invalid module/chapter');
+        let at=nowIso();
+        if(APP_MODE==='LIVE'){
+          const {data,error}=await sb.rpc('mark_academy_chapter',{p_module:m,p_chapter:n});
+          if(epoch!==authEpoch)return;
+          if(error)throw error;if(!data?.completed_at)throw Error('Completion not confirmed');
+          at=data.completed_at;
+        }
+        st.read[`${m}.${n}`]=at;save();st.msg='';
+      }catch(e){if(epoch===authEpoch){st.msg='Reading progress was not saved: '+e.message;toast(st.msg,'error');}}
+      finally{if(epoch===authEpoch){st.busy=false;renderMain();}}
     },
     async grade(mid) {
+      if(st.busy)return;const epoch=authEpoch;
       const qs=QUIZ[mid];
       if(!qs || Object.keys(st.answers).length!==qs.length){
         st.msg='Answer every question first.';renderMain();return;
       }
       const answers=qs.map((_,i)=>Number(st.answers[i]));
+      st.busy=true;renderMain();
       try {
         let r;
         if(APP_MODE==='SIM'){
@@ -7649,6 +7666,7 @@ const Academy = (() => {
           r={correct,total:qs.length,score:correct*25,passed:correct>=3};
         }else{
           const out=await sb.rpc('submit_academy_quiz',{p_module:mid,p_answers:answers});
+          if(epoch!==authEpoch)return;
           if(out.error)throw out.error;
           r=out.data;
         }
@@ -7656,7 +7674,8 @@ const Academy = (() => {
         const prev=st.quiz[mid];
         if(!prev || r.score/100>prev.score)st.quiz[mid]={score:r.score/100,passed:r.passed,at:nowIso()};
         save();st.msg='';renderMain();
-      }catch(e){st.msg='Assessment was not recorded: '+e.message;toast(st.msg,'error');renderMain();}
+      }catch(e){if(epoch===authEpoch){st.msg='Assessment was not recorded: '+e.message;toast(st.msg,'error');}}
+      finally{if(epoch===authEpoch){st.busy=false;renderMain();}}
     },
     passedAll:() => core().every(m => st.quiz[m.id] && st.quiz[m.id].passed),
     readAllCore:() => core().every(m => m.chapters.every(c => st.read[`${m.id}.${c.n}`])),
@@ -7664,9 +7683,11 @@ const Academy = (() => {
       t + m.chapters.filter(c => !st.read[`${m.id}.${c.n}`]).length, 0),
     eligible:() => api.passedAll() && api.readAllCore(),
     async issue(name) {
+      if(st.busy)return;const epoch=authEpoch;
       const n=String(name||'').trim();
       if(n.length<2){st.msg='Enter your certificate name.';renderMain();return;}
       if(!api.eligible()){st.msg='Read all core chapters and pass every assessment first.';renderMain();return;}
+      st.busy=true;renderMain();
       try{
         const scores=Object.fromEntries(core().map(m=>[m.id,Math.round(st.quiz[m.id].score*100)]));
         const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/7);
@@ -7678,13 +7699,15 @@ const Academy = (() => {
           const {data,error}=await sb.rpc('issue_certificate',{
             p_name:n,p_course_title:TITLE,p_scores:scores,p_overall:overall,
             p_digest:'',p_salt:''});
+          if(epoch!==authEpoch)return;
           if(error)throw error;
           cert={id:data.cert_id,name:data.name,course:data.course,issuedAt:data.issued_at,
             scores:data.scores,overallScore:data.overall_score,digest:data.digest};
         }
-        st.certs.unshift(cert);save();st.view={cert:cert.id};st.msg='';renderMain();
+        st.certs=st.certs.filter(c=>c.id!==cert.id);st.certs.unshift(cert);save();st.view={cert:cert.id};st.msg='';renderMain();
         openCertificateModal(cert);
-      }catch(e){st.msg='Certificate issuance failed: '+e.message;toast(st.msg,'error');renderMain();}
+      }catch(e){if(epoch===authEpoch){st.msg='Certificate issuance failed: '+e.message;toast(st.msg,'error');}}
+      finally{if(epoch===authEpoch){st.busy=false;renderMain();}}
     },
     verify: id => st.certs.find(c => c.id === String(id || '').trim().toUpperCase()) || null,
   };
@@ -10793,7 +10816,7 @@ function viewAcademy(el){
         <section class="band">
           <div class="band-head">
             <h2>Chapter ${c.n} · ${esc(c.title)}</h2>
-            ${st.read[`${mod.id}.${c.n}`] ? '<span class="chip live"><i></i>read</span>' : `<button class="btn btn-xs btn-g" data-act="acad-mark-read" data-m="${esc(mod.id)}" data-n="${c.n}">Mark read</button>`}
+            ${st.read[`${mod.id}.${c.n}`] ? '<span class="chip live"><i></i>read</span>' : `<button class="btn btn-xs btn-g" data-act="acad-mark-read" ${st.busy?'disabled':''} data-m="${esc(mod.id)}" data-n="${c.n}">Mark read</button>`}
           </div>
           ${c.paras.map(p => `<p style="margin-bottom:10px;line-height:1.7">${esc(p)}</p>`).join('')}
         </section>
@@ -10815,7 +10838,7 @@ function viewAcademy(el){
               </div>
             `).join('')}
             ${st.msg ? `<p class="note warn">${esc(st.msg)}</p>` : ''}
-            <div class="actions" style="margin-top:12px"><button class="btn btn-p" data-act="acad-grade" data-m="${esc(mod.id)}">Submit</button></div>
+            <div class="actions" style="margin-top:12px"><button class="btn btn-p" data-act="acad-grade" ${st.busy?'disabled':''} data-m="${esc(mod.id)}">Submit</button></div>
           `}
         </section>
       ` : ''}
@@ -10878,7 +10901,7 @@ function viewAcademy(el){
       <section class="band">
         <div class="band-head"><h2>Issue certificate</h2></div>
         <label class="field">Name to print<input type="text" id="acadCertName" value="${esc(S.profile.name || '')}"></label>
-        <div class="actions" style="margin-top:12px"><button class="btn btn-p" data-act="acad-issue">Issue certificate</button></div>
+        <div class="actions" style="margin-top:12px"><button class="btn btn-p" data-act="acad-issue" ${st.busy?'disabled':''}>Issue certificate</button></div>
       </section>
     ` : ''}
   `;
