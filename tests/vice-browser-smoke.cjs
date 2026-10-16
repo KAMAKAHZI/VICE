@@ -16,8 +16,8 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
  try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
    const page=await browser.newPage({viewport});const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto(process.env.VICE_BROWSER_ORIGIN||'http://127.0.0.1:'+server.address().port,{waitUntil:'networkidle'});
-   await page.locator('#loginForm').waitFor({state:'visible'});
+   await page.goto(process.env.VICE_BROWSER_ORIGIN||'http://127.0.0.1:'+server.address().port,{waitUntil:'domcontentloaded',timeout:45000});
+   await page.locator('#loginForm').waitFor({state:'visible',timeout:45000});
    assert.equal(await page.evaluate(()=>typeof onAuthenticated),'function','Application initialized');
    await page.locator('#loginBtn').click();
    assert.equal(await page.locator('#loginBtn').isDisabled(),false,'Empty credentials do not trap submit');
@@ -35,15 +35,19 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
    await page.evaluate(()=>{S.tab='markets';renderMain();});
    const canvas=page.locator('#cv');await canvas.waitFor({state:'visible'});
    await page.waitForFunction(()=>document.getElementById('cv')?._wired);
+   await canvas.scrollIntoViewIfNeeded();
    const box=await canvas.boundingBox();assert(box&&box.width>100);
    const x=box.x+Math.max(25,(box.width-84)/2),y=box.y+box.height/2;
    await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+35,y+30,{steps:8});await page.mouse.up();
    assert(await page.evaluate(()=>S.view2.end!==null&&S.view2.priceRange?.max>S.view2.priceRange?.min),'Chart drag pans time and price');
    const before=await page.evaluate(()=>S.view2.priceRange.max-S.view2.priceRange.min);
-   console.log('Chart axis hit target',viewport.width,await page.evaluate(({x,y})=>({x,y,target:document.elementFromPoint(x,y)?.outerHTML?.slice(0,250),canvas:document.getElementById('cv').getBoundingClientRect().toJSON(),width:_W,height:_H}),{x:box.x+box.width-25,y}));
+   assert(await page.evaluate(({x,y})=>document.elementFromPoint(x,y)===document.getElementById('cv'),{x:box.x+box.width-25,y}),'Price axis is not covered by a floating control');
    await page.mouse.move(box.x+box.width-25,y);await page.mouse.down();await page.mouse.move(box.x+box.width-25,y+35,{steps:8});await page.mouse.up();
    assert(await page.evaluate(span=>S.view2.priceRange.max-S.view2.priceRange.min>span,before),'Price-axis drag changes scale');
    assert.equal(await page.evaluate(()=>S.tab),'markets','Chart dragging does not activate navigation');
+   assert.equal(await page.locator('#oi-root').evaluate(e=>e.classList.contains('on')),false,'Chart dragging does not open O.I.');
+   assert.equal(await page.locator('#view [data-act="oi-open"]').count(),1,'O.I. remains available in the chart toolbar');
+   assert.equal(await page.locator('#view [data-act="support-open"]').count(),1,'Support remains available in the chart toolbar');
    console.log('PASS chart body/price-axis drag',viewport.width);
    const renderFailures=await page.evaluate(()=>{
      const failures=[];
