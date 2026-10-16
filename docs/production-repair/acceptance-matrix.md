@@ -46,7 +46,7 @@ Every criterion below refers to the supplied release specification. PARTIAL is n
 | Backend | Realtime permissions work | UNVERIFIED | Requires authenticated staging/browser or provider test; no passing workflow claim. |
 | Backend | Audit logging works | PASS (scoped) | Actual authorized correction retained original events, appended corrections and audit receipts, and revoked associated certificates. Other action audit paths not fully tested. |
 | Deployment | Production build succeeds | PASS | Strict public-root packaging and privacy test pass locally. |
-| Deployment | All required assets are published | PENDING FINAL RELEASE | Prior repair passed nine-asset identity and public-browser verification; final publication evidence will be appended to the release report. |
-| Deployment | Production version is correct | PRIOR RELEASE PASS | Live 1.3.8.0-IRU-CERTIFICATES verified; final repaired source identity requires production smoke. |
+| Deployment | All required assets are published | PASS | Final production smoke 38979778664 attempt 2: nine public assets match source 7bad15c; configuration files are not downloadable assets. |
+| Deployment | Production version is correct | PASS | Netlify production commit 7bad15c and live 1.3.8.0-IRU-CERTIFICATES verified October 16, 23:11 UTC. |
 | Deployment | No critical runtime errors remain | PARTIAL | No page errors in tested public UI and explicit SIM navigation at desktop/mobile widths. Authenticated workflows unverified. |
-| Deployment | End-to-end smoke tests pass | PENDING FINAL RELEASE | Hosted candidate browser passed at both widths; final production smoke follows native publication. |
+| Deployment | End-to-end smoke tests pass | PASS (public scope) | Final published public-browser checks pass at 1440 and 390 widths. Full authenticated/provider E2E remains unverified. |

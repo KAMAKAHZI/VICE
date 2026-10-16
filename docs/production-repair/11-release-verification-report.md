@@ -2,7 +2,7 @@
 
 Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 
-The preserved application has a verified repair candidate. The complete institutional specification has not passed acceptance. The acceptance matrix identifies each criterion and the limits of its evidence.
+The preserved application has a published repair release. The complete institutional specification has not passed acceptance. The acceptance matrix identifies each criterion and the limits of its evidence.
 
 ## A. Release identity
 
@@ -13,7 +13,7 @@ The preserved application has a verified repair candidate. The complete institut
 - Verified code checkpoint: `d3db4fa76e4a2418cc8530b37742f654effed47f`.
 - Hosted acceptance: [38979407975](https://github.com/KAMAKAHZI/VICE/actions/runs/38979407975).
 
-Final production commit, deployment identifier and publication time will be recorded below from provider evidence. Version text alone does not identify a repair.
+Production commit: `7bad15c8d0cf7794cf3006d0e0ab0c8fd3f2e3ff`. Netlify deployment: `6ad2ae611060b4c67beb42d5`. Published: `2026-10-16T23:11:11.920Z`. The read-only provider API confirms production/main, ready state, this exact commit and one deployment for this commit. Version text alone does not identify a repair.
 
 ## B. Repairs implemented
 
@@ -87,4 +87,16 @@ Repository visibility remains unchanged. Conversion to private requires verifica
 
 The first repair release was verified at commit `d3131e949784a42ced527f64209f15b29bb4773f`, Netlify deployment `6ad0df4b8bc8ef6d1bdad909`, published 2026-10-15T14:12:39.327Z. Production smoke [38790669788](https://github.com/KAMAKAHZI/VICE/actions/runs/38790669788) passed nine public asset comparisons and desktop/mobile public UI checks after allowing the precisely verified Netlify guide-link serialization. Newer authentication work on main is preserved in the current candidate.
 
-Final publication evidence is appended after the native Netlify deployment and fresh production smoke. No successful build or commit is being treated as complete application acceptance.
+The final native production deployment is `6ad2ae611060b4c67beb42d5`, source `7bad15c8d0cf7794cf3006d0e0ab0c8fd3f2e3ff`, created 2026-10-16T23:08:17.616Z and published 2026-10-16T23:11:11.920Z. The provider reports ready and one deployment for this source. CLI publishing was not dispatched. A first smoke attempt correctly failed exact-asset comparison while the native build was still running; only the read-only smoke job was rerun after publication. No successful build or commit is being treated as complete application acceptance.
+
+A read-only October 16 recheck confirmed that the separately authorized strategic correction remains recorded twice and both Estate/Admin Reserve books remain at their designated 7,500,000 quantities. Original records are retained.
+
+### Final production result — verified
+
+Production smoke [38979778664, attempt 2](https://github.com/KAMAKAHZI/VICE/actions/runs/38979778664/attempts/2) passed on the deployed source. At 2026-10-16T23:11:53Z all nine public assets matched, allowing only the specifically verified Netlify guide-anchor transformation. The application, member guide, verification page, JavaScript and manifest returned HTTP 200. The live version is `1.3.8.0-IRU-CERTIFICATES`.
+
+Published desktop (1440×900) and mobile (390×844) public-browser checks passed at 23:12:20Z and 23:12:23Z, with no page errors in their tested login UI, empty validation, modal and layout scenarios. The backend acceptance workflow on this final source also passed. This is public-browser smoke acceptance, not a successful authenticated member login claim.
+
+The TURN credential route still reports HTTP 503 for missing operator relay configuration. Real-user authentication/recovery, two-member communications, private document workflows and other limitations above remain unverified or incomplete. Production publication is complete; full institutional acceptance is not.
+
+This report update changes documentation only and uses [skip netlify], preserving the single production deployment for the verified release.

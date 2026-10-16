@@ -1,6 +1,6 @@
 # VICE OS production repair console
 
-Status: partial repair; full production acceptance remains open.
+Status: repair release published and verified on October 16, 2026. Full institutional feature acceptance remains open; see the release report for exact evidence and limitations.
 
 - [User Guide](./01-user-guide.md)
 - [Administrator Guide](./02-administrator-guide.md)
