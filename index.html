@@ -4962,13 +4962,19 @@ window.formatUnits = function formatUnits(raw, decimals, maxFrac) {
    ═══════════════════════════════════════════════════════════════════ */
 
 const Wallet = (() => {
+  // Loading the optional wallet library must not replace an unrelated chart/form.
+  const repaint = () => {
+    if(['wallet','portfolio','command','defi'].includes(S.tab)){
+      try { renderMain(); } catch(e){ console.warn('Wallet view refresh failed:',e); }
+    }
+  };
   let W = window.ViceWallet || null;
   if(!W){
     window.addEventListener('vice-wallet-ready', () => {
       W = window.ViceWallet;
       if(S.wallet.status === 'unsupported' || S.wallet.status === 'pending'){
         S.wallet.status = S.wallet.vault ? 'locked' : 'none';
-        try { renderMain(); } catch(_){}
+        repaint();
       }
     }, { once: true });
   }
@@ -5009,14 +5015,14 @@ const Wallet = (() => {
       if (window.ViceWallet) {
         W = window.ViceWallet;
         st.status = st.vault ? 'locked' : 'none';
-        try { renderMain(); } catch(_){}
+        repaint();
       } else if (st.status === 'pending') {
         st.status = 'unsupported';
-        try { renderMain(); } catch(_){}
+        repaint();
       }
     }, 3000);
   }
-  const notify = () => { try { renderMain(); } catch(_) {} };
+  const notify = repaint;
 
   async function refresh() {
     if (!st.unlocked || !st.accounts) return;

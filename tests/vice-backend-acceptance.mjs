@@ -29,6 +29,10 @@ await check('Invitation privacy',async()=>{
  const r=await req('/rest/v1/rpc/validate_invite',{p_code:'VICE-NONEXISTENT-PUBLIC-SMOKE',p_email:'nobody@test.invalid'});
  const good=r.ok&&r.json?.valid===false;save('Invitation privacy',good?'PASS':'FAIL','Unknown invite denied; HTTP '+r.status);
 });
+await check('IRU certificate verification',async()=>{
+ const r=await req('/rest/v1/rpc/verify_token_certificate',{p_cert_id:'VCT-NONEXISTENT-PUBLIC-SMOKE'});
+ save('IRU certificate verification',r.ok&&r.json?.valid===false?'PASS':'FAIL','Unknown IRU certificate denied; HTTP '+r.status);
+});
 await check('No public profiles',async()=>{
  const r=await req('/rest/v1/profiles?select=id%2Cemail&limit=1');
  const good=[401,403,404].includes(r.status)||(r.ok&&Array.isArray(r.json)&&r.json.length===0);
@@ -42,6 +46,8 @@ await check('No public cloud MT5 records',async()=>{
 // Every finance and member record must reject anonymous reading; a 200 []
 // response is acceptable under PostgreSQL RLS, while even one row is a leak.
 const privateTables=[
+ ['Academy reading receipts','academy_progress','profile_id,module'],
+ ['IRU certificates','token_certificates','cert_id,holder_id'],
  ['Holder registry','holders','id,client_id'],
  ['Private allocations','allocations','id,holder_id'],
  ['Issuer distributions','distributions','id,total'],
