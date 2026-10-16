@@ -1,6 +1,6 @@
 # VICE OS / Communications Guide
 
-Internal engineering • 2026-10-15 UTC • 1.3.8.0-IRU-CERTIFICATES
+Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 
 Channels and DMs persist through Supabase before the UI reports success. History loads newest 200 records and sorts them for display. Repeated clicks on a disabled composer are ignored. Failed sends preserve the draft. Oversized encoded text is rejected with an actionable error.
 

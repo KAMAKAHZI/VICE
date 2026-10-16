@@ -1,8 +1,8 @@
 {
   "version": "1.3.8.0-IRU-CERTIFICATES",
-  "date": "2026-10-15",
+  "date": "2026-10-16",
   "status": "PRODUCTION_REPAIR_PARTIAL_ACCEPTANCE",
-  "release_summary": "Verified session, messaging ACL, private call signaling, camera/screen sharing, profile-save, market-data validation, PDF form and audited issuance-correction repairs. Full institutional feature acceptance remains incomplete.",
+  "release_summary": "Session and desktop clock safeguards, private call signaling and media controls, messaging ACL, confirmed profiles, validated market data, chart pan/scale and causal fractals, PDF forms, audited issuance reversal, private certificate verification and backend Academy progress. Full institutional acceptance remains incomplete.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -97,13 +97,14 @@
     "turn_access": "Netlify validates a logged-in Supabase user AND an owner-scoped provisioned profile before issuing temporary TURN credentials.",
     "document_signing": "Requires provisioned profile, exact typed name, authentic SHA-256 document digest and owner/issuer authorization; writes server-backed signature with audit entry.",
     "member_directory": "Excludes unprovisioned JWT identities at SECURITY DEFINER function boundary.",
-    "academy_grading": "Only provisioned member profiles may submit answers. Actual learning and exam integrity require further independent acceptance.",
+    "academy_grading": "Provisioned profile, backend chapter receipts and seven passing server-graded assessments gate new core awards; active awards are idempotent. Real-user learning/exam integrity is not certified.",
     "identity_guards": {
       "directory": "Existing provisioned profile required",
       "quiz": "Existing provisioned profile required",
       "e_signing": "Explicit matching verified profile name and self/holder-client document assignment; hash required",
       "real_browser_acceptance": false
-    }
+    },
+    "public_iru_verification": "Status/integrity allowlist only; no holder names, quantities, snapshots or internal revocation notes"
   },
   "provider": {
     "name": "MetaApi",
@@ -144,7 +145,7 @@
     "MetaApi token activation and real broker connection",
     "Complete SOLACE signal and configuration matrix",
     "Authenticated document editing and signing browser workflows",
-    "Academy reading progress remains local; quizzes persist on server",
+    "Authenticated Academy progress and completion-certificate browser workflows",
     "Group conferencing, durable receipts, editing/deletion, message search and channel administration",
     "Multi-signer requests, sequences, reminders and complete signed-PDF workflows",
     "SMTP delivery and provider receipts",
@@ -158,7 +159,7 @@
     "MetaApi token activation and real broker connection",
     "Complete SOLACE signal and configuration matrix",
     "Authenticated document editing and signing browser workflows",
-    "Academy reading progress remains local; quizzes persist on server",
+    "Authenticated Academy progress and completion-certificate browser workflows",
     "Group conferencing, durable receipts, editing/deletion, message search and channel administration",
     "Multi-signer requests, sequences, reminders and complete signed-PDF workflows",
     "SMTP delivery and provider receipts",
@@ -182,16 +183,14 @@
     "proposal_counters": "server-managed by SECURITY DEFINER RPC"
   },
   "release_acceptance": {
-    "stage": "REPAIR_SOURCE_PENDING_EXACT_ASSET_VERIFICATION",
+    "stage": "REPAIR_RELEASE_SEE_DEPLOYMENT_EVIDENCE",
     "deployment_authorized": true,
-    "main_behind_stage": true,
-    "production_sha_verified": false,
     "live_login_tested": false,
     "live_certificate_issued": false,
     "live_smtp_tested": false,
     "turn_two_party_tested": false,
     "financial_operations_certified": false,
-    "notes": "Do not imply Netlify deploy is complete until production smoke passes; CLI deploy now manual-only to avoid duplicate charges."
+    "notes": "Production identity and exact-asset/public-browser results are recorded in docs/production-repair/11-release-verification-report.md and GitHub production smoke. Version text alone is insufficient. Native Netlify is the production path; manual CLI fallback must not run concurrently."
   },
   "last_database_migrations": [
     "vice_1380_verified_portfolio_token_certificates",
@@ -200,11 +199,13 @@
     "vice_1383_distribution_certificate_on_issuer_paid",
     "vice_1384_additive_complete_operational_registries",
     "vice_dm_recipient_membership_acl",
-    "vice_audited_strategic_issuance_reversal"
+    "vice_audited_strategic_issuance_reversal",
+    "vice_private_certificate_verification",
+    "vice_academy_progress_receipts"
   ],
   "migration_sync": {
-    "live_applied_migration_versions": 40,
-    "git_exact_version_files": 40,
+    "live_applied_migration_versions": 42,
+    "git_exact_version_files": 42,
     "backfilled_from": "supabase_migrations.schema_migrations statements",
     "baseline_for_empty_database_verified": false
   },
@@ -214,7 +215,7 @@
     "pdf_form_tests": 3,
     "call_transport_media_tests": 7,
     "iru_correction_replay_tests": 2,
-    "unit_tests_passed": 23,
+    "unit_tests_passed": 35,
     "unit_tests_failed": 0,
     "unit_tests_skipped": 0,
     "legacy_contract_suites_passed": 7,
@@ -222,14 +223,21 @@
       1440,
       390
     ],
-    "backend_readonly_tests_passed": 17,
+    "backend_readonly_tests_passed": 20,
     "postgres_staging": [
       "DM and attachment authorization",
-      "Exact-source issuance reversal, idempotency, issuer/operator authorization, audit, certificates and reserve preservation"
+      "Exact-source issuance reversal, idempotency, issuer/operator authorization, audit, certificates and reserve preservation",
+      "Public certificate verification allowlist, revoked/missing/tampered denial",
+      "Academy owner isolation, direct-write denial, valid chapter mapping, backend award gates and idempotency"
     ],
-    "verified_source_checkpoint": "d38a26916a71f098c6922e115d5f81e0d1fbf1df",
-    "verification_run": 38744956550,
+    "verified_source_checkpoint": "d3db4fa76e4a2418cc8530b37742f654effed47f",
+    "verification_run": 38979407975,
     "full_release_accepted": false,
-    "notes": "Final deployment evidence is recorded in GitHub production smoke and Netlify status; version text alone is insufficient."
+    "notes": "Final deployment evidence is recorded in GitHub production smoke and Netlify status; version text alone is insufficient.",
+    "academy_progress_tests": 4,
+    "chart_interaction_tests": 4,
+    "fractal_confirmation_tests": 2,
+    "published_asset_comparison_tests": 1,
+    "wallet_render_isolation_tests": 1
   }
 }

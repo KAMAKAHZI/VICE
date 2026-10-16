@@ -1,49 +1,90 @@
 # VICE OS / Release Verification Report
 
-Internal engineering • 2026-10-15 UTC • 1.3.8.0-IRU-CERTIFICATES
+Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 
-The original application is preserved. This is a production repair release; the complete institutional specification has not passed acceptance. See the criterion-by-criterion acceptance matrix.
+The preserved application has a verified repair candidate. The complete institutional specification has not passed acceptance. The acceptance matrix identifies each criterion and the limits of its evidence.
 
-## Release source
+## A. Release identity
 
-Baseline main: `9b681f00b0a593d7b47de2498af32ddf0a939fc5`. Verified implementation checkpoint: `d38a26916a71f098c6922e115d5f81e0d1fbf1df`. The final merge SHA, Netlify deployment identifier, timestamp and public-asset verification must be recorded from production evidence after publishing. A matching version string alone is insufficient.
+- Production URL: https://vice4x.netlify.app
+- Target version: `1.3.8.0-IRU-CERTIFICATES`.
+- Repair baseline: `9b681f00b0a593d7b47de2498af32ddf0a939fc5`.
+- Latest main incorporated: `e9833fd6cce11deb5d010c2424e8fd6a5c4dcc57`, including desktop clock/refresh-storm safeguards and local-device logout.
+- Verified code checkpoint: `d3db4fa76e4a2418cc8530b37742f654effed47f`.
+- Hosted acceptance: [38979407975](https://github.com/KAMAKAHZI/VICE/actions/runs/38979407975).
 
-## Repairs and root causes
+Final production commit, deployment identifier and publication time will be recorded below from provider evidence. Version text alone does not identify a repair.
 
-- Authentication: duplicate initialization and stale asynchronous responses could reuse another session's data. Epoch checks, coalesced setup, cache/media/wallet cleanup and preservation of synchronization on failed logout address those paths. The page mount remains intact during logout.
-- Profiles: UI updates could imply success before storage/database confirmation. Editable-field allowlisting, confirmed updates, avatar MIME/size checks and stale-upload guards now precede local success.
-- Messaging: history selected the oldest window; encoded text could exceed backend limits; private profile RLS made recipient existence checks fail. Latest-200 chronological history, deduplication, stale-session rejection, size checks and staged private membership lookup address these failures.
-- Calls: global broadcast signaling did not provide recipient privacy. SDP/ICE now uses recipient-scoped DM storage, database-bound identities, replay expiry and call-ID checks. Camera/screen sender replacement, cancellation, bounded ICE and media cleanup are covered by tests.
-- Markets: browser Yahoo access bypassed the deployed proxy and accepted malformed OHLC. Same-origin proxy routing and finite/range validation reject unusable provider data.
-- PDFs: AcroForm text/date, checkbox, choice editing, profile autofill, PDF export and private new-copy save are implemented using pinned pdf-lib with SRI. Originals and signed/read-only content are protected.
-- IRU correction: exact-source reversals now run atomically with explicit issuer/database-operator identity, idempotency, balance/counter reconciliation, original-event preservation, certificate revocation and audit records. Reserve tables are not changed.
-- Deployment: manual fallback avoids rebuilding; native Netlify integration remains the primary production path. Smoke checks compare nine asset bodies byte-for-byte and test the published desktop/mobile public UI.
+## B. Repairs implemented
 
-Changed subsystem files are identified in repair-ledger.md and the GitHub diff. No secrets are included in the public artifact.
+| Subsystem | Root cause and correction | Principal files |
+|---|---|---|
+| Authentication | Coalesce duplicate initialization, reject stale hydration, isolate member caches/media/wallet, preserve synchronization on failed logout and retain the view mount. Incorporated newer main clock/refresh-storm protection and local signout. | index.html |
+| Profiles | Previously implied success despite returned backend errors. Allowlisted fields, confirmed writes, avatar MIME/size limits and stale-upload rejection now precede success. | index.html |
+| Messaging | Oldest history window, envelope overflow and private-profile recipient lookups caused failures. Latest-200 ordered/deduplicated history, confirmed sends, draft preservation, size checks and a private membership helper repair these paths. | index.html; 20261015132937 migration |
+| Calls | Global broadcast was unsuitable for private SDP/ICE. Signaling now uses RLS-scoped DM rows, database sender identity, call ID/age validation and bounded ICE. Camera/screen sender replacement and cleanup added. | index.html |
+| Market data | Browser Yahoo access bypassed the proxy; invalid prices and outage-generated candles were accepted. Same-origin routing, OHLC validation, request/session guards and a clear unavailable state replace those failures. | index.html; netlify/functions/yahoo.js |
+| Charts | Missing mouse/vertical pan and null latest-index handling prevented usable dragging. Pointer capture, body/axis dragging, wheel/pinch/keyboard zoom and persistent candle count added. Floating chart helpers moved to toolbar. | index.html |
+| SOLACE fractals | Rendering only the latest 200 pivots lost markers in older history. Confirmed fractals retain pivot/confirmation indices and use viewport coordinates across loaded history. | index.html |
+| Wallet initialization | Optional library readiness rerendered unrelated charts/forms. Refresh now targets only affected wallet-related views. | index.html |
+| PDF forms | Added real AcroForm text/date, checkbox and choice editing, profile autofill, export and private new-copy save. Original, read-only and signature content protected; XFA refused. | vice-mega.js |
+| IRU correction | Added exact-source, issuer-authorized, idempotent transaction with balance/counter reconciliation, append-only correction/audit records and certificate revocation. Restricted database-operator path records actual operator identity. | index.html; 20261015140648 migration |
+| Certificate privacy | Public verification exposed identities, holdings snapshots and revocation notes. Strict status/integrity allowlist now excludes those details; authenticated owner/issuer access remains. | verify.html; 20261015190802 migration |
+| Academy | Browser-only reading marks and missing completion gates allowed incomplete qualification. Added owner-scoped backend receipts, confirmed UI writes, stale-response and duplicate-submit guards, 21-chapter/seven-assessment checks and idempotent active awards. | index.html; 20261015193846 migration |
+| Deployment/docs | Native Netlify remains primary; manual CLI avoids a second build. Exact-asset/public-browser checks and eleven operational guides document actual behavior. | workflows; tests; guide.html; docs/production-repair |
 
-## Verification evidence
+Full changed-file inventory and dependencies are in dependency-inventory.json; issue-level verification is in repair-ledger.md. No private holder identifiers, credentials or real financial receipt details are published here.
 
-GitHub acceptance run [38744956550](https://github.com/KAMAKAHZI/VICE/actions/runs/38744956550) passed on the implementation checkpoint:
+## C. Test results
 
-| Verification | Result |
+Hosted acceptance at the verified code checkpoint:
+
+| Test category | Passed | Failed | Skipped | Scope |
+|---|---:|---:|---:|---|
+| Behavioral unit tests | 35 | 0 | 0 | 11 core, 3 PDF, 7 calls, 2 IRU replay, 1 asset matcher, 4 Academy, 4 chart, 2 fractal, 1 wallet |
+| Legacy contract/static suites | 7 | 0 | 0 | Includes six mocked TURN outcomes; separate from unit total |
+| Live read-only backend checks | 20 | 0 | 0 | Auth availability, anonymous record isolation and denied/unknown RPC cases |
+| Isolated PostgreSQL 17 suites | 4 | 0 | 0 | DM/media ACL; issuance reversal; public certificate privacy; Academy receipts/awards |
+| Browser viewport runs | 2 | 0 | 0 | 1440×900 and 390×844; public login UI, empty validation, modal/layout, SIM chart gestures and every navigation render |
+| Public-root package/build | 1 | 0 | 0 | Exactly 11 whitelisted files; backend/internal sources excluded |
+
+Unit tests and backend checks total 55 individually reported cases. Suite-level SQL assertions, browser scenarios and six TURN subcases are deliberately not added to that count. Required workflows without supplied real-user/provider acceptance are marked UNVERIFIED in the matrix; they are not disguised as skipped passing tests.
+
+The mobile test initially identified O.I. covering the price axis. The next run exposed a wallet-readiness redraw detaching the canvas. Both defects were corrected before the passing run. The production asset matcher permits only the specifically observed Netlify member-guide anchor rewrite; altered JavaScript or other content is rejected.
+
+No real-user password, invitation redemption, two-party call, broker order or production financial test allocation was used. Explicit SIM navigation validates rendering, not live workflows. Actual authorized corrections are operational actions and are not test fixtures.
+
+## D. Database and security assessment
+
+Live metadata verified October 15: 51 public tables, all with RLS; two private Storage buckets; 42 applied migrations. Four repair migrations were tested in disposable PostgreSQL before installation. The historical migration archive is not certified as a fresh Supabase bootstrap.
+
+Member/financial write protections remain enabled. Anonymous privacy checks pass. Correction transactions preserve source events and certificates, revoke mistaken certificates, append audit records and leave estate reserve tables unchanged. The separately authorized live correction was verified on October 15 with exact before/after deltas, total reconciliation and preservation of all other holders. Private details remain in the database.
+
+Complete authenticated role-matrix, real upload/download isolation, independent dependency and CSP reviews remain open. Legacy message keys are predictably derived and are not E2EE. Supabase reports disabled leaked-password protection plus definer-function exposure and RLS/no-direct-policy findings. The [Security Operations Guide](./05-security-operations.md) links each advisor explanation; these findings have not been concealed by weakening policies.
+
+## E. Operational readiness
+
+| Capability | Evidence and limit |
 |---|---|
-| New behavioral, PDF, call and IRU replay tests | 23 passed, 0 failed, 0 skipped |
-| Pre-existing contract/static suites | 7 passed; includes 6 mocked TURN outcomes |
-| PostgreSQL 17 staging | DM/attachment ACL and exact-source reversal assertions passed; migrations applied twice |
-| Browser | Desktop 1440×900 and mobile 390×844 public UI; every navigation view rendered with explicit SIM fixtures |
-| Read-only production backend | 17/17 passed |
-| Build and package privacy | Passed; 11 whitelisted public assets |
+| Database/Auth gateway | Live read-only API checks pass. Real login, recovery, invitation and browser restart remain unverified. |
+| Realtime/messages | Private recipient policy staged; client transport tests pass. Actual two-member delivery, attachments and reconnect behavior not accepted. |
+| Calls | Seven mocked transport/media cases pass. TURN returned HTTP 503 on prior production smoke; relay configuration and separate-network calls remain open. |
+| Market data | Production Yahoo EURUSD hourly request returned 526 genuine provider candles on October 15 at 19:03:33Z. Other instruments, entitlements and ongoing feed availability are separate. |
+| IRU certificates | Backend privacy and correction revocation verified. Owner download and automatic issuance from every qualifying event need authenticated E2E. |
+| Documents | Three PDF field export/reload cases pass. Private storage-save and signing workflows need real authenticated acceptance. |
+| Academy | Progress and award gates passed SQL/client tests and are installed. Existing device-only marks must be reconfirmed; live cross-device E2E remains open. |
+| Monitoring | Scheduled public production smoke and backend acceptance workflows exist. They do not replace authenticated/provider monitoring. |
 
-No real-user password, invitation, two-party media, broker order or production financial test allocation was used. SIM navigation checks do not certify live workflows. Unit counts are separate from static suites and SQL assertions.
+## F. Outstanding dependencies and unfinished implementation
 
-## Database and security
+Genuine external dependencies: reachable TURN relay with TURN_URLS/TURN_SHARED_SECRET; SFU infrastructure for multiparty conferencing; configured MetaApi/broker account and authorized sandbox credentials; private transactional email worker/provider receipts; authorized real-user staging accounts for browser acceptance; signing-provider credentials/license if that integration is selected. No paid provider or infrastructure was purchased.
 
-Live project sdsaewumabzjjvsmqqsl has 50 public tables, all with RLS, two private Storage buckets and 40 applied migrations. Two new migrations were staged before installation: recipient membership ACL (20261015132937) and audited issuance reversal (20261015140648). Authenticated role-matrix and independent security acceptance remain open. Legacy encryption is not E2EE; leaked-password protection was reported disabled by Supabase advisors.
+Independent implementation gaps remain: durable message receipts/editing/deletion/search/channel administration/mentions; complete media device selection; full SOLACE stochastic/slowing/MTF/risk qualification and broker/backtesting acceptance; linked document versions, arbitrary PDF content editing and multi-signer request/sequence/reminder workflows; full Academy video/instructor/tier catalog management; comprehensive dependency/CSP and role-matrix security acceptance. These are unfinished features, not credential excuses. The complete original specification is not certified complete.
 
-## Remaining work and external dependencies
+Repository visibility remains unchanged. Conversion to private requires verification of GitHub administration access and Netlify private-repository access; publication must remain functional.
 
-External configuration/testing remains necessary for TURN relay and separate-network media, MetaApi/broker connection, transactional email receipts, an SFU for group conferencing, and a full signing provider if selected. No paid provider or infrastructure was purchased.
+## G. Production verification
 
-Independent implementation gaps remain: durable message receipts/editing/deletion/search/channel administration; backend chapter-reading persistence; complete device selection; full SOLACE input/signal acceptance; linked document versions and multi-signer request/sequence/reminder workflows. These are incomplete features, not credential blockers. Full institutional production readiness is not claimed.
+The first repair release was verified at commit `d3131e949784a42ced527f64209f15b29bb4773f`, Netlify deployment `6ad0df4b8bc8ef6d1bdad909`, published 2026-10-15T14:12:39.327Z. Production smoke [38790669788](https://github.com/KAMAKAHZI/VICE/actions/runs/38790669788) passed nine public asset comparisons and desktop/mobile public UI checks after allowing the precisely verified Netlify guide-link serialization. Newer authentication work on main is preserved in the current candidate.
 
-Production deployment evidence and the authorized real-record correction will be appended after verification without publishing private holder identifiers.
+Final publication evidence is appended after the native Netlify deployment and fresh production smoke. No successful build or commit is being treated as complete application acceptance.

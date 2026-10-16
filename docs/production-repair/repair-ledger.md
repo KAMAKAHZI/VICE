@@ -4,7 +4,7 @@
 |---|---|---|---|
 | Stale member state on logout/account switch | Collections and pending asynchronous results survived identity change | index.html | Cleanup and delayed-history behavioral tests; authenticated race matrix still open |
 | Canceled/failed logout stops sync | Timer cleared before confirmation/result | index.html | Failed-signout behavioral test |
-| Academy leaks reading/quiz cache across users | Shared localStorage key | index.html | Reading key scoped; server hydrates quizzes; browser workflow unverified |
+| Academy leaks reading/quiz cache across users | Shared localStorage key | index.html, Academy progress migration | Member-scoped backend receipts, server quiz hydration and stale response guards; authenticated browser workflow unverified |
 | Profiles falsely report save success | Supabase errors returned as values were ignored | index.html | Denial/confirmed update and field allowlist tests |
 | Old conversation window | Ascending query limited to earliest 200 | index.html | Newest query/chronological display/dedup test |
 | Encoded message rejected unexpectedly | Plaintext limit ignored envelope expansion | index.html | Encoded overflow rejected before insert |
@@ -17,14 +17,29 @@
 
 ## Open implementation defects, not credential excuses
 
-Predictable legacy message keys; private signaling and camera/screenshare require two-party acceptance; missing group SFU; no complete read receipts/edit/delete/search/channel administration; incomplete PDF editing/versioning and signature requests; no backend reading-progress sync; incomplete stochastic/MTF/marker and nine-position broker acceptance; controls not fully browser exercised; CSP and dependency scanning incomplete. These remain release acceptance failures until implemented and tested.
+Predictable legacy message keys; private signaling and camera/screenshare require two-party acceptance; missing group SFU; no complete read receipts/edit/delete/search/channel administration; incomplete PDF content editing/versioning and signature requests; incomplete stochastic/MTF and nine-position broker acceptance; controls not fully browser exercised; CSP and dependency scanning incomplete. These remain release acceptance failures until implemented and tested.
 
 ## Genuine external dependencies
 
-No authorized staging user accounts/isolated database supplied or provisioned. No TURN relay/SFU provider configuration verified. No signing provider credentials/license. No private SMTP worker delivery verification. No authorized broker sandbox credentials or provider feed entitlements verified. Browser binary download failed locally; hosted CI is the alternative. No production data was fabricated to replace these dependencies.
+No authorized real-user staging credentials supplied. Disposable PostgreSQL fixtures provide isolated policy/function tests, not a complete Supabase Auth/Realtime environment. No TURN relay/SFU provider configuration verified. No signing provider credentials/license. No private SMTP worker delivery verification. No authorized broker sandbox credentials or provider feed entitlements verified. Browser binary download failed locally; hosted CI provides browser testing. No production data was fabricated to replace these dependencies.
 
 ## Direct issuance correction and recipient policy checkpoint
 
 - Reproduced the private-profile recipient lookup failure in disposable PostgreSQL 17; fixed DM and attachment INSERT policies without broadening profile/message reads. Staging and hosted acceptance run 38729325335 passed. Migration applied to production as 20261015132937. No message or financial records changed by that policy migration.
 - Added an exact-source issuance reversal with issuer authorization, a separate restricted database-operator entry point, idempotent source-event handling, atomic balance/counter reconciliation, certificate revocation, and append-only correction/audit records. Existing estate reserves are not modified. Source events and certificates are retained.
-- Added frontend ledger replay and admin review for reversal events. Two replay tests pass. PostgreSQL staging tests must pass before installing or invoking the correction function in production. No actual financial correction is claimed at this checkpoint.
+- Added frontend ledger replay and admin review for reversal events. Two replay tests and PostgreSQL staging passed before migration 20261015140648 was installed. The separately authorized live correction completed on October 15 with exact counter deltas, holder reconciliation, certificate revocation and audit records verified. Other holder balances and both reserve records were unchanged. Private record identifiers and receipt details remain in the database.
+
+## Certificate privacy and Academy checkpoint
+
+- Public IRU verification exposed identity, full holdings snapshots and internal revocation notes. The verification RPC now returns a strict status/integrity allowlist. Holder detail access remains behind the existing authenticated certificate-table RLS. PostgreSQL privacy fixtures passed before live migration 20261015190802.
+- Academy chapter marks were browser-only and new awards did not enforce reading completion. Added owner-scoped backend receipts, validated module/chapter RPC, confirmed frontend marks, stale-response guards, duplicate-submit prevention, 21-core-chapter issuance gate, matching profile identity, canonical course title and idempotent active awards. Existing certificates are retained. Four client tests and isolated PostgreSQL acceptance passed before live migration 20261015193846. Prior local-only marks are retained locally but must be reconfirmed through Mark read to become backend receipts.
+
+## Chart interaction and market outage repair
+
+- Canvas had no mouse-drag path, no vertical price viewport, and touch drags treated a null latest-candle index as zero. Replaced separate mouse/touch handlers with pointer capture, frame-throttled body/axis dragging, cursor-anchored wheel zoom, pinch zoom and keyboard controls. Manual price range resets when instrument/timeframe changes; chart count preference persists.
+- Live-feed errors generated fallback candles. Failed live feeds now clear the chart and show an unavailable state. Explicit practice mode remains labeled simulation. Request IDs/session checks reject stale instrument responses. Four behavioral tests pass; real browser chart drag checks are included in hosted acceptance.
+- Mobile browser testing identified the floating O.I. button intercepting price-axis drags. Chart Support and O.I. actions now live in the toolbar; global floating controls are hidden while the chart view is active. Browser tests assert that the price-axis hit target is the canvas and that dragging does not activate navigation or O.I.
+- Fractal rendering used a truncated last-200 pivot list. The engine now retains full-history confirmed fractals with confirmation indices; rendering follows the current time/price viewport. Two deterministic tests cover causal confirmation and historical stability.
+- Newer main-branch desktop clock/refresh-storm and local signout fixes were merged into this repair without overwriting them. Hosted browser navigation waits for DOM/login readiness rather than all third-party network activity to settle.
+
+- Optional wallet readiness previously rerendered whichever page was active, detaching charts and document forms. Wallet refreshes now target only wallet-related views; the regression test and hosted desktop/mobile browser acceptance pass.

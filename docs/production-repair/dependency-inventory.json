@@ -33,8 +33,8 @@
     },
     {
       "path": ".github/workflows/vice-production-smoke.yml",
-      "bytes": 1376,
-      "sha256": "cd8d5a55dc6cc3ce7cb7452dadc314ef53669a72aaa50f36e4c88ca8e4ef2a31"
+      "bytes": 1415,
+      "sha256": "f0e6a53acf78e4655769f1a77036e69481b5543d45a67af00db4737a964474d9"
     },
     {
       "path": ".github/workflows/vice-release-package.yml",
@@ -43,8 +43,8 @@
     },
     {
       "path": ".github/workflows/vice-repair-acceptance.yml",
-      "bytes": 2584,
-      "sha256": "82f12023e0e670cbc35c15fc380f8659814681b2f3560b7061d56f6a9b055587"
+      "bytes": 3587,
+      "sha256": "0f31ecaed487a0384a925d0f6bbd8299fe38c18107fa7c9bd1087a97d1fe7a70"
     },
     {
       "path": "CLOUD_MT5_SETUP_136.md",
@@ -118,13 +118,13 @@
     },
     {
       "path": "guide.html",
-      "bytes": 24665,
-      "sha256": "ad1644a165dbc83106ff8a7c86d2118d7be6e4635aefb7ffa67c23a96db60e98"
+      "bytes": 26338,
+      "sha256": "52204c3a0e2d95bb976c081115c24c9317d14577aac3234e21d5aeeabb3126fe"
     },
     {
       "path": "index.html",
-      "bytes": 703301,
-      "sha256": "4933022625b3ff8372d45fec3e679d4a27909718a2496286de833eb17a4bac2a"
+      "bytes": 713505,
+      "sha256": "c1fbb24bf62d848f05ee9e1fecfa89763f0a072cf14be8456e3dad04255c24a1"
     },
     {
       "path": "manifest.json",
@@ -407,6 +407,16 @@
       "sha256": "137f8450897f932ae7954e0a70c100d9592d869e24f0b0404c32130e9e7d58d9"
     },
     {
+      "path": "supabase/migrations/20261015190802_vice_private_certificate_verification.sql",
+      "bytes": 1331,
+      "sha256": "40cd69f32bd10faadf8fe9ed1220dc05aa364a22eb7740298b333a837a15d399"
+    },
+    {
+      "path": "supabase/migrations/20261015193846_vice_academy_progress_receipts.sql",
+      "bytes": 6463,
+      "sha256": "737c60970e0134b7d1aa2e1f73046f130cd948fda5b61f7bde52a8fe05aa1abc"
+    },
+    {
       "path": "supabase/migrations/APPLIED_VERSION_MAPPING.md",
       "bytes": 925,
       "sha256": "7280533ecc6a04ec259fb4b6ee46b4e595d4768d8b28f142b831d0db71339625"
@@ -415,6 +425,26 @@
       "path": "sw.js",
       "bytes": 442,
       "sha256": "c57d3810440471e126c58e680baf4c8a7e1d2fa7bd74c88b96e60e7dc4b8096b"
+    },
+    {
+      "path": "tests/sql/vice-academy-assertions.sql",
+      "bytes": 2582,
+      "sha256": "796805f36f95ddcdd387dc2c51654cde575cbee57413da9ffde18c62f42dda0f"
+    },
+    {
+      "path": "tests/sql/vice-academy-staging.sql",
+      "bytes": 892,
+      "sha256": "ac13d51ae7cda8fff16302f4a872da9b3c0873fb9d17fb7d502f491557e93ed3"
+    },
+    {
+      "path": "tests/sql/vice-certificate-privacy-assertions.sql",
+      "bytes": 1270,
+      "sha256": "5b73b42b8ac21b74776e61358ca344187d8ba32a29fa3d9907a3af2babab9a38"
+    },
+    {
+      "path": "tests/sql/vice-certificate-privacy-staging.sql",
+      "bytes": 918,
+      "sha256": "7eddf5d41ed76a36e3d5bd5259464e238256d86b144e666de08fab712b5d5a45"
     },
     {
       "path": "tests/sql/vice-dm-assertions.sql",
@@ -457,14 +487,19 @@
       "sha256": "383ff2d670aed469992ab5601d852ad11d20190d298352b90c207b7eddabeaf7"
     },
     {
+      "path": "tests/vice-academy-progress.cjs",
+      "bytes": 1806,
+      "sha256": "3e6ddc32e9069b3e1feefc3e59dde1f786cd867f6d59a88f3ff7a87844145b37"
+    },
+    {
       "path": "tests/vice-backend-acceptance.mjs",
-      "bytes": 5112,
-      "sha256": "1c09970cfe429e4455271f3967c84914e8967a543bb47e46900e2ed9e43daccb"
+      "bytes": 5538,
+      "sha256": "c7b4a11397433ae8c5a5b1ee9798c9107272e25df9518f406414607a280a5175"
     },
     {
       "path": "tests/vice-browser-smoke.cjs",
-      "bytes": 3308,
-      "sha256": "2edb863eadd7539b7f6d430fb3cd78f1ab811c60053abb7cccd43b53831ad1b0"
+      "bytes": 5154,
+      "sha256": "e54d75b6705bd2a13135b7c14d0ad5c5376e5aefeaeb967f3474443662ef7406"
     },
     {
       "path": "tests/vice-calls.cjs",
@@ -472,9 +507,19 @@
       "sha256": "3bca3b448c864bc1b06da011dd01c7caca927983e201ffc0c308cfa6236f35ff"
     },
     {
+      "path": "tests/vice-chart-interactions.cjs",
+      "bytes": 2807,
+      "sha256": "0eaa2946aa6c31f5cb71aa0ba1db30ab0ac92fa07501c1f02c8f084a60719ed2"
+    },
+    {
       "path": "tests/vice-deploy-privacy.cjs",
       "bytes": 977,
       "sha256": "86264afa5943f36c7bd19c0e64b9fcc9ee27494c173e4fbc90c9ba6991142c3a"
+    },
+    {
+      "path": "tests/vice-fractals.cjs",
+      "bytes": 1222,
+      "sha256": "374b6adf65103078422aae2b307717fff71ad53ebab37a77e331a8f3b842fbb9"
     },
     {
       "path": "tests/vice-iru-corrections.cjs",
@@ -493,13 +538,23 @@
     },
     {
       "path": "tests/vice-production-smoke.mjs",
-      "bytes": 5791,
-      "sha256": "21e643f2fb7e6c4ad6d36af08d8e1bff8c64cdc79aa9fa7138508666629f494a"
+      "bytes": 5915,
+      "sha256": "47805f2f8bd447b734e37ccdbc4d9e98e8df84dd71ad9ae2c7520d8ad5735770"
     },
     {
       "path": "tests/vice-public-release-smoke.mjs",
       "bytes": 1410,
       "sha256": "9df51aea292c4195a94f804ad9aed5b15a5fd262e2f13f110b0ef3f757da4322"
+    },
+    {
+      "path": "tests/vice-published-assets.cjs",
+      "bytes": 1228,
+      "sha256": "c1ac8782dc5cbeddcfa07864c5f6a78091c1c60d8cab84bcb4dbea5cd1adcaec"
+    },
+    {
+      "path": "tests/vice-published-assets.mjs",
+      "bytes": 894,
+      "sha256": "300c7752f0b07e57d251a5b4f81320cf686cf1f3dd0636d2e850bb8b699e2bcd"
     },
     {
       "path": "tests/vice-release-safety.cjs",
@@ -512,14 +567,19 @@
       "sha256": "69b1978fb9aa8ad531e5efe8cdb5cefd2707e862161e43352a691a8599b919dc"
     },
     {
+      "path": "tests/vice-wallet-render.cjs",
+      "bytes": 1052,
+      "sha256": "415752512b71db0fc5d9e369eb05e0912f35953e72cc67e1b1eea201becde971"
+    },
+    {
       "path": "verify.html",
-      "bytes": 15196,
-      "sha256": "ff1bba408ee679bd678f8a5c592b381317a9a563047c643d9a35000ef4243c17"
+      "bytes": 15916,
+      "sha256": "99d53a7e1544e4974508f6d1ca85823b1ab3bf37f26b7f0dc7e328efc2a835e1"
     },
     {
       "path": "version.json",
-      "bytes": 11266,
-      "sha256": "e50ede950021d379ae294e14c758e7f449d6fc7e7c97cb3e4bd5cd0fd07ccc9e"
+      "bytes": 12136,
+      "sha256": "5a2c5c483607cc76cd5b3e97ae187b0726b016d2d550116a79ef1158f8c9a751"
     },
     {
       "path": "vice-mega.css",
@@ -534,6 +594,7 @@
   ],
   "tables": [
     "academy_attempts",
+    "academy_progress",
     "allocations",
     "certificates",
     "distributions",
@@ -564,6 +625,7 @@
     "issue_holdings_consolidation",
     "list_member_directory",
     "lookup_email_for_login",
+    "mark_academy_chapter",
     "redeem_invite",
     "reverse_strategic_issuance",
     "revoke_certificate",
@@ -602,9 +664,11 @@
     "bnr-close",
     "bnr-reset",
     "call-accept",
+    "call-camera",
     "call-decline",
     "call-end",
     "call-mute",
+    "call-screen",
     "cert-copy-url",
     "cert-download",
     "cert-open-verify",
@@ -650,6 +714,7 @@
     "dist-new",
     "dist-submit",
     "doc-download",
+    "doc-edit-form",
     "doc-sign",
     "doc-sign-submit",
     "doc-upload",
@@ -734,6 +799,8 @@
     "signup-invite",
     "spec-save",
     "strategic-advance",
+    "strategic-correction",
+    "strategic-correction-submit",
     "strategic-create",
     "strategic-manager",
     "support-new",
@@ -743,6 +810,8 @@
     "toggle-fullscreen",
     "toggle-show",
     "vice-attach",
+    "vice-evm-connect",
+    "vice-evm-send",
     "vice-health-check",
     "vice-voice",
     "w-cancel",
@@ -964,6 +1033,7 @@
     "zoom-out"
   ],
   "actions_without_switch_case": [
+    "doc-edit-form",
     "iru-cert-consolidate",
     "iru-cert-copy",
     "iru-cert-download",
@@ -977,7 +1047,9 @@
     "scrub-range",
     "sheet-close",
     "vice-attach",
+    "vice-evm-connect",
+    "vice-evm-send",
     "vice-voice"
   ],
-  "inventory_note": "Tracked source inventory excludes this documentation suite to avoid recursive/self-changing hashes. Listed code paths are dependencies, not proof of complete functional acceptance."
+  "inventory_note": "Tracked source inventory excludes this documentation suite to avoid recursive/self-changing hashes. .from dependencies include storage buckets. Actions may use delegated listeners rather than switch cases. Inventory is not proof of functional acceptance."
 }

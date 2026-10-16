@@ -1,6 +1,6 @@
 # VICE OS / Administrator Guide
 
-Internal engineering • 2026-10-15 UTC • 1.3.8.0-IRU-CERTIFICATES
+Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 
 Administrative controls are visible by role, but database permissions remain authoritative. Use the role-management RPC; the client must never promote users by editing profile labels. No SUPER_ADMIN promotion is provided in the role tool.
 

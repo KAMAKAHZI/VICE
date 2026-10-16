@@ -1,6 +1,6 @@
 # VICE OS / Document and Signature Guide
 
-Internal engineering • 2026-10-15 UTC • 1.3.8.0-IRU-CERTIFICATES
+Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 
 Upload allowed files to Documents; metadata references a private Storage object and SHA-256 digest. Download uses authorized storage access. Preserve the original document and audit records.
 

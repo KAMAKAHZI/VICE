@@ -43,6 +43,20 @@ jobs:
           psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015140648_vice_audited_strategic_issuance_reversal.sql
           psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015140648_vice_audited_strategic_issuance_reversal.sql
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-iru-assertions.sql
+      - name: Validate public certificate privacy in disposable PostgreSQL
+        env:
+          PGPASSWORD: isolated-test-only
+        run: |
+          psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-certificate-privacy-staging.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015190802_vice_private_certificate_verification.sql
+          psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-certificate-privacy-assertions.sql
+      - name: Validate Academy progress and award gates in disposable PostgreSQL
+        env:
+          PGPASSWORD: isolated-test-only
+        run: |
+          psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-staging.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015193846_vice_academy_progress_receipts.sql
+          psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-assertions.sql
       - run: npm install --no-save --package-lock=false playwright@1.64.1 pdf-lib@1.17.1
       - run: |
           bash scripts/vice-publish-netlify.sh
