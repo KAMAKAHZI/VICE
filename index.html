@@ -1051,6 +1051,10 @@ body.chart-view #oi-orb,body.chart-view #support-orb{display:none}
 .portfolio-hero-actions{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
   font:500 .64rem var(--mn);letter-spacing:.04em;color:var(--tx2)}
 .portfolio-hero-note{color:var(--tx3);font-size:.68rem;line-height:1.55;margin-top:14px;max-width:900px}
+.portfolio-valuation-terms{color:var(--tx2);font-size:.68rem;line-height:1.6;margin-top:10px;max-width:900px}
+.portfolio-valuation-terms summary{color:var(--gd);cursor:pointer;padding:6px 0;width:fit-content}
+.portfolio-valuation-terms summary:focus-visible{outline:2px solid var(--gd);outline-offset:4px}
+.portfolio-valuation-terms p{margin:8px 0 0}
 .treasury-toggle{cursor:pointer;color:var(--gdl);font-size:.78rem;font-weight:600;padding:5px 0}
 .treasury-admin:not([open]){padding:12px 16px}
 /* Dock presence next to, never over, the account name. */
@@ -2895,7 +2899,12 @@ function accountIruReferenceUsd(){
   return iruUsd()+(isOwner()?managedReserveUsd():0);
 }
 function portfolioReliabilityNote(){
-  return 'Founder-attributed IRU management reference plus eligible verified real LIVE broker equity. DEMO balances and saved broker metadata are excluded; IRU reference is not FMV, cash, custody, or accepted collateral.';
+  return APP_MODE==='SIM'
+    ? 'Demonstration figures for exploring the platform. Switch to LIVE for your recorded holdings and eligible linked account equity.'
+    : 'IRUs are displayed at VICE management reference values, alongside eligible verified linked account equity. Intended collateral use is subject to lender approval, independent valuation and executed agreements.';
+}
+function portfolioValuationTerms(){
+  return 'IRU values reflect recorded units multiplied by the applicable VICE management reference rate. Any proposed pledge of IRUs as digital property collateral is subject to the holder\'s documented rights, transfer restrictions, applicable law, lender underwriting, valuation acceptable to the lender and definitive agreements. Realizable value, available cash and any credit limit are determined separately. This display does not determine an IRU\'s legal or regulatory classification. DEMO balances and unverified saved account data are excluded from LIVE totals. Estate Reserve and Administrative Reserve amounts shown in an administrator\'s view remain separately designated institutional records.';
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -7776,7 +7785,7 @@ const KB = [
   ['documents-esign','Sign a document','In Documents select Sign, review the identified file, type your profile name and confirm consent. VICE OS records a server-side typed-name attestation bound to the file SHA-256 digest.',['sign','document','esign','signature','contract']],
   ['documents-download','Download or save a document','Open Documents and use Download. Supabase Storage issues a short-lived, access-controlled URL for each available file; the files are not publicly readable.',['download','save','document','file','export']],
   ['holders-tokens','Can holders see their tokens?','Yes. Appointed holders authenticate with their invited email or username and can see their scoped VICE/V4X IRU balances, tier and legacy records. Client ID is an identifier, not a password.',['holder','tokens','v4x','vice','balance','portal']],
-  ['iru-value','What the IRU value and Locked mean','IRU values are set by VICE Capital. IRUs are Locked: they are internal accounting units, not shares or ownership.',['iru','value','token','locked','vice','v4x']],
+  ['iru-value','What the IRU value and Locked mean','IRU values use VICE management reference rates. Locked status reflects transfer restrictions under the governing documents. Recorded unit rights and any proposed collateral use are subject to those documents, applicable law and lender approval.',['iru','value','token','locked','vice','v4x']],
   ['demo-mode','Demo mode','Admin → Demo mode seeds up to 250 clients on a separate simulated ledger.',['demo','seed','simulated']],
   ['comms-telegram','Comms','The Comms section uses a Telegram-style interface: chats, calls, contacts and settings tabs.',['comms','telegram','chat','dm','bottom','tabs']],
   ['support-open','Talk to support','Tap the purple support button (bottom-right, above the gold O.I. button) or open Support from the sidebar. Ask O.I. in support mode, or open a ticket.',['support','help','ticket','oi']],
@@ -9075,9 +9084,10 @@ function viewCommand(el){
     <section class="portfolio-hero" aria-label="Total portfolio management reference">
       <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
-      <div class="portfolio-hero-actions"><span>Combined portfolio · ${APP_MODE==='SIM'?'Demonstration data':isOwner()?'Founder-attributed IRUs + linked balances':'Personal IRUs + linked balances'}</span>
+      <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':isOwner()?'Management reference basis · Estate/Admin Reserve + personal IRUs + linked equity':'Management reference basis · Personal IRUs + linked equity'}</span>
         <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
       <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
+      <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
     </section>
     <div class="stats">
       <div class="st"><span class="l">VICE · IRU Portfolio</span><div class="v">${fmtNum(accountIruUnits('VICE'))}</div><div class="n">Management reference $${S.iruClasses[0].ouv} / unit</div></div>
@@ -9323,9 +9333,10 @@ function viewPortfolio(el){
     <section class="portfolio-hero" aria-label="Total portfolio reference value">
       <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
-      <div class="portfolio-hero-actions"><span>VICE OS · All portfolio components</span>
+      <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':'Management reference basis · IRUs + eligible linked equity'}</span>
         <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
       <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
+      <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
     </section>
     <div class="stats">
       <div class="st"><span class="l">VICE + V4X IRUs</span><div class="v gd">${fmtK(accountIruReferenceUsd())}</div></div>
