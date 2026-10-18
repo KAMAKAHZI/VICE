@@ -210,7 +210,8 @@
     "vice_academy_progress_receipts",
     "vice_registry_access_and_cfo_controls",
     "vice4x_member_operations",
-    "vice4x_comms_profiles"
+    "vice4x_comms_profiles",
+    "vice4x_institutional_governance"
   ],
   "migration_sync": {
     "live_applied_migration_versions": 44,
@@ -255,7 +256,7 @@
     "solace_v106_tests": 12,
     "operations_tests": 8
   },
-  "registry_controls_revision": "20261018-VICE4X-COMMS-HD",
+  "registry_controls_revision": "20261018-VICE4X-INSTITUTIONAL",
   "solace_system": {
     "version": "10.6",
     "closed_bar_snapshots": true,
@@ -281,5 +282,27 @@
     ],
     "requested_resolution_is_not_guaranteed": true,
     "real_device_nat_acceptance": false
+  },
+  "institutional_core": {
+    "modules": [
+      "OMEGA Engine",
+      "Sovereign Governance",
+      "Self Diagnosis"
+    ],
+    "live_structural_execution": false,
+    "live_trading": false,
+    "onchain_quorum_verified": false,
+    "reference_vice": 2,
+    "reference_v4x": 320,
+    "proposal": "PROP-2026-10-ELITE-SCALE-003",
+    "proposal_status": "BASELINE_MISMATCH",
+    "edge_function": "vice-institutional",
+    "database_tests_passed": 15,
+    "model_crypto_tests_passed": 8,
+    "edge_tests_passed": 6,
+    "browser_viewports": [
+      1440,
+      390
+    ]
   }
 }

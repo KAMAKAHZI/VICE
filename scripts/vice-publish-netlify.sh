@@ -8,8 +8,8 @@ target="dist/site"
 rm -rf "$target"
 mkdir -p "$target"
 assets=(
-  index.html guide.html verify.html version.json
-  manifest.json manifest.webmanifest sw.js vice-mega.js vice-mega.css vice4x-operations.js vice4x-operations.css vice-solace-system.js vice4x-comms.js vice4x-comms.css
+  index.html guide.html verify.html governance.html version.json
+  manifest.json manifest.webmanifest sw.js vice-mega.js vice-mega.css vice4x-operations.js vice4x-operations.css vice-solace-system.js vice4x-comms.js vice4x-comms.css vice4x-institutional-core.js vice4x-institutional.js vice4x-institutional.css
   _headers _redirects
 )
 for f in "${assets[@]}"; do

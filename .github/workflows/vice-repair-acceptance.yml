@@ -62,6 +62,7 @@ jobs:
         run: |
           node tests/vice-registry-controls.mjs
           node tests/vice-comms-db.mjs
+          node tests/vice-institutional-db.mjs
       - run: |
           bash scripts/vice-publish-netlify.sh
           for f in tests/*.cjs; do
@@ -70,6 +71,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: node tests/vice-browser-smoke.cjs
       - run: node tests/vice-comms-browser.mjs
+      - run: node tests/vice-institutional-browser.mjs
       - run: node tests/vice-backend-acceptance.mjs
       - if: always()
         uses: actions/upload-artifact@v4
