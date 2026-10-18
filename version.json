@@ -238,8 +238,8 @@
       "Public certificate verification allowlist, revoked/missing/tampered denial",
       "Academy owner isolation, direct-write denial, valid chapter mapping, backend award gates and idempotency"
     ],
-    "verified_source_checkpoint": "d3db4fa76e4a2418cc8530b37742f654effed47f",
-    "verification_run": 38979407975,
+    "verified_source_checkpoint": "32a50b3c2b1d1717b727e938089b196207aa9121",
+    "verification_run": 39099936213,
     "full_release_accepted": false,
     "notes": "Current revision tests and deployment evidence are recorded in docs/production-repair/2026-10-18-release.md. Earlier checkpoint fields refer to prior acceptance runs.",
     "academy_progress_tests": 4,

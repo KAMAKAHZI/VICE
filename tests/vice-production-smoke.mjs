@@ -47,7 +47,7 @@ async function route(path,label,check){
 let assetsMatch=false;
 for(let attempt=1;attempt<=attempts;attempt++){
  const mismatches=[];
- for(const file of ['index.html','guide.html','verify.html','vice-mega.js','vice-mega.css','sw.js','manifest.json','manifest.webmanifest','version.json']){
+ for(const file of ['index.html','guide.html','verify.html','vice-mega.js','vice-mega.css','sw.js','manifest.json','manifest.webmanifest','version.json','vice4x-operations.js','vice4x-operations.css','vice-solace-system.js']){
   try{
    const response=await request('/'+file+'?release='+Date.now());
    const bytes=Buffer.from(await response.arrayBuffer());
@@ -55,12 +55,12 @@ for(let attempt=1;attempt<=attempts;attempt++){
    if(!response.ok||!matchesPublishedAsset(file,bytes,expectedBytes))mismatches.push(file);
   }catch(e){mismatches.push(file+': '+e.message)}
  }
- if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Nine public assets match source; only the verified Netlify guide-link rewrite is permitted');break;}
+ if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Twelve public assets match source; only the verified Netlify guide-link rewrite is permitted');break;}
  if(attempt===attempts)record('exact_public_assets','FAIL','Mismatched or unavailable: '+mismatches.join(', '));
  else await pause(delayMs);
 }
-await route('/?smoke='+Date.now(),'application',s=>s.includes('VICE OS')&&s.includes('safeResetCloudMt5Session')&&s.includes('viceServiceDiagnostics'));
-await route('/guide.html?smoke='+Date.now(),'member_guide',s=>s.includes('APPLICATION MANUAL')&&s.includes('VICE OS'));
+await route('/?smoke='+Date.now(),'application',s=>s.includes('VICE4X')&&s.includes('safeResetCloudMt5Session')&&s.includes('viceServiceDiagnostics'));
+await route('/guide.html?smoke='+Date.now(),'member_guide',s=>s.includes('APPLICATION MANUAL')&&s.includes('VICE4X'));
 await route('/verify.html?smoke='+Date.now(),'certificate_verify',s=>s.includes('VICE')&&s.includes('verify'));
 await route('/vice-mega.js?smoke='+Date.now(),'javascript_asset',s=>s.length>1000);
 await route('/manifest.webmanifest?smoke='+Date.now(),'webmanifest',s=>{try{return JSON.parse(s).name.includes('VICE')}catch{return false}});

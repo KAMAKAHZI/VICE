@@ -43,7 +43,7 @@ const Vice4xOperations=(()=>{
   if(owner!==S.user?.id)return;
   if(r?.allowed!==true||r.mode!=='PERSONAL_ANALYSIS')throw Error('VICEBOT authorization not confirmed');
   S.engine2.running=r.enabled===true;state.bot=r;state.loaded.bot=true;
-  S.engine2.events.push({t:Date.now(),kind:'ok',msg:'Personal analysis '+(r.enabled?'enabled':'disabled')+'; native MT5 order execution is separate.'});renderMain();
+  S.engine2.events.push({t:Date.now(),kind:'ok',msg:'Personal analysis '+(r.enabled?'enabled':'disabled')+'; native MT5 order execution is separate.'});if(r.enabled)await loadCandles();renderMain();
  }
  const systemFields=[
   ['mode','Trading mode',['Auto','Scalp','Intraday','Swing']],['modeLookback','Mode sets lookback','bool'],
@@ -151,7 +151,13 @@ const Vice4xOperations=(()=>{
   const response=await fetch(SUPABASE_URL+'/functions/v1/vice-trading-source',{method:'POST',headers:{Authorization:'Bearer '+token,apikey:SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!response.ok){let msg='Private source request failed';try{msg=(await response.json()).error||msg;}catch{}throw Error(msg);}return response;
  }
- wrapView('vicebot',el=>{if(canExecuteBot())load('bot');el.querySelector('.ph')?.insertAdjacentHTML('afterend',`<section class="band"><div class="band-head"><h2>VICEBOT / VICESYSTEM · Source release</h2><span class="bdg gd">27.60 / 10.6</span></div><p class="meta">Full MT5 Expert Advisor, nine-leg basket engine, basket include and TradingView Pine v6 indicator. Native platform installation and testing are separate from the browser chart engine.</p>${canExecuteBot()?'<button class="btn btn-gd" data-act="v4x-source-list">Open private source vault</button>':'<p class="meta">Proprietary source distribution is controlled by the founder.</p>'}</section>`);});
+ function botAnalysis(){
+  if(!canExecuteBot())return '<p class="note">VICEBOT personal enablement is currently exclusive to KAHZI.</p>';
+  if(!S.engine2.running)return '<p class="note">Enable personal analysis to inspect closed-bar macro and internal plans. This does not enable broker order execution.</p>';
+  const r=S.res,l=r?.last;
+  return `<section class="band"><div class="band-head"><h2>Personal System analysis</h2><button class="btn btn-g" data-act="v4x-bot-refresh">Refresh analysis</button></div>${l?`<p class="meta">${esc(S.ch.pair)} · ${esc(S.ch.tf)} · ${esc(S.ch.source)} · last completed candle ${esc(new Date(r.time).toISOString())}</p><div class="rw"><span>Macro side</span><b>${r.sellArmed?'SELL at F100':'BUY at F0'}</b></div><div class="rw"><span>F0 / F100</span><span class="mn">${fmtP(l.F0)} / ${fmtP(l.F100)}</span></div><div class="rw"><span>Internal pivot</span><span>${r.pivot?.type===1?'HIGH':'LOW'} · ${r.pivot?.armed?'ARMED':'WATCHING'}</span></div>${['macro','internal'].map(k=>{const t=r.trade?.[k];return t?`<div class="rw"><span>${esc(label(k))} ${t.side}</span><span>Entry ${fmtP(t.entry)} · Stop ${fmtP(t.stop)} · Target ${fmtP(t.target)} · 1:${t.rr.toFixed(2)}</span></div>`:`<p class="meta">No ${k} plan meets the current configured entry and reward/risk conditions.</p>`;}).join('')}`:'<p class="note">Refresh analysis or load an instrument in Markets. Provider failures leave data unavailable.</p>'}<p class="meta">Analysis only. Native MT5 execution remains under your broker and EA controls.</p></section>`;
+ }
+ wrapView('vicebot',el=>{if(canExecuteBot())load('bot');el.insertAdjacentHTML('beforeend',botAnalysis());el.querySelector('.ph')?.insertAdjacentHTML('afterend',`<section class="band"><div class="band-head"><h2>VICEBOT / VICESYSTEM · Source release</h2><span class="bdg gd">27.60 / 10.6</span></div><p class="meta">Full MT5 Expert Advisor, nine-leg basket engine, basket include and TradingView Pine v6 indicator. Native platform installation and testing are separate from the browser chart engine.</p>${canExecuteBot()?'<button class="btn btn-gd" data-act="v4x-source-list">Open private source vault</button>':'<p class="meta">Proprietary source distribution is controlled by the founder.</p>'}</section>`);});
  const previous=window.__viceAct;
  window.__viceAct=function(t,e){
   const act=t.dataset.act;if(!act?.startsWith('v4x-'))return previous?.(t,e);
@@ -171,6 +177,7 @@ const Vice4xOperations=(()=>{
     if(digest!==expected)throw Error('Source integrity check failed');if(owner!==S.user?.id)return;
     const url=URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),a=document.createElement('a');a.href=url;a.download=t.dataset.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Source SHA-256 verified and downloaded','success');return;
    }
+   if(act==='v4x-bot-refresh'){if(!canExecuteBot()||!S.engine2.running)throw Error('KAHZI personal analysis must be enabled');await loadCandles();renderMain();return;}
    if(act==='v4x-system-settings'){systemSettings();return;}
    if(act==='v4x-system-defaults'){S.engine={...ViceSolaceSystem.defaults};systemSettings();return;}
    if(act==='v4x-system-save'){
