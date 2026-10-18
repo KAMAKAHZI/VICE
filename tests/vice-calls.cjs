@@ -21,7 +21,7 @@ function videoContext(acquire){
  const sender={last:null,async replaceTrack(t){this.last=t}};
  const pc={connectionState:'connected',getTransceivers:()=>[{receiver:{track:{kind:'video'}},sender}]};
  const call={id:'call'};
- const c=run(slice('  let mediaBusy=false;', '  function signal('),{pc,currentCall:call,navigator:{mediaDevices:{getUserMedia:acquire||(async()=>stream),getDisplayMedia:async()=>stream}},paintCallOverlay(){}});
+ const c=run(slice('  async function captureScreen()', '  function signal('),{window:{},signal:async()=>true,pc,currentCall:call,navigator:{mediaDevices:{getUserMedia:acquire||(async()=>stream),getDisplayMedia:async()=>stream}},paintCallOverlay(){}});
  return {c,track,stream,sender,call};
 }
 test('Camera starts, then stops tracks and clears sender',async()=>{

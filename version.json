@@ -2,7 +2,7 @@
   "version": "1.3.8.0-IRU-CERTIFICATES",
   "date": "2026-10-18",
   "status": "PRODUCTION_REPAIR_PARTIAL_ACCEPTANCE",
-  "release_summary": "VICE4X branding and official certificate logo; protected CFO/reserve administration, auditable duplicate closure, single-entity reserve certificates, lending/collateral lifecycle, member learning tracker, reported external balances, notification/call interface, SOLACE System v10.6 browser adaptation, right-only levels and KAHZI-only personal VICEBOT access. Remaining external integrations and native platform parity are explicitly unverified.",
+  "release_summary": "VICE4X branding and official certificate logo; protected CFO/reserve administration, auditable duplicate closure, single-entity reserve certificates, lending/collateral lifecycle, member learning tracker, reported external balances, notification/call interface, SOLACE System v10.6 browser adaptation, right-only levels and KAHZI-only personal VICEBOT access. Remaining external integrations and native platform parity are explicitly unverified. Communication update: member GIF/HD avatars, private ticker inbox, click/slide answering, bidirectional video, mute indicators, 1080p/4K capture preferences, individual reference cards and polished vector gold.",
   "backend": {
     "supabase_project": "sdsaewumabzjjvsmqqsl",
     "edge_function": "vice-mt5-cloud",
@@ -209,7 +209,8 @@
     "vice_private_certificate_verification",
     "vice_academy_progress_receipts",
     "vice_registry_access_and_cfo_controls",
-    "vice4x_member_operations"
+    "vice4x_member_operations",
+    "vice4x_comms_profiles"
   ],
   "migration_sync": {
     "live_applied_migration_versions": 44,
@@ -254,7 +255,7 @@
     "solace_v106_tests": 12,
     "operations_tests": 8
   },
-  "registry_controls_revision": "20261018-VICE4X-SYSTEM-106",
+  "registry_controls_revision": "20261018-VICE4X-COMMS-HD",
   "solace_system": {
     "version": "10.6",
     "closed_bar_snapshots": true,
@@ -266,5 +267,19 @@
     "default_enabled": false,
     "mode": "PERSONAL_ANALYSIS",
     "browser_broker_execution": false
+  },
+  "communications_revision": {
+    "profile_media": "Private 8 MiB GIF/JPEG/PNG/WebP bucket, member-only directory and signed URLs",
+    "inbox": "Recipient/channel RLS with missed-call reconstruction; local read preferences",
+    "answer_modes": [
+      "click",
+      "slide"
+    ],
+    "screen_targets": [
+      1080,
+      2160
+    ],
+    "requested_resolution_is_not_guaranteed": true,
+    "real_device_nat_acceptance": false
   }
 }

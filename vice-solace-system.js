@@ -77,7 +77,8 @@
  }
  function run(input,config={},ltf=[]){
   const o=options(config),now=config.now??Date.now(),duration=o.tfSeconds*1000;
-  const bars=input.filter(b=>b.closed!==false&&(b.closed===true||!Number.isFinite(b.t)||b.t+duration<=now));
+  const closes=b=>config.timeframe==='1mo'?Date.UTC(new Date(b.t).getUTCFullYear(),new Date(b.t).getUTCMonth()+1,1):b.t+duration;
+  const bars=input.filter(b=>b.closed!==false&&(b.closed===true||!Number.isFinite(b.t)||closes(b)<=now));
   if(bars.some((b,i)=>![b.o,b.h,b.l,b.c].every(Number.isFinite)||b.h<Math.max(b.o,b.c,b.l)||b.l>Math.min(b.o,b.c)||i&&b.t<=bars[i-1].t))throw Error('SOLACE requires ordered valid standard OHLC candles');
   const A=[],vol=[],trs=[],hiSide=new Accepted(true),loSide=new Accepted(false),rHi=new Extreme(true),rLo=new Extreme(false),snapshots=[],events=[],fractals=[],f0=[],f100=[],f0History=[],f100History=[],fractalKeys=new Set();
   let hi=null,lo=null,hOrigin=0,lOrigin=0,hiBrk=0,loBrk=0,hFrom=0,lFrom=0,prevOsc=null,prevInt=null,zTop=null,zBot=null,hTouch=-Infinity,lTouch=-Infinity,hExh=-Infinity,lExh=-Infinity,zoneArm=0,hiSweep=-Infinity,loSweep=-Infinity;
@@ -138,7 +139,7 @@
     armedNow=p.armed;if(armedNow){armSeq++;p.armedAt=i;}
    }
    if(it.level!==p.level){it.level=p.level;it.count=1;it.at=p.origin;it.away=false;}if(a>0&&(high?b.l<=p.level-o.dtPullATR*a:b.h>=p.level+o.dtPullATR*a))it.away=true;
-   const cutoff=b.t+duration;while(ltfIndex<ltf.length&&ltf[ltfIndex].t+(config.ltfSeconds||60)*1000<=cutoff){const l=ltf[ltfIndex];if(l.closed!==false){lh=ltfHi.add(ltfIndex,l.h,ltfIndex,o.lookback);ll=ltfLo.add(ltfIndex,l.l,ltfIndex,o.lookback);}ltfIndex++;}
+   const cutoff=closes(b);while(ltfIndex<ltf.length&&ltf[ltfIndex].t+(config.ltfSeconds||60)*1000<=cutoff){const l=ltf[ltfIndex];if(l.closed!==false){lh=ltfHi.add(ltfIndex,l.h,ltfIndex,o.lookback);ll=ltfLo.add(ltfIndex,l.l,ltfIndex,o.lookback);}ltfIndex++;}
    p.confluence=!!(o.mtfEnabled&&a>0&&lh&&ll&&Math.abs(p.level-(high?lh.v:ll.v))<=.25*a);p.tests=it.count;
    const sweepLow=a>0&&oldPivot?.type===1&&i-oldPivot.origin<=500&&oldPivot.level>loPrev&&b.l<loPrev-tol*.05&&(!o.sweepRequireClose||b.c>loPrev)&&b.c>=loPrev-tol;
    const sweepHigh=a>0&&oldPivot?.type===-1&&i-oldPivot.origin<=500&&oldPivot.level<hiPrev&&b.h>hiPrev+tol*.05&&(!o.sweepRequireClose||b.c<hiPrev)&&b.c<=hiPrev+tol;

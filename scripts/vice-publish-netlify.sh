@@ -9,7 +9,7 @@ rm -rf "$target"
 mkdir -p "$target"
 assets=(
   index.html guide.html verify.html version.json
-  manifest.json manifest.webmanifest sw.js vice-mega.js vice-mega.css vice4x-operations.js vice4x-operations.css vice-solace-system.js
+  manifest.json manifest.webmanifest sw.js vice-mega.js vice-mega.css vice4x-operations.js vice4x-operations.css vice-solace-system.js vice4x-comms.js vice4x-comms.css
   _headers _redirects
 )
 for f in "${assets[@]}"; do

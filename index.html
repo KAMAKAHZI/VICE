@@ -1095,10 +1095,10 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 <body>
 <svg class="svg-defs" aria-hidden="true" focusable="false"><defs>
   <linearGradient id="vice-gold" x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0" stop-color="#ecd28a"/><stop offset=".45" stop-color="#c9a84c"/><stop offset="1" stop-color="#9c7c33"/>
+    <stop offset="0" stop-color="#6d4e1b"/><stop offset=".14" stop-color="#e9c979"/><stop offset=".29" stop-color="#fff2bd"/><stop offset=".36" stop-color="#ba8b31"/><stop offset=".49" stop-color="#f5db91"/><stop offset=".53" stop-color="#836020"/><stop offset=".68" stop-color="#d4ab4f"/><stop offset=".82" stop-color="#fff0b1"/><stop offset="1" stop-color="#a57c2b"/>
   </linearGradient>
   <linearGradient id="vice-gold-u" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="866">
-    <stop offset="0" stop-color="#ecd28a"/><stop offset=".45" stop-color="#c9a84c"/><stop offset="1" stop-color="#9c7c33"/>
+    <stop offset="0" stop-color="#6d4e1b"/><stop offset=".14" stop-color="#e9c979"/><stop offset=".29" stop-color="#fff2bd"/><stop offset=".36" stop-color="#ba8b31"/><stop offset=".49" stop-color="#f5db91"/><stop offset=".53" stop-color="#836020"/><stop offset=".68" stop-color="#d4ab4f"/><stop offset=".82" stop-color="#fff0b1"/><stop offset="1" stop-color="#a57c2b"/>
   </linearGradient>
 </defs></svg>
 
@@ -1190,19 +1190,19 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 
 <div class="cm-tabs" id="cmTabs">
   <span class="nav-ind" id="cmInd"></span>
-  <button data-cm-tab="chats" aria-current="page">
+  <button data-act="comms-tab" data-tab="chats" data-cm-tab="chats" aria-current="page">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     <span>Chats</span><span class="tab-badge" id="cmBadgeChats">0</span>
   </button>
-  <button data-cm-tab="calls">
+  <button data-act="comms-tab" data-tab="calls" data-cm-tab="calls">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.09 4.18 2 2 0 015.11 2h3a2 2 0 012 1.72c.13 1 .37 1.94.72 2.81a2 2 0 01-.45 2.11L8.09 10a16 16 0 006 6l1.36-1.27a2 2 0 012.11-.45c.87.35 1.81.59 2.81.72A2 2 0 0122 16.92z"/></svg>
     <span>Calls</span>
   </button>
-  <button data-cm-tab="contacts">
+  <button data-act="comms-tab" data-tab="contacts" data-cm-tab="contacts">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
     <span>Contacts</span>
   </button>
-  <button data-cm-tab="settings">
+  <button data-act="comms-tab" data-tab="settings" data-cm-tab="settings">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     <span>Settings</span>
   </button>
@@ -1239,7 +1239,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 <input type="file" id="csv" accept=".csv,.txt,text/csv,text/plain" hidden>
 <input type="file" id="eaLog" accept=".csv,.txt,text/csv,text/plain" hidden>
 <input type="file" id="docUpload" accept=".pdf,.doc,.docx,.txt,.md,image/*" hidden multiple>
-<input type="file" id="avatarUpload" accept="image/*" hidden>
+<input type="file" id="avatarUpload" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script type="module">
@@ -1429,7 +1429,14 @@ const fmtK = n => {
 };
 let viceShowExactMoney = (()=>{try{return localStorage.getItem('vice-exact-money')==='1';}catch(_){return false;}})();
 function viceMoneyView(n){return viceShowExactMoney?fmtUsd(n):fmtK(n);}
-function togglePortfolioAmountPrecision(){
+function togglePortfolioAmountPrecision(target){
+  const card=target?.closest('.st,.portfolio-hero,.v4x-number-card');
+  if(card){
+    const exact=card.dataset.exact!=='true';card.dataset.exact=String(exact);
+    card.querySelectorAll('[data-money-value]').forEach(n=>{n.textContent=exact?fmtUsd(Number(n.dataset.moneyValue)):fmtK(Number(n.dataset.moneyValue));n.setAttribute('aria-label',fmtUsd(Number(n.dataset.moneyValue)));});
+    card.querySelectorAll('[data-money-precision-toggle]').forEach(b=>{b.textContent=exact?'Show compact':'Show full amount';b.setAttribute('aria-pressed',String(exact));});
+    window.ViceComms?.fitAmounts();return;
+  }
   viceShowExactMoney=!viceShowExactMoney;
   try{localStorage.setItem('vice-exact-money',viceShowExactMoney?'1':'0');}catch(_){}
   document.querySelectorAll('[data-money-value]').forEach(el=>{
@@ -1446,12 +1453,12 @@ function togglePortfolioAmountPrecision(){
 document.addEventListener('dblclick',e=>{
   if(e.target.closest('[data-money-value]')){
     e.preventDefault();
-    togglePortfolioAmountPrecision();
+    togglePortfolioAmountPrecision(e.target);
   }
 });
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-money-precision-toggle]')){
-    e.preventDefault();togglePortfolioAmountPrecision();
+    e.preventDefault();togglePortfolioAmountPrecision(e.target);
   }
 });
 const fmtMoney = (v, cur) => {
@@ -1921,7 +1928,9 @@ function showApp(){
   if (av) {
     if (S.profile.avatarUrl) {
       av.textContent = '';
-      av.style.backgroundImage = `url('${S.profile.avatarUrl}')`;
+      const src=window.ViceComms?.imageUrl(S.profile.avatarUrl)||'';
+      av.style.backgroundImage = src ? `url("${src}")` : '';
+      if(!src)av.textContent=S.profile.avatarInitials||'NA';
       av.style.backgroundSize = 'cover';
       av.style.backgroundPosition = 'center';
     } else {
@@ -2326,7 +2335,7 @@ let authSetupOwner = null;
 let authSetupEpoch = -1;
 let authEpoch = 0;
 function clearMemberSession(){
-  try{Notify.clear();window.Vice4xOperations?.clear();}catch{}
+  try{Notify.clear();window.ViceComms?.clear();window.Vice4xOperations?.clear();}catch{}
   authEpoch++;
   if(typeof holderOperation!=='undefined')holderOperation=null;
   if(viceSyncTimer){clearInterval(viceSyncTimer);viceSyncTimer=null;}
@@ -2413,6 +2422,8 @@ async function completeAuthenticatedSetup(user,epoch=authEpoch){
     safeResetCloudMt5Session();
     try{Link.stop()}catch(_){} // prevent bridge portfolio from prior user
     S.user={id:user.id,email:user.email,name:S.profile.name,role:S.profile.role};
+    try{await window.ViceComms?.resolveAvatars([S.profile]);}catch(e){console.warn('Profile image:',e.message);}
+    if(!current())return;
     Academy.restore();
     S.tokenCerts={list:[],loaded:false,loading:false,error:null,kind:'ALL',program:'ALL'};
     try{Link.start()}catch(e){console.warn('Optional VICE Link:',e)}
@@ -2937,6 +2948,10 @@ function accountIruUnits(program){
 function accountIruReferenceUsd(){
   return iruUsd()+(isOwner()?managedReserveUsd():0);
 }
+function viceReferenceCards(){
+  const vice=accountIruUnits('VICE')*Number(S.iruClasses[0].ouv),v4x=accountIruUnits('V4X')*Number(S.iruClasses[1].ouv);
+  return '<div class="v4x-reference-cards">'+[['VICE reference value',vice,fmtNum(accountIruUnits('VICE'))+' units · '+fmtUsd(S.iruClasses[0].ouv)+' / unit'],['V4X reference value',v4x,fmtNum(accountIruUnits('V4X'))+' units · '+fmtUsd(S.iruClasses[1].ouv)+' / unit'],['Total IRU reference value',vice+v4x,'Combined VICE + V4X management reference']].map(([label,n,note])=>`<div class="st" data-exact="false"><span class="l">${esc(label)}</span><div class="v vc-metal-number" data-money-value="${n}" tabindex="0" aria-label="${fmtUsd(n)}">${fmtK(n)}</div><div class="n">${esc(note)}</div><button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="false">Show full amount</button></div>`).join('')+'</div>';
+}
 function portfolioReliabilityNote(){
   return APP_MODE==='SIM'
     ? 'Demonstration figures for exploring the platform. Switch to LIVE for your recorded holdings and eligible linked account equity.'
@@ -2966,7 +2981,8 @@ function paintCmTabs(){
   const ind = $('cmInd');
   if (ind && active) {
     ind.style.width = active.offsetWidth + 'px';
-    ind.style.height = active.offsetHeight + 'px';
+    ind.style.height = '2px';
+    ind.style.pointerEvents = 'none';
     ind.style.left = active.offsetLeft + 'px';
     ind.style.top = active.offsetTop + 'px';
   }
@@ -3867,14 +3883,15 @@ const Store = (() => {
 })();
 
 /* ─── Live feeds ─── */
-const BINANCE_TF = { '1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'4h','1d':'1d' };
-const YAHOO_TF = { '1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'1h','1d':'1d','1wk':'1wk' };
-const YAHOO_RANGE = { '1m':'5d','5m':'1mo','15m':'1mo','1h':'3mo','4h':'1y','1d':'2y','1wk':'5y' };
+const BINANCE_TF = {'1m':'1m','5m':'5m','15m':'15m','30m':'30m','1h':'1h','2h':'2h','4h':'4h','1d':'1d','1wk':'1w','1mo':'1M'};
+const YAHOO_TF = {'1m':'1m','5m':'5m','15m':'15m','30m':'30m','1h':'1h','2h':'1h','4h':'1h','1d':'1d','1wk':'1wk','1mo':'1mo'};
+const YAHOO_RANGE = {'1m':'5d','5m':'1mo','15m':'1mo','30m':'1mo','1h':'3mo','2h':'1y','4h':'1y','1d':'2y','1wk':'5y','1mo':'10y'};
 
 async function fetchCandlesBinance(ticker, tf, limit) {
+  if(!BINANCE_TF[tf])throw Error('Unsupported Binance timeframe: '+tf);
   const wanted=Math.min(5000,Math.max(1,Number(limit)||500));let rows=[],endTime;
   while(rows.length<wanted){
-    const params=new URLSearchParams({symbol:ticker,interval:BINANCE_TF[tf]||'1h',limit:String(Math.min(1000,wanted-rows.length))});if(endTime!=null)params.set('endTime',String(endTime));
+    const params=new URLSearchParams({symbol:ticker,interval:BINANCE_TF[tf],limit:String(Math.min(1000,wanted-rows.length))});if(endTime!=null)params.set('endTime',String(endTime));
     const r=await fetch('https://api.binance.com/api/v3/klines?'+params);if(!r.ok)throw Error('Binance HTTP '+r.status);
     const page=await r.json();if(!Array.isArray(page)||page.some(k=>!Array.isArray(k)||![+k[0],+k[1],+k[2],+k[3],+k[4]].every(Number.isFinite)))throw Error('Binance returned invalid candles');
     if(!page.length)break;const first=Number(page[0][0]);if(endTime!=null&&first>endTime)throw Error('Binance history did not advance');rows=page.concat(rows);endTime=first-1;if(page.length<Number(params.get('limit')))break;
@@ -3883,7 +3900,8 @@ async function fetchCandlesBinance(ticker, tf, limit) {
 }
 
 async function fetchCandlesYahoo(ticker, tf) {
-  const interval = YAHOO_TF[tf] || '1h';
+  if(!YAHOO_TF[tf])throw Error('Unsupported Yahoo timeframe: '+tf);
+  const interval = YAHOO_TF[tf];
   const range = YAHOO_RANGE[tf] || '3mo';
   const url = `/.netlify/functions/yahoo?symbol=${encodeURIComponent(ticker)}&interval=${interval}&range=${range}`;
   const r = await fetch(url);
@@ -3944,7 +3962,7 @@ async function loadCandles() {
     S.ch.candles=cs;S.ch.error=null;
     S.ch.source=APP_MODE==='SIM'||pair===PRACTICE?'SIM':parseSymbol(pair).source;
     computeATR();await loadLtfCandles(current);if(!current())return;
-    S.res=ViceSolaceSystem.run(cs,{...S.engine,tfSeconds:TF_SEC[tf]||3600,ltfSeconds:TF_SEC[S.ch.ltfTf]||60},S.ch.ltfCandles);drawAll();
+    S.res=ViceSolaceSystem.run(cs,{...S.engine,timeframe:tf,tfSeconds:TF_SEC[tf]||3600,ltfSeconds:TF_SEC[S.ch.ltfTf]||60},S.ch.ltfCandles);drawAll();
   }catch(e){
     if(!current())return;
     S.ch.candles=[];S.ch.ltfCandles=[];S.ch.source='UNAVAILABLE';S.ch.error=e.message||'Provider unavailable';S.res=null;
@@ -5371,7 +5389,7 @@ const Realtime = (() => {
               profiles[p.user_id] = {
                 id:p.user_id, user_id:p.user_id,
                 name:p.name, email:p.email, role:p.role,
-                avatar:p.avatar, at:p.at,status:p.status||'ONLINE',
+                avatar:p.avatar, avatarUrl:st.profiles[p.user_id]?.avatarUrl, at:p.at,status:p.status||'ONLINE',
               };
             }
           }
@@ -5402,9 +5420,8 @@ const Realtime = (() => {
         })
         .on('broadcast', { event:'profile' }, ({ payload }) => {
           if(payload && payload.id){
-            st.profiles[payload.id] = payload;
-            mergePeers({ [payload.id]: payload });
-            if(S.tab === 'comms') renderMain();
+            // Treat a broadcast as an invalidation hint, never as verified identity.
+            void loadProfiles();
           }
         })
         .on('broadcast', { event:'notify' }, ({ payload }) => {
@@ -5522,7 +5539,9 @@ const Realtime = (() => {
   async function loadProfiles(){
     const epoch=authEpoch;
     try {
-      const { data } = await sb.rpc('list_member_directory');
+      const { data, error } = await sb.rpc('vice_member_directory');
+      if(error)throw error;
+      await window.ViceComms?.resolveAvatars(data||[]);
       if(epoch!==authEpoch||!S.user)return;
       if(!data) return;
       const peers = [];
@@ -5531,13 +5550,14 @@ const Realtime = (() => {
         if(S.profile.email && p.email && p.email === S.profile.email) continue;
         st.profiles[p.id] = {
           id:p.id, name:p.name, email:p.email,
-          role:p.role, avatar:p.avatar_initials, vip:!!p.vip_access,
+          role:p.role, avatar:p.avatar_initials, avatarUrl:p.avatar_url, vip:!!p.vip_access,
         };
         peers.push({ id:p.id, name:p.name || 'Member', role:ROLE_LABELS[p.role] || p.role || 'HOLDER' });
       }
       mergePeers(st.profiles);
-      if(S.tab === 'comms') renderMain();
-    } catch(_){}
+      if(['comms','community'].includes(S.tab))renderMain();
+      if(currentCall)paintCallOverlay();
+    } catch(e){console.warn('Member directory:',e.message);}
   }
 
   function mergePeers(profiles){
@@ -5559,6 +5579,7 @@ const Realtime = (() => {
         name: p.name || 'Member',
         role: ROLE_LABELS[p.role] || p.role || 'HOLDER',
         avatar: p.avatar || (p.name || 'NA').slice(0,2).toUpperCase(),
+        avatarUrl: p.avatarUrl || null,
         online: st.online.has(pid),
         status: st.online.has(pid) ? (p.status||'ONLINE') : 'OFFLINE',
       });
@@ -5572,7 +5593,10 @@ const Realtime = (() => {
   /* ─── MESSAGING ─── */
   async function receiveChat(payload){
     const epoch=authEpoch;
-    let plaintext = payload.text;
+    let plaintext = '[message unavailable — open the conversation to retry]';
+    const listKey=payload.channelId||payload.senderId;
+    const oldList=payload.channelId?S.comms.messages[listKey]:S.comms.dms[listKey];
+    if(oldList?.some(m=>m.id===payload.id))return;
     try {
       if(payload.channelId){
         plaintext = await MsgCrypto.decrypt('ch:' + payload.channelId, payload.text);
@@ -5580,14 +5604,14 @@ const Realtime = (() => {
         const threadId = [payload.senderId, payload.peerId].sort().join('|');
         plaintext = await MsgCrypto.decrypt('dm:' + threadId, payload.text);
       }
-    } catch(_){}
+    } catch(e){console.warn('Notification decryption:',e.message);}
 
     if(epoch!==authEpoch||!S.user)return;
     if(payload.channelId){
       const list = S.comms.messages[payload.channelId] || (S.comms.messages[payload.channelId] = []);
       if(!list.some(m => m.id === payload.id)){
         list.push({
-          id:payload.id, from:payload.senderName, at:payload.at,
+          id:payload.id, from:payload.senderName, senderId:payload.senderId, at:payload.at,
           text:plaintext, self:false, _decrypted:true,
         });
         if(!(S.tab === 'comms' && S.comms.activeChannel === payload.channelId && !S.comms.activeDm)){
@@ -5599,7 +5623,7 @@ const Realtime = (() => {
       const list = S.comms.dms[key] || (S.comms.dms[key] = []);
       if(!list.some(m => m.id === payload.id)){
         list.push({
-          id:payload.id, from:payload.senderName, at:payload.at,
+          id:payload.id, from:payload.senderName, senderId:payload.senderId, at:payload.at,
           text:plaintext, self:false, _decrypted:true,
         });
         if(!(S.tab === 'comms' && S.comms.activeDm === key)){
@@ -5608,7 +5632,7 @@ const Realtime = (() => {
       }
     }
 
-    handlers.message.forEach(h => h(payload));
+    handlers.message.forEach(h => h({...payload,text:plaintext}));
 
     if(S.tab === 'comms') renderMain();
     paintCmTabs();
@@ -5621,9 +5645,11 @@ const Realtime = (() => {
       && S.comms.activeDm === payload.senderId
       && !document.hidden;
 
+    if(viewingThisChannel||viewingThisDm)window.ViceComms?.markRead([payload.id]);
     if(!viewingThisChannel && !viewingThisDm){
       try {
         Notify.message(payload.senderName || 'New message', plaintext || '', {
+          id:payload.id, at:payload.at,
           tag: payload.channelId ? 'ch:' + payload.channelId : 'dm:' + payload.senderId,
           onClick: () => {
             try {
@@ -5711,7 +5737,7 @@ const Realtime = (() => {
         const plain = await MsgCrypto.decrypt('ch:' + channelId, m.text);
         if(epoch!==authEpoch)return;
         existing.push({
-          id:m.id, from:m.sender_name,
+          id:m.id, from:m.sender_name, senderId:m.sender_id,
           at:new Date(m.created_at).getTime(),
           text:plain, _decrypted:true,
           self: m.sender_id === S.user?.id,
@@ -5719,6 +5745,7 @@ const Realtime = (() => {
       }
       existing.sort((a,b) => a.at - b.at);
       S.comms.messages[channelId] = existing;
+      if(S.tab==='comms'&&S.comms.activeChannel===channelId&&!S.comms.activeDm)window.ViceComms?.markRead(existing.map(m=>m.id));
     } catch(e){ console.error('Channel history processing failed:',e); toast('Unable to display channel messages: '+(e?.message||'unknown error'),'error'); }
   }
 
@@ -5743,7 +5770,7 @@ const Realtime = (() => {
         const plain = await MsgCrypto.decrypt('dm:' + threadId, m.text);
         if(epoch!==authEpoch)return;
         existing.push({
-          id:m.id, from:m.sender_name,
+          id:m.id, from:m.sender_name, senderId:m.sender_id,
           at:new Date(m.created_at).getTime(),
           text:plain, _decrypted:true,
           self: m.sender_id === S.user?.id,
@@ -5751,11 +5778,12 @@ const Realtime = (() => {
       }
       existing.sort((a,b) => a.at - b.at);
       S.comms.dms[peerId] = existing;
+      if(S.tab==='comms'&&S.comms.activeDm===peerId)window.ViceComms?.markRead(existing.map(m=>m.id));
     } catch(e){ console.error('DM history processing failed:',e); toast('Unable to display direct messages: '+(e?.message||'unknown error'),'error'); }
   }
 
   /* ─── CALLS ─── */
-  async function startCall(peerId){
+  async function startCall(peerId,mediaMode='voice'){
     if(!S.user) { toast('Sign in first','error'); return; }
     if(!broadcastChannel || !st.connected) { toast('Realtime not connected','error'); return; }
     if(currentCall) { toast('Already in a call','warn'); return; }
@@ -5763,7 +5791,7 @@ const Realtime = (() => {
 
     currentCall = {
       id: uuid(), peer: peerId, peerName: peer.name,
-      dir:'out', state:'ringing', muted:false,
+      dir:'out', state:'ringing', muted:false, mediaMode:mediaMode==='video'?'video':'voice',
     };
     pendingIceCandidates = [];
 
@@ -5771,13 +5799,17 @@ const Realtime = (() => {
     const requireActive=()=>{if(currentCall!==activeCall)throw Error('Call canceled');};
     activeCall.signalReady=false;activeCall.outgoingIce=[];
     try {
-      const acquired=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+      const video=activeCall.mediaMode==='video';
+      const height=Number(window.ViceComms?.prefs().camera)||1080;
+      const acquired=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:video?{width:{ideal:Math.round(height*16/9)},height:{ideal:height},frameRate:{ideal:30,max:30}}:false});
       if(currentCall!==activeCall){acquired.getTracks().forEach(t=>t.stop());return;}
       localStream=acquired;
       const ice=await viceIceConfig();requireActive();
       pc = new RTCPeerConnection(ice);
-      localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
-      pc.addTransceiver('video',{direction:'sendrecv'});
+      localStream.getAudioTracks().forEach(t=>pc.addTrack(t,localStream));
+      const vt=localStream.getVideoTracks()[0];
+      pc.addTransceiver(vt||'video',{direction:'sendrecv',...(vt?{streams:[localStream]}:{})});
+      if(vt){activeCall.videoStream=new MediaStream([vt]);activeCall.videoKind='camera';}
 
       pc.onicecandidate = e => {
         if(e.candidate && currentCall){
@@ -5788,7 +5820,9 @@ const Realtime = (() => {
       pc.ontrack = e => {
         if(!currentCall)return;
         if(e.track.kind==='video'){
-          currentCall.remoteVideo=new MediaStream([e.track]);
+          const ownerCall=currentCall;ownerCall.remoteVideo=new MediaStream([e.track]);
+          e.track.onunmute=()=>{if(currentCall===ownerCall)paintCallOverlay();};
+          e.track.onended=()=>{if(currentCall===ownerCall){ownerCall.remoteVideo=null;paintCallOverlay();}};
           paintCallOverlay();
         }else{
           const audio=new Audio();audio.srcObject=new MediaStream([e.track]);audio.autoplay=true;
@@ -5799,8 +5833,9 @@ const Realtime = (() => {
       pc.onconnectionstatechange = () => {
         if(!pc || !currentCall) return;
         if(pc.connectionState === 'connected'){
+          stopRingtone();clearTimeout(currentCall.ringTimeout);
           currentCall.state = 'live';
-          callStartAt = Date.now();
+          callStartAt = callStartAt || Date.now();
           startTimer();
           paintCallOverlay();
         }
@@ -5818,13 +5853,13 @@ const Realtime = (() => {
       const offer = await pc.createOffer();requireActive();
       await pc.setLocalDescription(offer);requireActive();
 
-      await signal({ kind:'offer', callId: currentCall.id, to: peerId, sdp: offer, fromName: S.profile.name });requireActive();
+      await signal({ kind:'offer', callId: currentCall.id, to: peerId, sdp: offer, fromName: S.profile.name, mediaMode:activeCall.mediaMode });requireActive();
       activeCall.signalReady=true;
       for(const candidate of activeCall.outgoingIce)signal({kind:'ice',callId:activeCall.id,to:activeCall.peer,candidate});
       activeCall.outgoingIce=[];
       S.comms.calls.push({
         id: currentCall.id, peer: peer.name, peerId,
-        type:'voice', dir:'outgoing', at:Date.now(), state:'ringing',
+        type:activeCall.mediaMode, dir:'outgoing', at:Date.now(), state:'ringing',
       });
       paintCallOverlay();
     } catch(e){
@@ -5835,20 +5870,25 @@ const Realtime = (() => {
     }
   }
 
-  async function acceptCall(){
+  async function acceptCall(withVideo=true){
     if(!currentCall || currentCall.state !== 'incoming') return;
     currentCall.state='connecting';
+    if(!withVideo)currentCall.mediaMode='voice';
+    clearTimeout(currentCall.ringTimeout);
     stopRingtone();
+    paintCallOverlay();
     const activeCall=currentCall;
     const requireActive=()=>{if(currentCall!==activeCall)throw Error('Call canceled');};
     activeCall.signalReady=false;activeCall.outgoingIce=[];
     try {
-      const acquired=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+      const video=activeCall.mediaMode==='video';
+      const height=Number(window.ViceComms?.prefs().camera)||1080;
+      const acquired=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:video?{width:{ideal:Math.round(height*16/9)},height:{ideal:height},frameRate:{ideal:30,max:30}}:false});
       if(currentCall!==activeCall){acquired.getTracks().forEach(t=>t.stop());return;}
       localStream=acquired;
       const ice=await viceIceConfig();requireActive();
       pc = new RTCPeerConnection(ice);
-      localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+      localStream.getAudioTracks().forEach(t=>pc.addTrack(t,localStream));
 
       pc.onicecandidate = e => {
         if(e.candidate && currentCall){
@@ -5859,7 +5899,9 @@ const Realtime = (() => {
       pc.ontrack = e => {
         if(!currentCall)return;
         if(e.track.kind==='video'){
-          currentCall.remoteVideo=new MediaStream([e.track]);
+          const ownerCall=currentCall;ownerCall.remoteVideo=new MediaStream([e.track]);
+          e.track.onunmute=()=>{if(currentCall===ownerCall)paintCallOverlay();};
+          e.track.onended=()=>{if(currentCall===ownerCall){ownerCall.remoteVideo=null;paintCallOverlay();}};
           paintCallOverlay();
         }else{
           const audio=new Audio();audio.srcObject=new MediaStream([e.track]);audio.autoplay=true;
@@ -5870,8 +5912,9 @@ const Realtime = (() => {
       pc.onconnectionstatechange = () => {
         if(!pc || !currentCall) return;
         if(pc.connectionState === 'connected'){
+          stopRingtone();clearTimeout(currentCall.ringTimeout);
           currentCall.state = 'live';
-          callStartAt = Date.now();
+          callStartAt = callStartAt || Date.now();
           startTimer();
           paintCallOverlay();
         }
@@ -5887,6 +5930,9 @@ const Realtime = (() => {
       };
 
       await pc.setRemoteDescription(new RTCSessionDescription(currentCall.pendingOffer));requireActive();
+      const vt=localStream.getVideoTracks()[0];
+      const transceiver=pc.getTransceivers().find(t=>t.receiver?.track?.kind==='video');
+      if(transceiver){transceiver.direction='sendrecv';if(vt){await transceiver.sender.replaceTrack(vt);requireActive();activeCall.videoStream=new MediaStream([vt]);activeCall.videoKind='camera';}}
 
       /* Flush buffered ICE candidates that arrived while ringing */
       const buffer = pendingIceCandidates.slice();
@@ -5897,7 +5943,7 @@ const Realtime = (() => {
 
       const answer = await pc.createAnswer();requireActive();
       await pc.setLocalDescription(answer);requireActive();
-      await signal({ kind:'answer', callId: currentCall.id, to: currentCall.peer, sdp: answer });requireActive();
+      await signal({ kind:'answer', callId: currentCall.id, to: currentCall.peer, sdp: answer, mediaMode:activeCall.mediaMode });requireActive();
       activeCall.signalReady=true;
       for(const candidate of activeCall.outgoingIce)signal({kind:'ice',callId:activeCall.id,to:activeCall.peer,candidate});
       activeCall.outgoingIce=[];
@@ -5934,9 +5980,15 @@ const Realtime = (() => {
     const tracks = localStream.getAudioTracks();
     currentCall.muted = !currentCall.muted;
     tracks.forEach(t => t.enabled = !currentCall.muted);
+    void signal({kind:'media',callId:currentCall.id,to:currentCall.peer,muted:currentCall.muted,videoKind:currentCall.videoKind||null});
     paintCallOverlay();
   }
 
+  async function captureScreen(){
+    if(!navigator.mediaDevices?.getDisplayMedia)throw Error('Screen sharing is not supported in this browser. Join from a supported desktop browser.');
+    const height=Number(window.ViceComms?.prefs().screen)||1080;
+    return navigator.mediaDevices.getDisplayMedia({video:{width:{ideal:Math.round(height*16/9),max:3840},height:{ideal:height,max:2160},frameRate:{ideal:30,max:30}},audio:false});
+  }
   let mediaBusy=false;
   async function toggleVideoSource(kind){
     if(mediaBusy)return;
@@ -5951,21 +6003,23 @@ const Realtime = (() => {
         call.videoStream?.getTracks().forEach(t=>t.stop());call.videoStream=null;call.videoKind=null;
       }else{
         const stream=kind==='screen'
-          ? await navigator.mediaDevices.getDisplayMedia({video:true,audio:false})
-          : await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+          ? await captureScreen()
+          : await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1920},height:{ideal:Number(window.ViceComms?.prefs().camera)||1080},frameRate:{ideal:30,max:30}},audio:false});
         if(currentCall!==call||pc!==activePc){stream.getTracks().forEach(t=>t.stop());return;}
         const track=stream.getVideoTracks()[0];
         if(!track){stream.getTracks().forEach(t=>t.stop());throw Error('No video track provided');}
         try{await sender.replaceTrack(track);}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}
         call.videoStream?.getTracks().forEach(t=>t.stop());call.videoStream=stream;call.videoKind=kind;
+        try{const params=sender.getParameters?.();if(params?.encodings?.length){params.encodings.forEach(e=>{e.maxBitrate=kind==='screen'&&window.ViceComms?.prefs().screen==='2160'?16000000:6000000;e.maxFramerate=30;});await sender.setParameters(params);}}catch(e){console.warn('Video bitrate preference unavailable:',e.message);}
+        track.contentHint=kind==='screen'?'detail':'motion';
         track.onended=()=>{
           if(currentCall===call&&call.videoStream===stream){
             void sender.replaceTrack(null).catch(e=>console.warn('Video stop:',e));
-            call.videoStream=null;call.videoKind=null;paintCallOverlay();
+            call.videoStream=null;call.videoKind=null;void signal({kind:'media',callId:call.id,to:call.peer,muted:call.muted,videoKind:null});paintCallOverlay();
           }
         };
       }
-      paintCallOverlay();
+      if(currentCall===call){void signal({kind:'media',callId:call.id,to:call.peer,muted:call.muted,videoKind:call.videoKind||null});paintCallOverlay();}
     }finally{mediaBusy=false;}
   }
 
@@ -5988,7 +6042,7 @@ const Realtime = (() => {
       const payload=JSON.parse(String(row.text).slice('VICE_CALL_V1:'.length));
       const age=Date.now()-new Date(row.created_at).getTime();
       if(!Number.isFinite(age)||age< -10000||age>90000)return;
-      if(!['offer','answer','ice','decline','end'].includes(payload.kind)||typeof payload.callId!=='string'||payload.callId.length>80)return;
+      if(!['offer','answer','ice','decline','end','media'].includes(payload.kind)||typeof payload.callId!=='string'||payload.callId.length>80)return;
       void handleCallSignal({...payload,from:row.sender_id,to:row.peer_id}).catch(e=>toast('Call connection error: '+e.message,'error'));
     }catch(e){console.warn('Invalid call signal',e.message);}
   }
@@ -5998,6 +6052,7 @@ const Realtime = (() => {
     if(payload.kind!=='offer'&&(!currentCall||currentCall.id!==payload.callId||currentCall.peer!==payload.from))return;
 
     if(payload.kind === 'offer'){
+      if(currentCall?.id===payload.callId&&currentCall.peer===payload.from)return;
       if(currentCall){
         signal({ kind:'decline', callId: payload.callId, to: payload.from });
         return;
@@ -6007,16 +6062,18 @@ const Realtime = (() => {
         id: payload.callId,
         peer: payload.from,
         peerName: payload.fromName || (st.profiles[payload.from]?.name) || 'Unknown',
-        dir:'in', state:'incoming', pendingOffer: payload.sdp, muted:false,
+        dir:'in', state:'incoming', pendingOffer: payload.sdp, muted:false, mediaMode:payload.mediaMode==='video'?'video':'voice',
       };
       S.comms.calls.push({
         id: payload.callId, peer: currentCall.peerName, peerId: payload.from,
-        type:'voice', dir:'incoming', at:Date.now(), state:'incoming',
+        type:currentCall.mediaMode, dir:'incoming', at:Date.now(), state:'incoming',
       });
       playRingtone();
+      const pending=currentCall;pending.ringTimeout=setTimeout(()=>{if(currentCall===pending&&pending.state==='incoming'){recordMissed(pending);endCall('missed');}},60000);
       paintCallOverlay();
     }
     else if(payload.kind === 'answer'){
+      stopRingtone();
       if(pc && currentCall && currentCall.id === payload.callId){
         try {
           await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
@@ -6032,8 +6089,11 @@ const Realtime = (() => {
         }
       }
     }
+    else if(payload.kind === 'media'){
+      currentCall.remoteMuted=payload.muted===true;currentCall.remoteVideoKind=['camera','screen'].includes(payload.videoKind)?payload.videoKind:null;paintCallOverlay();
+    }
     else if(payload.kind === 'ice'){
-      if(pc && currentCall && currentCall.id === payload.callId){
+      if(pc?.remoteDescription && currentCall && currentCall.id === payload.callId){
         try { await pc.addIceCandidate(new RTCIceCandidate(payload.candidate)); }
         catch(_){}
       } else {
@@ -6052,15 +6112,21 @@ const Realtime = (() => {
     }
     else if(payload.kind === 'end'){
       if(currentCall && currentCall.id === payload.callId){
+        if(currentCall.state==='incoming')recordMissed(currentCall);
         const rec = S.comms.calls.find(c => c.id === payload.callId);
-        if(rec) rec.state = 'ended';
+        if(rec&&rec.state!=='missed') rec.state = 'ended';
         cleanup();
         paintCallOverlay();
       }
     }
   }
 
+  function recordMissed(call){
+    window.ViceComms?.add({id:'call:'+call.id,kind:'missed',title:call.peerName,body:'Missed '+(call.mediaMode||'voice')+' call',route:{receiverId:S.user?.id,peerId:call.peer},at:Date.now()});
+    const rec=S.comms.calls.find(c=>c.id===call.id);if(rec)rec.state='missed';
+  }
   function cleanup(){
+    clearTimeout(currentCall?.ringTimeout);
     stopRingtone();
     stopTimer();
     if(pc){ try { pc.close(); } catch(_){} pc = null; }
@@ -6113,7 +6179,7 @@ const Realtime = (() => {
   function paintCallOverlay(){
     const root = $('call-root');
     if(!root) return;
-    if(!currentCall){ root.classList.remove('on'); root.innerHTML = ''; return; }
+    if(!currentCall){ root.classList.remove('on'); root.innerHTML = ''; if(S.tab==='comms'&&S.comms.tab==='calls')renderMain();return; }
     root.classList.add('on');
     const c = currentCall;
     const initial = (c.peerName || '?').replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase() || '?';
@@ -6121,7 +6187,7 @@ const Realtime = (() => {
     const statusText = c.state === 'ringing'
       ? (c.dir === 'out' ? 'Calling…' : 'Ringing…')
       : c.state === 'incoming'
-        ? 'Incoming call'
+        ? 'Incoming '+(c.mediaMode==='video'?'video':'voice')+' call'
         : isLive
           ? 'Connected'
           : c.state==='connecting'?'Connecting…':'Call ended';
@@ -6130,13 +6196,18 @@ const Realtime = (() => {
     const mm = String(Math.floor(elapsed / 60)).padStart(2,'0');
     const ss = String(elapsed % 60).padStart(2,'0');
     root.innerHTML = `
-      <div class="call-card" role="dialog" aria-modal="true" aria-label="Call with ${esc(c.peerName)}">
+      <div class="call-card ${c.remoteVideo||c.videoStream?'has-video':''}" role="dialog" aria-modal="true" aria-label="Call with ${esc(c.peerName)}">
         <div class="call-brand">VICE<em>4X</em><span>MEMBER COMMUNICATIONS</span></div>
-        <div class="call-av" aria-hidden="true">${esc(initial)}</div>
+        ${window.ViceComms?ViceComms.avatar(st.profiles[c.peer]||{name:c.peerName},'call-av'):`<div class="call-av">${esc(initial)}</div>`}
         <div class="call-name">${esc(c.peerName)}</div>
-        ${c.remoteVideo?'<video id="viceRemoteVideo" autoplay playsinline muted style="width:100%;max-height:240px;background:#000"></video>':''}
-        ${c.videoStream?'<video id="viceLocalVideo" autoplay playsinline muted style="width:120px;max-height:90px;background:#000"></video>':''}
-        ${isLive?`<div class="mact"><button class="btn btn-g" data-act="call-camera">${c.videoKind==='camera'?'Stop camera':'Camera'}</button><button class="btn btn-g" data-act="call-screen">${c.videoKind==='screen'?'Stop sharing':'Share screen'}</button></div>`:''}
+        <div class="vc-video-stage" ${c.remoteVideo||c.videoStream?'':'hidden'}>
+          ${c.remoteVideo?'<video id="viceRemoteVideo" autoplay playsinline muted aria-label="Remote video"></video>':''}
+          ${c.videoStream?'<video id="viceLocalVideo" autoplay playsinline muted aria-label="Your preview"></video>':''}
+        </div>
+        ${isLive?`<div class="vc-media-controls"><button class="btn btn-g" data-act="call-camera" aria-pressed="${c.videoKind==='camera'}">${c.videoKind==='camera'?'Stop video':'Start video'}</button><button class="btn btn-g" data-act="call-screen" aria-pressed="${c.videoKind==='screen'}">${c.videoKind==='screen'?'Stop sharing':'Share screen'}</button><button class="btn btn-g" data-act="call-audio-play">Enable audio</button></div>`:''}
+        ${c.videoKind==='screen'?`<p class="meta">Sharing ${c.videoStream?.getVideoTracks()[0]?.getSettings?.().width||'—'} × ${c.videoStream?.getVideoTracks()[0]?.getSettings?.().height||'—'} capture · camera paused while sharing</p>`:''}
+        ${c.muted?'<div class="vc-muted-badge" role="status">✕ Microphone muted</div>':''}
+        ${c.remoteMuted?'<div class="meta" role="status">Their microphone is muted</div>':''}
         <div class="call-status ${statusCls}">${esc(statusText)}</div>
         ${isLive ? `<div class="call-timer">${mm}:${ss}</div>` : ''}
         <div class="call-actions">
@@ -6144,22 +6215,25 @@ const Realtime = (() => {
             <button class="call-btn decline" data-act="call-decline" title="Decline" aria-label="Decline call">
               <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" transform="rotate(135 12 12)"/></svg>
             </button>
-            <button class="call-btn accept" data-act="call-accept" title="Accept" aria-label="Accept call">
+            <button class="call-btn accept" ${window.ViceComms?.prefs().answer==='slide'?'hidden':''} data-act="call-accept" title="Accept" aria-label="Accept call">
               <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             </button>
           ` : `
             <button class="call-btn mute ${c.muted ? 'off' : ''}" data-act="call-mute" title="${c.muted ? 'Unmute' : 'Mute'}" aria-label="${c.muted ? 'Unmute microphone' : 'Mute microphone'}" aria-pressed="${c.muted}">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor">${c.muted?'<path d="M3 3L21 21" stroke="currentColor" stroke-width="2.5"/>':''}<path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
             </button>
             <button class="call-btn decline" data-act="call-end" title="End call" aria-label="End call">
               <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" transform="rotate(135 12 12)"/></svg>
             </button>
           `}
         </div>
-        <p class="call-control-labels">${c.state==='incoming'?'Decline · Accept':'Microphone · End call'}</p>
+        ${c.state==='incoming'&&window.ViceComms?.prefs().answer==='slide'?'<label class="vc-answer-slider">Slide to answer<input id="vcAnswerSlide" type="range" min="0" max="100" value="0" aria-label="Slide to answer call" aria-valuetext="Move all the way right to answer"></label><button class="btn btn-g vc-keyboard-answer" data-act="call-accept">Answer with keyboard</button>':''}
+        ${c.state==='incoming'&&c.mediaMode==='video'?'<button class="btn btn-g" data-act="call-accept-audio">Answer with audio only</button>':''}
+        <p class="call-control-labels">${c.state==='incoming'?'Decline · Answer':'Microphone · End call'}</p>
         <p class="call-device-note">Audio uses your selected device. Screen sharing depends on browser support.</p>
       </div>
     `;
+    const slider=$('vcAnswerSlide');if(slider)slider.onchange=()=>{if(Number(slider.value)>=95)void acceptCall();else slider.value='0';};
     if($('viceRemoteVideo'))$('viceRemoteVideo').srcObject=c.remoteVideo;
     if($('viceLocalVideo'))$('viceLocalVideo').srcObject=c.videoStream;
   }
@@ -6187,7 +6261,7 @@ const Realtime = (() => {
         });
       } catch(_){}
     },
-    refresh: loadProfiles,
+    refresh: loadProfiles, publishProfile:broadcastProfile, repaintCall:paintCallOverlay,
   };
 })();
 window.Realtime = Realtime;
@@ -6201,7 +6275,7 @@ window.Realtime = Realtime;
 
 const Notify = (() => {
   let audioCtx=null, ringTimer=null, pulseTimer=null, ringEpoch=0, registration=null, bannerTimer=null, pendingRoute=null;
-  const soundEnabled=()=>{try{return localStorage.getItem('vice4x-alert-sound')!=='off';}catch{return true;}};
+  const soundEnabled=()=>window.ViceComms?ViceComms.prefs().sound:true;
   const quiet=()=>typeof Realtime!=='undefined'&&Realtime.status()==='DND';
   function getCtx(){
     if(!audioCtx)try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch{}
@@ -6211,7 +6285,7 @@ const Notify = (() => {
   document.addEventListener('pointerdown',unlock,{passive:true});
   document.addEventListener('keydown',unlock);
   function beep({freq=880,dur=.14,gain=.12,type='sine'}={}){
-    if(!soundEnabled()||quiet())return;
+    if(!soundEnabled()||quiet()||['connecting','live'].includes(Realtime.current()?.state))return;
     const ctx=getCtx();if(!ctx||ctx.state!=='running')return;
     try{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=freq;
       g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(gain,ctx.currentTime+.015);
@@ -6220,7 +6294,7 @@ const Notify = (() => {
     }catch(e){console.warn('Call audio unavailable:',e.message);}
   }
   function haptic(pattern=[40]){
-    if(!quiet())try{navigator.vibrate?.(pattern);}catch{}
+    if(!quiet()&&window.ViceComms?.prefs().haptics!==false&&!['connecting','live'].includes(Realtime.current()?.state))try{navigator.vibrate?.(pattern);}catch{}
     document.querySelectorAll('#call-root .call-av,.rt-badge').forEach(el=>{
       el.classList.remove('pulse-alert');void el.offsetWidth;el.classList.add('pulse-alert');
     });
@@ -6228,7 +6302,7 @@ const Notify = (() => {
   function stopCallRingtone(){ringEpoch++;clearInterval(ringTimer);clearTimeout(pulseTimer);ringTimer=null;pulseTimer=null;try{navigator.vibrate?.(0);}catch{}}
   function startCallRingtone(){
     stopCallRingtone();const epoch=ringEpoch;
-    const pulse=()=>{if(epoch!==ringEpoch)return;beep({freq:660,dur:.28,gain:.12,type:'triangle'});haptic([180]);};
+    const pulse=()=>{if(epoch!==ringEpoch)return;if(Realtime.current()?.state!=='incoming'){stopCallRingtone();return;}beep({freq:660,dur:.28,gain:.12,type:'triangle'});haptic([180]);};
     const ring=()=>{pulse();pulseTimer=setTimeout(pulse,440);};ring();ringTimer=setInterval(ring,2200);
   }
   function validRoute(route){
@@ -6243,7 +6317,9 @@ const Notify = (() => {
     window.focus();
     if(route.kind==='call'&&Realtime.current()){document.getElementById('call-root')?.focus();return;}
     if(route.kind==='distributions'){go('distributions');return;}
-    S.comms.activeDm=route.peerId||null;S.comms.activeChannel=route.channelId||null;go('comms');
+    S.comms.tab='chats';S.comms.activeDm=route.peerId||null;S.comms.activeChannel=route.channelId||null;go('comms');
+    if(route.peerId){S.comms.unread['dm:'+route.peerId]=0;void Realtime.loadDmHistory(route.peerId).then(()=>{if(validRoute(route)&&S.comms.activeDm===route.peerId)renderMain();});}
+    if(route.channelId){S.comms.unread[route.channelId]=0;void Realtime.loadHistory(route.channelId).then(()=>{if(validRoute(route)&&S.comms.activeChannel===route.channelId)renderMain();});}
     document.getElementById('vice4x-alert')?.remove();
   }
   function routeFromTag(tag){return {receiverId:S.user?.id,peerId:tag?.startsWith('dm:')?tag.slice(3):null,channelId:tag?.startsWith('ch:')?tag.slice(3):null};}
@@ -6281,14 +6357,20 @@ const Notify = (() => {
     message(senderName,text,meta={}){
       const route=meta.route||routeFromTag(meta.tag);
       if(!quiet()){beep();haptic([20,60,20]);}
-      inApp(senderName,text,route,meta.onClick);
-      void systemNotify('VICE4X · '+senderName,'New message · open VICE4X to read',route,{tag:meta.tag});
+      const item={id:meta.id,title:senderName,body:text,route,at:meta.at,kind:'message'};
+      const presentation=window.ViceComms?.shown(item)||{title:senderName,body:'New message'};
+      window.ViceComms?.add(item);
+      if(!window.ViceComms||!ViceComms.prefs().ticker)inApp(presentation.title,presentation.body,route,()=>navigate(route));
+      const device=window.ViceComms?.shown(item,true)||{title:'VICE4X',body:'New message'};
+      void systemNotify('VICE4X · '+device.title,device.body,route,{tag:meta.tag});
     },
-    callStarted(peerName){startCallRingtone();const c=Realtime.current();if(c?.dir==='out')return;
+    callStarted(peerName){const c=Realtime.current();if(c?.dir==='out'||c?.state!=='incoming')return;startCallRingtone();
+      if(window.ViceComms?.prefs().privacy==='hidden')peerName='Member';
       void systemNotify('VICE4X · '+peerName,'Incoming call · open to answer',{receiverId:S.user?.id,kind:'call'}, {tag:'vice4x-call',requireInteraction:true});},
     callEnded(){stopCallRingtone();registration?.getNotifications({tag:'vice4x-call'}).then(list=>list.forEach(n=>n.close())).catch(()=>{});},
     clear(){stopCallRingtone();pendingRoute=null;clearTimeout(bannerTimer);document.getElementById('vice4x-alert')?.remove();registration?.getNotifications().then(list=>list.forEach(n=>n.close())).catch(()=>{});},
     resumeRoute(){
+      void window.ViceComms?.restoreInbox();
       if(pendingRoute){const r=pendingRoute;pendingRoute=null;navigate(r);}
       const q=new URLSearchParams(location.search);if(q.has('alert')){
         try{navigate(JSON.parse(q.get('alert')));}catch{}q.delete('alert');history.replaceState(null,'',location.pathname+(q.size?'?'+q:'')+location.hash);
@@ -6346,7 +6428,7 @@ const MsgCrypto = (() => {
     if(!s.startsWith(PREFIX)) return s;
     try {
       const [ivB64, ctB64] = s.slice(PREFIX.length).split(':');
-      if(!ivB64 || !ctB64) return s;
+      if(!ivB64 || !ctB64) return '[encrypted message unavailable — open the conversation to retry]';
       const key = await getKey(threadId);
       const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv:fromB64(ivB64) }, key, fromB64(ctB64));
       return dec.decode(pt);
@@ -9060,7 +9142,7 @@ function viewCommand(el){
       : '';
     return `
       <div class="holder-strip">
-        <span class="hs-av" style="${avatarStyle}">${S.profile.avatarUrl ? '' : esc((S.profile.avatarInitials || 'NA').toUpperCase())}</span>
+        ${window.ViceComms?ViceComms.avatar(S.profile,'hs-av'):esc(S.profile.avatarInitials||'NA')}
         <span class="hs-l">
           <b>${esc(S.profile.name || 'Member')}</b>
           <span>${esc(ROLE_LABELS[S.profile.role] || S.profile.role)}${S.profile.clientId ? ' · Client ' + esc(S.profile.clientId) : ''}</span>
@@ -9128,12 +9210,7 @@ function viewCommand(el){
       <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
       <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
     </section>
-    <div class="stats">
-      <div class="st"><span class="l">VICE · IRU Portfolio</span><div class="v">${fmtNum(accountIruUnits('VICE'))}</div><div class="n">Management reference $${S.iruClasses[0].ouv} / unit</div></div>
-      <div class="st"><span class="l">V4X · IRU Portfolio</span><div class="v">${fmtNum(accountIruUnits('V4X'))}</div><div class="n">Management reference $${S.iruClasses[1].ouv} / unit</div></div>
-      <div class="st"><span class="l">Combined IRU Reference</span><div class="v gd" data-money-value="${accountIruReferenceUsd()}" tabindex="0">${viceMoneyView(accountIruReferenceUsd())}</div></div>
-      <div class="st"><span class="l">Mode</span><div class="v ${APP_MODE==='SIM'?'sm':'gr'}">${APP_MODE}</div></div>
-    </div>
+    ${viceReferenceCards()}
     ${isOwner() && (S.proposals||[]).some(p=>p.status==='OPEN' && (!p.closesAt||new Date(p.closesAt)>new Date()))?`<section class="band"><div class="band-head"><h2>Governance in progress</h2><button class="btn btn-gd" data-go="governance">Review votes</button></div><p class="meta">Open proposals are synchronized for eligible authenticated members.</p></section>`:''}
     ${myDistributions}
     <div class="grid cols-2">
@@ -9378,12 +9455,7 @@ function viewPortfolio(el){
       <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
       <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
     </section>
-    <div class="stats">
-      <div class="st"><span class="l">VICE + V4X IRUs</span><div class="v gd">${fmtK(accountIruReferenceUsd())}</div></div>
-      <div class="st"><span class="l">DeFi</span><div class="v">${fmtK(df)}</div></div>
-      <div class="st"><span class="l">MT5</span><div class="v">${fmtK(mt)}</div></div>
-      <div class="st"><span class="l">External</span><div class="v">${fmtK(ex)}</div></div>
-    </div>
+    ${viceReferenceCards()}
     <div class="pnl">
       <div class="pnl-h"><h3>Portfolio components</h3></div>
       <div class="pnl-b fl">
@@ -10011,10 +10083,10 @@ function commsChats(){
       <section class="band">
         <div class="band-head">
           <button class="btn btn-xs btn-g" data-act="comms-back">←</button>
-          <h2>${esc(prof.name)} ${isOn ? '<span class="comm-peer-live on" style="display:inline-block;vertical-align:middle;margin-left:6px"></span>' : ''}</h2>
+          <h2 class="vc-peer-heading">${ViceComms.avatar(prof)} ${esc(prof.name)} ${isOn ? '<span class="comm-peer-live on" style="display:inline-block;vertical-align:middle;margin-left:6px"></span>' : ''}</h2>
           <div class="ph-acts" style="gap:6px">
             ${isOn
-              ? `<button class="btn btn-xs btn-gd" data-act="comms-call" data-peer-id="${esc(C.activeDm)}" data-peer="${esc(prof.name)}">Call</button>`
+              ? `<button class="btn btn-xs btn-gd" data-act="comms-call" data-peer-id="${esc(C.activeDm)}" data-peer="${esc(prof.name)}">Voice call</button><button class="btn btn-xs btn-gd" data-act="comms-video-call" data-peer-id="${esc(C.activeDm)}">Video call</button>`
               : '<span class="chip blocked"><i></i>offline</span>'}
             <button class="btn btn-xs btn-g" data-act="comms-close-dm">Close</button>
           </div>
@@ -10022,7 +10094,7 @@ function commsChats(){
         <div class="cm-msgs" id="cmMsg">
           ${msgs.length ? msgs.map(m => `
             <div class="cmm ${m.self ? 'me' : ''}">
-              ${!m.self ? `<div class="cmm-a">${esc((m.from || '?').slice(0,2).toUpperCase())}</div>` : ''}
+              ${!m.self ? `${ViceComms.avatar(Realtime.profileOf(m.senderId||C.activeDm)||{name:m.from},'cmm-a')}` : ''}
               <div class="cmm-b">
                 ${!m.self ? `<div class="cmm-f">${esc(m.from)}</div>` : ''}
                 <div class="cmm-t">${viceCommsBubble(m.text)}</div>
@@ -10059,7 +10131,7 @@ function commsChats(){
             const shown = isEnc ? '[encrypted — decrypting…]' : m.text;
             return `
             <div class="cmm ${m.self ? 'me' : ''}">
-              ${!m.self ? `<div class="cmm-a">${esc((m.from || '?').slice(0,2).toUpperCase())}</div>` : ''}
+              ${!m.self ? `${ViceComms.avatar(Realtime.profileOf(m.senderId||C.activeDm)||{name:m.from},'cmm-a')}` : ''}
               <div class="cmm-b">
                 ${!m.self ? `<div class="cmm-f">${esc(m.from)}</div>` : ''}
                 <div class="cmm-t">${viceCommsBubble(shown)}</div>
@@ -10105,9 +10177,9 @@ function commsChats(){
       ${S.comms.peers.length ? S.comms.peers.map(p => {
         const n = S.comms.unread['dm:' + p.id] || 0;
         return `
-          <button class="row" data-act="comms-open-dm" data-peer-id="${esc(p.id)}">
+          <button class="row" data-member-row data-act="comms-open-dm" data-peer-id="${esc(p.id)}">
             <span class="row-l" style="flex-direction:row;align-items:center;gap:10px">
-              <span class="up-av" style="width:32px;height:32px;font-size:.7rem">${esc(p.avatar || 'NA')}</span>
+              ${ViceComms.avatar(p)}
               <span style="display:flex;flex-direction:column;gap:2px">
                 <b>${esc(p.name)}</b>
                 <span class="meta">${esc(p.role)}</span>
@@ -10144,11 +10216,11 @@ function commsContacts(){
   const C = S.comms;
   return `
     <section class="band">
-      <div class="band-head"><h2>Contacts</h2><span class="meta">${C.peers.length}</span></div>
+      <div class="band-head"><h2>Contacts</h2><span class="meta">${C.peers.length}</span></div><label class="field">Find a member<input data-member-search type="search" placeholder="Search name or role"></label>
       ${C.peers.length ? C.peers.map(p => `
-        <button class="row" data-act="comms-open-dm" data-peer-id="${esc(p.id)}">
+        <button class="row" data-member-row data-act="comms-open-dm" data-peer-id="${esc(p.id)}">
           <span class="row-l" style="flex-direction:row;align-items:center;gap:10px">
-            <span class="up-av" style="width:34px;height:34px">${esc(p.avatar || 'NA')}</span>
+            ${ViceComms.avatar(p)}
             <span style="display:flex;flex-direction:column;gap:2px">
               <b>${esc(p.name)}</b>
               <span class="meta">${esc(p.role)}</span>
@@ -10210,7 +10282,7 @@ function viewVip(el){
     <section class="band">
       <div class="band-head"><h2>Available services</h2><span class="meta">${services.length}</span></div>
       ${services.length ? services.map(s => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(s.name)}</b><span class="meta">${esc(s.vendor)} · ${esc(s.description)}</span></span>
           <span class="row-r"><span class="bdg ${s.status === 'ACTIVE' ? 'gr' : 'gd'}">${esc(s.status)}</span></span>
         </div>
@@ -10362,7 +10434,7 @@ function viewDocuments(el){
     <section class="band">
       <div class="band-head"><h2>Library</h2><span class="meta">${docs.length}</span></div>
       ${docs.length ? docs.map(d => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l">
             <b>${esc(d.name || d.title || 'Untitled')}</b>
             <span class="meta">${esc(d.type || 'Document')} · ${fmtD(d.createdAt)}</span>
@@ -10476,7 +10548,7 @@ function viewDataRooms(el){
     <section class="band">
       <div class="band-head"><h2>Rooms</h2><span class="meta">${rooms.length}</span></div>
       ${rooms.length ? rooms.map(r => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(r.name)}</b><span class="meta">${esc(r.description || '')}</span></span>
           <span class="row-r"><span class="bdg gd">${esc(r.access || 'restricted')}</span></span>
         </div>
@@ -10532,7 +10604,7 @@ function viewContracts(el){
     <section class="band">
       <div class="band-head"><h2>On record</h2><span class="meta">${cs.length}</span></div>
       ${cs.length ? cs.map(c => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(c.title || 'Contract')}</b><span class="meta">${esc(c.counterparty || '')}</span></span>
           <span class="row-r"><span class="bdg ${c.status === 'ACTIVE' ? 'gr' : 'gd'}">${esc(c.status || 'DRAFT')}</span></span>
         </div>
@@ -10552,7 +10624,7 @@ function viewCompliance(el){
     <section class="band">
       <div class="band-head"><h2>Cases</h2><span class="meta">${cases.length}</span></div>
       ${cases.length ? cases.map(c => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(c.subject || 'Case')}</b><span class="meta">${esc(c.kind || '')}</span></span>
           <span class="row-r"><span class="bdg ${c.status === 'CLOSED' ? 'gr' : c.status === 'ESCALATED' ? 'rd' : 'gd'}">${esc(c.status || 'OPEN')}</span></span>
         </div>
@@ -10723,7 +10795,7 @@ function viewReconciliation(el){
     <section class="band">
       <div class="band-head"><h2>Jobs</h2><span class="meta">${jobs.length}</span></div>
       ${jobs.length ? jobs.map(j => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(j.name || 'Job')}</b><span class="meta">${fmtD(j.createdAt)}</span></span>
           <span class="row-r"><span class="bdg ${j.status === 'MATCHED' ? 'gr' : 'gd'}">${esc(j.status || 'PENDING')}</span></span>
         </div>
@@ -10743,7 +10815,7 @@ function viewMarketplace(el){
     <section class="band">
       <div class="band-head"><h2>Available</h2><span class="meta">${S.marketplace.length}</span></div>
       ${S.marketplace.map(s => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(s.name)}</b><span class="meta">${esc(s.vendor)} · ${esc(s.description)}</span></span>
           <span class="row-r">
             <span class="bdg ${s.status === 'ACTIVE' ? 'gr' : 'gd'}">${esc(s.status)}</span>
@@ -10815,7 +10887,7 @@ function viewSupport(el){
     <section class="band">
       <div class="band-head"><h2>My tickets</h2><span class="meta">${tickets.length}</span></div>
       ${tickets.length ? tickets.map(t => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(t.id)}</b><span class="meta">${esc(t.subject || t.text || '')}</span></span>
           <span class="row-r"><span class="bdg ${t.status === 'CLOSED' ? 'gr' : 'gd'}">${esc(t.status)}</span></span>
         </div>
@@ -10854,8 +10926,8 @@ function viewProfile(el){
 
     <section class="band">
       <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
-        <div id="avatarBig" style="width:96px;height:96px;border-radius:50%;background:var(--gg);display:flex;align-items:center;justify-content:center;font-family:var(--sf);font-size:2rem;font-weight:400;color:#1a0a0a;flex-shrink:0;${avatarStyle}">
-          ${p.avatarUrl ? '' : initial}
+        <div id="avatarBig" style="width:96px;height:96px;border-radius:50%;background:var(--gg);display:flex;align-items:center;justify-content:center;font-family:var(--sf);font-size:2rem;font-weight:400;color:#1a0a0a;flex-shrink:0">
+          ${window.ViceComms?ViceComms.avatar(p,'vc-profile-avatar'):esc(initial)}
         </div>
         <div style="flex:1;min-width:220px">
           <b style="display:block;font-size:1.1rem;margin-bottom:4px">${esc(p.name || 'Member')}</b>
@@ -10865,7 +10937,7 @@ function viewProfile(el){
           </div>` : ''}
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
-          <button class="btn btn-sm btn-gd" data-act="avatar-upload">Upload photo</button>
+          <button class="btn btn-sm btn-gd" data-act="avatar-upload">Upload HD image / GIF</button>
           ${p.avatarUrl ? '<button class="btn btn-sm btn-r" data-act="avatar-remove">Remove photo</button>' : ''}
         </div>
       </div>
@@ -11069,11 +11141,11 @@ function viewCommunity(el){
     <div class="ph"><div><div class="eb">Membership</div><h1><em>Community</em></h1>
       <p>Member directory. Realtime presence.</p></div></div>
     <section class="band">
-      <div class="band-head"><h2>Members</h2><span class="meta">${S.comms.peers.length} visible · ${S.realtime.online.size} online</span></div>
+      <div class="band-head"><h2>Members</h2><span class="meta">${S.comms.peers.length} visible · ${S.realtime.online.size} online</span></div><label class="field">Find a member<input data-member-search type="search" placeholder="Search name or role"></label>
       ${S.comms.peers.length ? S.comms.peers.map(p => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l" style="flex-direction:row;align-items:center;gap:12px">
-            <span class="up-av" style="width:38px;height:38px">${esc(p.avatar || 'NA')}</span>
+            ${ViceComms.avatar(p)}
             <span style="display:flex;flex-direction:column;gap:2px">
               <b>${esc(p.name)}</b>
               <span class="meta">${esc(p.role)}</span>
@@ -11103,7 +11175,7 @@ function viewExternal(el){
       <p class="note warn">These are manually recorded external account details, not verified bank integrations. Their balances are excluded from LIVE consolidated financial totals until independently verified.</p>
       <div class="band-head"><h2>Recorded accounts</h2><span class="meta">${accs.length}</span></div>
       ${accs.length ? accs.map(a => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(a.institution)}</b><span class="meta">${esc(a.accountNumber || '')} · ${esc(a.currency || 'USD')}</span></span>
           <span class="row-r">
             <span class="meta">${fmtMoney(a.balance, a.currency)}</span>
@@ -11132,7 +11204,7 @@ function viewDeFi(el){
     <section class="band">
       <div class="band-head"><h2>Chains</h2></div>
       ${w.chains.map(c => `
-        <div class="row" style="cursor:default">
+        <div class="row" data-member-row style="cursor:default">
           <span class="row-l">
             <b>${esc(c.name)} · ${esc(c.symbol)}</b>
             <span class="meta">${c.address ? esc(shortAddr(c.address)) : 'no address'}</span>
@@ -11416,14 +11488,16 @@ function paintOI(){
 
       /* ─── COMMS ─── */
       case 'comms-tab': {
+        if(!['chats','calls','contacts','settings'].includes(t.dataset.tab))return;
         S.comms.tab = t.dataset.tab;
-        renderMain(); paintCmTabs();
+        go('comms'); paintCmTabs();
         return;
       }
       case 'comms-back': { S.comms.activeDm = null; S.comms.activeChannel = null; renderMain(); return; }
       case 'comms-close-dm': { S.comms.activeDm = null; renderMain(); return; }
       case 'comms-open': {
         const id = t.dataset.channel;
+        S.comms.tab='chats';S.tab='comms';
         S.comms.activeChannel = id;
         S.comms.activeDm = null;
         S.comms.unread[id] = 0;
@@ -11433,6 +11507,7 @@ function paintOI(){
       }
       case 'comms-open-dm': {
         const id = t.dataset.peerId;
+        if(!id)return;closeModal();S.comms.tab='chats';S.tab='comms';
         S.comms.activeDm = id;
         S.comms.activeChannel = null;
         S.comms.unread['dm:' + id] = 0;
@@ -11490,19 +11565,20 @@ function paintOI(){
         const peers = S.comms.peers || [];
         if(!peers.length){ toast('No other members yet','info'); return; }
         openModal('New message', `
-          <div class="up-list">
-            ${peers.map(p => `<button class="up-row" data-act="comms-open-dm" data-peer-id="${esc(p.id)}">
-              <span class="up-av">${esc(p.avatar || 'NA')}</span>
+          <label class="field">Find a member<input data-member-search type="search" placeholder="Search name or role"></label><div class="up-list">
+            ${peers.map(p => `<button class="up-row" data-member-row data-act="comms-open-dm" data-peer-id="${esc(p.id)}">
+              ${ViceComms.avatar(p)}
               <span class="up-info"><b>${esc(p.name)}</b><span>${esc(p.role)}</span></span>
             </button>`).join('')}
           </div>
         `);
         return;
       }
+      case 'comms-video-call':
       case 'comms-call': {
         const peerId = t.dataset.peerId;
         if(!peerId) return;
-        Realtime.startCall(peerId).then(() => toast('Calling…','info'));
+        void Realtime.startCall(peerId,act==='comms-video-call'?'video':'voice');
         return;
       }
       case 'comms-start-call': {
@@ -11514,7 +11590,9 @@ function paintOI(){
       case 'notify-enable': { void Notify.request(); return; }
 
       /* ─── CALLS ─── */
-      case 'call-accept': { Realtime.acceptCall(); return; }
+      case 'call-accept': { void Realtime.acceptCall(); return; }
+      case 'call-accept-audio': { void Realtime.acceptCall(false); return; }
+      case 'call-audio-play': { void Realtime.current()?.remoteAudio?.play().catch(e=>toast(e.message,'error')); return; }
       case 'call-decline': { Realtime.declineCall(); return; }
       case 'call-camera': { void Realtime.toggleVideoSource('camera').catch(e=>toast(e.message,'error'));return; }
       case 'call-screen': { void Realtime.toggleVideoSource('screen').catch(e=>toast(e.message,'error'));return; }
@@ -11735,7 +11813,7 @@ function paintOI(){
       case 'avatar-upload': { $('avatarUpload')?.click(); return; }
       case 'avatar-remove': {
         (async()=>{
-          try{await saveMemberProfile({avatarUrl:null});toast('Photo removed','success');showApp();renderMain();}
+          try{await saveMemberProfile({avatarUrl:null});await Realtime.publishProfile();toast('Photo removed','success');showApp();renderMain();}
           catch(e){toast('Save failed: '+e.message,'error');}
         })();return;
       }
@@ -13114,24 +13192,9 @@ document.addEventListener('change', async (e) => {
 
   /* ─── AVATAR ─── */
   if(f.id === 'avatarUpload'){
-    const file = f.files && f.files[0];
-    if(!file) return;
-    if(file.size > 2 * 1024 * 1024){ toast('Image must be under 2 MB','error'); f.value = ''; return; }
-    if(!['image/png','image/jpeg','image/webp'].includes(file.type)){toast('Choose a PNG, JPEG or WebP image','error');return;}
-    const avatarEpoch=authEpoch;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      if(avatarEpoch!==authEpoch)return;
-      const dataUrl = reader.result;
-      try {
-        await saveMemberProfile({avatarUrl:dataUrl});
-        toast('Photo updated','success');
-      } catch(e) { toast('Save failed: ' + e.message, 'error'); }
-      showApp();
-      renderMain();
-    };
-    reader.readAsDataURL(file);
-    f.value = '';
+    const file=f.files?.[0];if(!file)return;f.value='';
+    try{await ViceComms.uploadAvatar(file);toast('Profile image updated','success');showApp();renderMain();}
+    catch(e){toast('Profile image: '+e.message,'error');}
     return;
   }
 });
@@ -13810,5 +13873,7 @@ document.addEventListener('change',e=>{
 <script src="vice-mega.js?v=1364"></script>
 <link rel="stylesheet" href="vice4x-operations.css?v=20261018">
 <script src="vice4x-operations.js?v=20261018"></script>
+<link rel="stylesheet" href="vice4x-comms.css?v=20261018b">
+<script src="vice4x-comms.js?v=20261018b"></script>
 </body>
 </html>

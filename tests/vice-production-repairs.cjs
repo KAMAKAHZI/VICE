@@ -13,7 +13,7 @@ test('Yahoo uses same-origin proxy and discards null/invalid OHLC',async()=>{
  assert.match(url,/^\/\.netlify\/functions\/yahoo\?/);assert.equal(bars.length,1);assert.equal(bars[0].t,1000);
 });
 test('Yahoo refuses entirely missing prices',async()=>{
- const c=run(section('async function fetchCandlesYahoo(', 'async function fetchCandlesUnified('),{YAHOO_TF:{},YAHOO_RANGE:{},fetch:async()=>({ok:true,json:async()=>({chart:{result:[{timestamp:[1],indicators:{quote:[{}]}}]}})})});
+ const c=run(section('async function fetchCandlesYahoo(', 'async function fetchCandlesUnified('),{YAHOO_TF:{'1h':'1h'},YAHOO_RANGE:{},fetch:async()=>({ok:true,json:async()=>({chart:{result:[{timestamp:[1],indicators:{quote:[{}]}}]}})})});
  await assert.rejects(c.fetchCandlesYahoo('EURUSD=X','1h'),/no valid price candles/);
 });
 test('Channel history requests newest rows, displays chronological order, deduplicates',async()=>{
