@@ -15,3 +15,5 @@ body:has(.cm-tabs.on) #vice4x-ticker{bottom:calc(72px + env(safe-area-inset-bott
 
 @keyframes vc-gold-light{0%,78%,100%{filter:brightness(1) drop-shadow(0 1px 0 #fff2ba55) drop-shadow(0 3px 3px #0008)}88%{filter:brightness(1.13) drop-shadow(0 1px 0 #fff2ba88) drop-shadow(0 3px 3px #0008)}}
 @media(prefers-reduced-motion:no-preference){.brand svg,.login-logo svg{animation:vc-gold-light 14s ease-in-out infinite}}
+
+#call-root .call-card{animation:none}.vc-answer-slider{width:min(100%,320px)}.v4x-number-card .rw-v{width:50%;max-width:57%;display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0}.v4x-number-card [data-money-value]{width:100%;text-align:right}.v4x-number-card button{max-width:100%;white-space:normal;font-size:.55rem}.v4x-number-card .rw-l{min-width:0;max-width:45%}
