@@ -59,6 +59,7 @@ for(let attempt=1;attempt<=attempts;attempt++){
  if(attempt===attempts)record('exact_public_assets','FAIL','Mismatched or unavailable: '+mismatches.join(', '));
  else await pause(delayMs);
 }
+await route('/deployment.json?smoke='+Date.now(),'deployment_identity',s=>{try{const d=JSON.parse(s);return d.release_version===expected&&/^[a-f0-9]{40}$/i.test(d.commit||'')&&!!d.deployment_id&&(!(process.env.VICE_EXPECTED_COMMIT||(process.env.GITHUB_EVENT_NAME==='push'&&process.env.GITHUB_SHA))||d.commit===(process.env.VICE_EXPECTED_COMMIT||process.env.GITHUB_SHA));}catch{return false}});
 await route('/?smoke='+Date.now(),'application',s=>s.includes('VICE4X')&&s.includes('safeResetCloudMt5Session')&&s.includes('viceServiceDiagnostics'));
 await route('/guide.html?smoke='+Date.now(),'member_guide',s=>s.includes('APPLICATION MANUAL')&&s.includes('VICE4X'));
 await route('/verify.html?smoke='+Date.now(),'certificate_verify',s=>s.includes('VICE')&&s.includes('verify'));

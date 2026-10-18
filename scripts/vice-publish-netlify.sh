@@ -16,5 +16,6 @@ for f in "${assets[@]}"; do
   test -s "$f" || { echo "Missing required public asset: $f" >&2; exit 1; }
   cp "$f" "$target/$f"
 done
+node scripts/vice-deployment-identity.cjs
 find "$target" -mindepth 1 -maxdepth 1 -type f -printf '%f\n' | sort
 echo "Netlify publishes whitelisted dist/site only."

@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),p=require('node:path');
 const site='dist/site';
-const required=['index.html','guide.html','verify.html','version.json','manifest.json','manifest.webmanifest','sw.js','vice-mega.js','vice-mega.css','vice4x-operations.js','vice4x-operations.css','vice-solace-system.js','vice4x-comms.js','vice4x-comms.css','governance.html','vice4x-institutional-core.js','vice4x-institutional.js','vice4x-institutional.css','_headers','_redirects'];
+const required=['index.html','guide.html','verify.html','version.json','deployment.json','manifest.json','manifest.webmanifest','sw.js','vice-mega.js','vice-mega.css','vice4x-operations.js','vice4x-operations.css','vice-solace-system.js','vice4x-comms.js','vice4x-comms.css','governance.html','vice4x-institutional-core.js','vice4x-institutional.js','vice4x-institutional.css','_headers','_redirects'];
 const found=fs.readdirSync(site).sort(),safe=[...required].sort();
 assert.deepEqual(found,safe,'Public deployment must be exact whitelisted assets');
 for(const fname of found)assert(fs.statSync(p.join(site,fname)).isFile(),'Unexpected path: '+fname);
@@ -10,3 +10,5 @@ const build=JSON.parse(fs.readFileSync(p.join(site,'version.json'),'utf8')).vers
 assert(fs.readFileSync(p.join(site,'index.html'),'utf8').includes('data-build="'+build+'"'),'Netlify and source build diverge');
 assert(!found.some(x=>/supabase|secrets|\.github|bootstrap|netlify|tests|sql/i.test(x)),'Backend code exposed');
 console.log('PASS PUBLIC DEPLOYMENT SAFETY: '+found.length+' whitelisted files, '+build);
+
+const identity=JSON.parse(fs.readFileSync(p.join(site,'deployment.json'),'utf8'));assert.deepEqual(Object.keys(identity).sort(),['built_at','commit','context','deployment_id','release_version']);
