@@ -1,4 +1,6 @@
-# VICE OS / Repair ledger
+# VICE4X / Repair ledger
+
+October 17 registry/control repair: see [authority matrix, behavior and regression coverage](registry-controls-20261017.md). Root causes included case-sensitive unlinked-holder lookup, missing administrative status enforcement, issuer-only RPCs conflicting with delegated CFO permissions, and missing own-holdings transfer transactions. Changes preserve the existing reserve workflow and historical records.
 
 | Issue | Root cause | Changed files | Verification |
 |---|---|---|---|

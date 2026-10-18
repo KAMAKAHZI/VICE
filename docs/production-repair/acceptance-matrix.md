@@ -1,4 +1,4 @@
-# VICE OS / Acceptance matrix
+# VICE4X / Acceptance matrix
 
 Every criterion below refers to the supplied release specification. PARTIAL is not acceptance. No real financial test records were created; separately authorized corrections are recorded as operational changes.
 

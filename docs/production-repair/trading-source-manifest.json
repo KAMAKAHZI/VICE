@@ -1,0 +1,26 @@
+[
+  {
+    "name": "VICEBOT_SOLACE_V27_60_FINAL.mq5",
+    "description": "MT5 Expert Advisor \u00b7 v27.60",
+    "size": 819935,
+    "sha256": "e600b4a72c4cbf734ab4f80aaa1b72093d0256efe03aa28133adc18505d50b84"
+  },
+  {
+    "name": "VICEBOT_SOLACE_Basket.mq5",
+    "description": "MT5 basket engine \u00b7 v1.00",
+    "size": 33483,
+    "sha256": "dd6149fc7cde43a64aada20a10713ae003b6565157af89ffef5f52bc331af295"
+  },
+  {
+    "name": "ViceBasketEngine.mqh",
+    "description": "MT5 basket include",
+    "size": 33551,
+    "sha256": "e81793f50dac4123ec081c4ff9c734a078fa908e673e49a0edc291ae5b84e45f"
+  },
+  {
+    "name": "VICESYSTEM_SOLACE_v10_6.pine",
+    "description": "TradingView Pine v6 \u00b7 v10.6",
+    "size": 115035,
+    "sha256": "dbf1a3ee9b2ba8d6f036b3219259fac1137c40e274b6b55cc0bc532f8bd6d0d9"
+  }
+]

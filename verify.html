@@ -13,7 +13,7 @@ form{display:flex;gap:10px;margin:20px auto 28px}input{min-width:0;flex:1;backgr
 footer{text-align:center;color:#6b5f59;margin-top:28px;font:10px 'JetBrains Mono',monospace;line-height:1.8}
 @media(max-width:550px){main{padding:28px 18px}form{flex-direction:column}button{padding:14px}.stamp{justify-content:center}}
 @media print{body{padding:0}main{box-shadow:none;background:#fff;color:#000;border:0}.sub,footer{color:#555}}
-</style></head><body><main><div class="logo"><div class="mark"><span>V</span></div> VICE</div>
+</style></head><body><main><div class="logo"><svg data-vice-logo="official" x="0" y="0" width="56" height="48.496" viewBox="0 0 1000 866" aria-label="VICE Capital emblem"><path fill="#d7b665" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/></svg> VICE4X</div>
 <h1>Certificate Verification</h1><p class="sub">VICE CAPITAL INC.</p>
 <form id="verifyForm"><input id="certId" required maxlength="40" autocomplete="off" autocapitalize="characters" placeholder="VCA- or VCT-XXXX-XXXX-XXXX-XXXX" aria-label="Certificate ID"><button type="submit" id="verifyButton">Verify</button></form>
 <section id="result" aria-live="polite"></section>
@@ -27,7 +27,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSess
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 </script>
 <script>
-/* VICE OS standalone QR Model 2, byte-mode, error-correction M, versions 1–9.
+/* VICE4X standalone QR Model 2, byte-mode, error-correction M, versions 1–9.
    Matrix implementation is self-contained; no external runtime dependency. */
 const ViceQR = (() => {
   const BLOCKS = [null,[[26,16]],[[44,28]],[[70,44]],[[50,32],[50,32]],
@@ -188,7 +188,7 @@ async function verify(id){
         <div class="stamp"><table>${row('Certificate ID',data.cert_id)}${row('Certificate kind',data.kind)}
         ${row('Program',data.program)}${row('Issued',issued)}${row('SHA-256 digest',data.digest)}</table>
         ${qr?`<div class="qr" aria-label="QR linking to certificate verification">${qr}</div>`:''}</div>
-        <p class="muted">The issuer registry confirms this certificate's status and integrity. Holder identity, balances and internal records are private. Authorized holders can access their full certificate after signing in to <a href="/">VICE OS</a>.</p>`;
+        <p class="muted">The issuer registry confirms this certificate's status and integrity. Holder identity, balances and internal records are private. Authorized holders can access their full certificate after signing in to <a href="/">VICE4X</a>.</p>`;
       return;
     }
     const snap=data.snapshot||{};
@@ -212,7 +212,7 @@ async function verify(id){
       ${row('Source ledger sequence',data.source_event_seq||'Period certificate')}
       ${data.period?row('Period',data.period):''}
       ${snap.distribution_record?row('Distribution recorded amount',asMoney(snap.distribution_record.issuer_recorded_amount_cents)):''}
-      ${snap.distribution_record?row('External settlement proof','NOT VERIFIED BY VICE OS'):''}
+      ${snap.distribution_record?row('External settlement proof','NOT VERIFIED BY VICE4X'):''}
       ${row('SHA-256 digest',data.digest)}</table>
       ${qr?`<div class="qr" aria-label="QR linking to verified IRU holdings">${qr}</div>`:''}</div>
       <p class="muted">IRUs are internal accounting units. These issuer reference figures are not verified bank balances, on-chain custody, independent fair-market appraisals or lender commitments. A QR scan verifies the recorded certificate and its integrity, not current holdings or guaranteed redemption.</p>`;

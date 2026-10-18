@@ -1,4 +1,4 @@
-# VICE OS / Security Operations Guide
+# VICE4X / Security Operations Guide
 
 Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 

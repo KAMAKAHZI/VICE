@@ -3,22 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>VICE OS — Institutional Operating System</title>
+<title>VICE4X — Institutional Operating System</title>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#07080a">
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VICE OS">
-<meta name="description" content="VICE OS by VICE Capital — Total Portfolio Value, VICE VIP, SOLACE market structure, O.I., VICE4X Academy, IRU ledger, Trade Desk and VICE Link.">
+<meta name="apple-mobile-web-app-title" content="VICE4X">
+<meta name="description" content="VICE4X by VICE Capital — Total Portfolio Value, VICE VIP, SOLACE market structure, O.I., VICE4X Academy, IRU ledger, Trade Desk and VICE Link.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0c0f'/%3E%3Cpath fill='%23c9a84c' transform='translate(12.2 17.71) scale(.0396)' d='M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════════════════
-   VICE OS — ROOT VARIABLES
+   VICE4X — ROOT VARIABLES
    ═══════════════════════════════════════════════════════════════════ */
 :root{
   --bg:#07080a; --bg2:#0a0b0d; --srf:#0f1115; --raised:#161920;
@@ -222,7 +222,8 @@ p{color:var(--tx-2);margin:0}
 .sbdg.rd{background:rgba(217,70,90,.16);color:var(--rd)}
 .sbdg.vi{background:rgba(139,122,255,.18);color:var(--vi)}
 .sb-foot{margin-top:auto;padding:16px 12px 0;font-family:var(--mn);font-size:.48rem;letter-spacing:.1em;color:var(--tx4);text-transform:uppercase;line-height:1.7}
-.mn{margin-left:var(--sw);margin-top:calc(var(--nh) + var(--bh));min-height:calc(100vh - var(--nh) - var(--bh));padding:22px 26px 40px;position:relative}
+.mn{font-family:var(--mn)}
+main.mn{margin-left:var(--sw);margin-top:calc(var(--nh) + var(--bh));min-height:calc(100vh - var(--nh) - var(--bh));padding:22px 26px 40px;position:relative}
 .mni{max-width:1360px;margin:0 auto;outline:none}
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1016,10 +1017,10 @@ body.chart-view #oi-orb,body.chart-view #support-orb{display:none}
   .tbc{display:none}
   .sb{transform:translateX(-100%);top:var(--nh)}
   .sb.open{transform:translateX(0)}
-  .mn{margin-left:0;padding:16px 14px 80px}
+  main.mn{margin-left:0;padding:16px 14px 80px}
   #oi-orb{bottom:76px;right:14px;width:50px;height:50px}
   #support-orb{bottom:134px;right:14px;width:50px;height:50px}
-  .cm-tabs.on ~ .mn{padding-bottom:80px}
+  .cm-tabs.on ~ main.mn{padding-bottom:80px}
   .scroll-x{margin:0 -14px;padding:0 14px}
   .cwrap{height:52vh;min-height:320px}
   .hud{font-size:.55rem;max-width:220px}
@@ -1038,7 +1039,7 @@ body.chart-view #oi-orb,body.chart-view #support-orb{display:none}
   .band{border:1px solid #ccc}
 }
 
-/* VICE OS 1.3.5 — consolidated portfolio + functional overlays */
+/* VICE4X 1.3.5 — consolidated portfolio + functional overlays */
 .portfolio-hero{position:relative;padding:26px clamp(18px,3.2vw,40px);margin:0 0 18px;
   border:1px solid rgba(201,168,76,.38);border-radius:14px;
   background:linear-gradient(115deg,rgba(201,168,76,.115),rgba(11,12,16,.9) 55%,rgba(201,168,76,.055));
@@ -1127,7 +1128,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
     <button class="mob" id="sbToggle" aria-label="Menu"><span></span><span></span><span></span></button>
     <div class="brand" data-go="command">
       <svg viewBox="0 0 1000 866" aria-hidden="true" focusable="false"><path fill="url(#vice-gold)" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/></svg>
-      <div><div class="bn">VICE <em>OS</em></div><div class="bsub">VICE Capital Inc.</div></div>
+      <div><div class="bn">VICE<em>4X</em></div><div class="bsub">VICE Capital Inc.</div></div>
     </div>
     <div class="tbc">
       <div class="pill" id="modePill" data-act="open-mode"><span class="d" id="modeDot"></span><span id="modeLabel">LIVE</span></div>
@@ -1151,7 +1152,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
   <aside class="sb" id="sb">
     <div class="sb-brand">
       <svg viewBox="0 0 1000 866" aria-hidden="true" focusable="false"><path fill="url(#vice-gold)" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/></svg>
-      <b>VICE</b><span>OS</span>
+      <b>VICE</b><span>4X</span>
     </div>
     <div id="navHost"></div>
     <div class="sb-foot"><span id="buildv"></span><br>Ctrl K · O.I. · / pairs</div>
@@ -1212,7 +1213,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
     <div class="login-logo">
       <svg viewBox="0 0 1000 866" aria-hidden="true"><path fill="url(#vice-gold)" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/></svg>
     </div>
-    <h2 class="login-title">VICE <em>OS</em></h2>
+    <h2 class="login-title">VICE<em>4X</em></h2>
     <p class="login-sub">Institutional Operating System</p>
     <button type="button" id="googleBtn" class="google-btn" data-act="google-sign-in">
       <svg viewBox="0 0 24 24" fill="#c9a84c"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/></svg>
@@ -1220,7 +1221,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
     </button>
     <div class="divider">OR</div>
     <form id="loginForm" autocomplete="on">
-      <div class="ff" style="margin-bottom:12px"><label>Email or Username</label><input id="lIdentifier" type="text" placeholder="kahzi or you@example.com" required></div>
+      <div class="ff" style="margin-bottom:12px"><label>Email or Username</label><input id="lIdentifier" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="kahzi or you@example.com" required></div>
       <div class="ff" style="margin-bottom:16px"><label>Password</label><input id="lPass" type="password" placeholder="••••••••" required></div>
       <button type="submit" id="loginBtn" class="btn btn-p btn-b" style="padding:13px">Log In</button>
     </form>
@@ -1344,17 +1345,18 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
     window.ViceWallet = null;
   }
 </script>
+<script src="vice-solace-system.js?v=20261018"></script>
 <script>
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════
-   VICE OS — Core Configuration & Utilities
+   VICE4X — Core Configuration & Utilities
    ═══════════════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL = 'https://sdsaewumabzjjvsmqqsl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkc2Fld3VtYWJ6amp2c21xcXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODUwOTksImV4cCI6MjEwNzI2MTA5OX0.T5Pq2qIeXDnkAZm_M3MA-vKpcsLAglVCN98gIsQ_7-w';
 
-const BUILD = { version: '1.3.8.0-IRU-CERTIFICATES', date: '2026-10-15' };
+const BUILD = { version: '1.3.8.0-IRU-CERTIFICATES', date: '2026-10-18' };
 // Preserve message crypto derivation across UI-only releases.
 const COMMS_CRYPTO_VERSION = '1.0.3'; // Legacy predictable keys; not audited E2EE
 
@@ -1373,7 +1375,7 @@ const viceAuthReady = (async () => {
       if(Math.abs(skewSeconds) > 180){
         viceClockWarning = 'Your computer clock differs from server time by approximately ' +
           Math.round(Math.abs(skewSeconds)/60) +
-          ' minutes. Open Windows Settings → Time & language → Date & time. Enable automatic time, check the time zone, press Sync now, then reload VICE OS.';
+          ' minutes. Open Windows Settings → Time & language → Date & time. Enable automatic time, check the time zone, press Sync now, then reload VICE4X.';
         return false; // Avoid repeatedly refreshing an apparently expired token.
       }
     }
@@ -1667,10 +1669,7 @@ const S = {
   },
   sel: { symbol: 'PRACTICE', tf: '1h', src: 'local' },
   view2: { count: 140, end: null },
-  engine: {
-    sens:'Balanced', minLegATR:2, noTighten:true, breakCloses:1,
-    whipsaw:true, fallback:true, fbLen:20, atrLen:14, zoneTolATR:0.5
-  },
+  engine: {...ViceSolaceSystem.defaults},
   chart: {
     preset:'vice-gold', type:'hollow', colors:null,
     show:{ grid:true, zones:true, history:true, events:true, lastPrice:true,
@@ -1764,7 +1763,7 @@ const ROLE_LABELS = {
   SUPER_ADMIN:'Founder & CEO · Super Administrator',
   EXECUTIVE:'Executive',
   COMPLIANCE_OFFICER:'Compliance Officer',
-  FINANCE_OFFICER:'Finance Officer',
+  FINANCE_OFFICER:'Chief Financial Officer (CFO)',
   TREASURY_OPERATOR:'Treasury Operator',
   LEGAL_OFFICER:'Legal Officer',
   AUDITOR:'Auditor',
@@ -1777,8 +1776,11 @@ function can(p){
   return perms.includes('*') || perms.includes(p);
 }
 function isOwner(){ return S.profile?.role === 'SUPER_ADMIN'; }
+function isRegistryOperator(){return isOwner()||S.profile?.role==='FINANCE_OFFICER';}
+function currentHolderId(){return S.profile?.holderId||S.user?.id;}
+function normalizeLoginIdentifier(value){return String(value||'').trim().toLowerCase();}
 function isClient(){ return !!(S.profile?.clientId && S.profile.role === 'HOLDER'); }
-function canExecuteBot(){ return !!S.user && (can('exec') || isOwner()); }
+function canExecuteBot(){ return S.user?.id==='6e83b6bc-e247-41fc-8469-4267987273b7' && isOwner(); }
 
 /* ═══════════════════════════════════════════════════════════════════
    APP MODE
@@ -1900,7 +1902,7 @@ function exitSimMode(){
   S.defiWallet.chains.forEach(c => { c.address=null; c.balance=0; });
   S.defiWallet.initialized = false;
   ['tb','bnr','sb'].forEach(id => { const el=$(id); if(el) el.style.display='none'; });
-  const mn = document.querySelector('.mn'); if (mn) mn.style.display = 'none';
+  const mn = document.querySelector('main.mn'); if (mn) mn.style.display = 'none';
   $('login').hidden = false;
   $('cmTabs')?.classList.remove('on');
   applyModeUI();
@@ -1913,7 +1915,7 @@ function showApp(){
   const bnrEl = $('bnr');
   if(bnrEl && bnrEl.parentNode) $('bnr').style.display = 'flex';
   $('sb').style.display = 'block';
-  const mn = document.querySelector('.mn'); if (mn) mn.style.display = 'block';
+  const mn = document.querySelector('main.mn'); if (mn) mn.style.display = 'block';
 
   const av = $('userAvatar');
   if (av) {
@@ -1933,6 +1935,7 @@ function showApp(){
   renderNav();
   paintUserBadges();
   go(S.tab || 'command');
+  try{Notify.resumeRoute();}catch{}
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -2030,7 +2033,7 @@ function renderNav(){
   const host = $('navHost'); if(!host) return;
   const isHolder = S.profile.role === 'HOLDER' && !isClient();
   const role = S.profile.role || 'HOLDER';
-  const holderGroups = new Set(['My Desk','Connect','My Record','Learn','Support']);
+  const holderGroups = new Set(['My Desk','Connect','My Record','Learn','Support','Services','Accounts']);
 
   let html = '';
   for(const group of NAV){
@@ -2080,7 +2083,7 @@ function paintUserBadges(){
   const badges = [];
   if (isOwner()) badges.push({ label:'FOUNDER · CEO', cls:'gd' });
   else if (S.profile.vipAccess) badges.push({ label:'VIP', cls:'gd' });
-  const holder = S.iru.state && S.user ? S.iru.state.holders[S.user.id] : null;
+  const holder = S.iru.state && S.user ? S.iru.state.holders[currentHolderId()] : null;
   if (holder && holder.tier) badges.push({ label: holder.tier.tier, cls:'nt' });
   slot.innerHTML = badges.map(b => `<span class="bdg ${b.cls}">${esc(b.label)}</span>`).join('');
 }
@@ -2170,14 +2173,14 @@ async function login(){
   if(authBusy) return;
   authBusy = true;
   try{
-    const identifier = $('lIdentifier').value.trim();
+    const identifier = normalizeLoginIdentifier($('lIdentifier').value);
     const pw = $('lPass').value;
     if(!identifier || !pw){ toast('Email/username + password required','error'); authBusy=false; return; }
     let email = identifier;
     if(!identifier.includes('@')){
       const { data, error } = await sb.rpc('lookup_email_for_login', { p_identifier: identifier });
       if(error || !data){ toast('Username not found','error'); authBusy=false; return; }
-      email = data;
+      email = normalizeLoginIdentifier(data);
     }
     const btn = $('loginBtn');
     if(btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
@@ -2200,7 +2203,7 @@ async function login(){
 // Read-only connectivity checks. Never upload credentials or wallet recovery material.
 async function viceServiceDiagnostics(){
   if(!(await viceAuthReady)){showViceClockWarning();return;}
-  openModal('VICE OS — Connection Diagnostics','<p class="note">Read-only connectivity checks. No passwords or wallet keys are collected.</p><div id="viceHealthRows" role="status" aria-live="polite">Checking...</div>');
+  openModal('VICE4X — Connection Diagnostics','<p class="note">Read-only connectivity checks. No passwords or wallet keys are collected.</p><div id="viceHealthRows" role="status" aria-live="polite">Checking...</div>');
   const rows=[],write=(name,status,detail)=>{
     rows.push([name,status,detail]);const host=$('viceHealthRows');
     if(host)host.innerHTML=rows.map(x=>'<div class="row" style="display:block;padding:10px"><b>'+esc(x[0])+'</b> <span class="bdg '+(x[1]==='PASS'?'gr':x[1]==='WARN'?'wn':'rd')+'">'+esc(x[1])+'</span><div class="meta">'+esc(x[2])+'</div></div>').join('')+'<p class="note">Build '+esc(BUILD.version)+'. Checks are not a certification of live trading, encryption or account balances.</p>';
@@ -2284,7 +2287,7 @@ async function applyRecoveredPassword(){
 
 async function forgotPassword(){
   if(!(await viceAuthReady)){showViceClockWarning();return;}
-  const email = prompt('Account email:');
+  const email = normalizeLoginIdentifier(prompt('Account email:'));
   if(!email) return;
   try{
     const { error } = await sb.auth.resetPasswordForEmail(email, {
@@ -2323,7 +2326,9 @@ let authSetupOwner = null;
 let authSetupEpoch = -1;
 let authEpoch = 0;
 function clearMemberSession(){
+  try{Notify.clear();window.Vice4xOperations?.clear();}catch{}
   authEpoch++;
+  if(typeof holderOperation!=='undefined')holderOperation=null;
   if(viceSyncTimer){clearInterval(viceSyncTimer);viceSyncTimer=null;}
   try{Realtime.disconnect();}catch(_){}
   try{Link.stop();}catch(_){}
@@ -2353,7 +2358,7 @@ function clearMemberSession(){
 function onAuthenticated(user){
   if(APP_MODE === 'SIM') return Promise.resolve();
   if(!user?.id) return Promise.reject(new Error('Missing authenticated user'));
-  if(S.user?.id === user.id && $('login')?.hidden === true) return Promise.resolve();
+  if(S.user?.id === user.id && $('login')?.hidden === true) return checkMemberAccess();
   if(authSetupTask){
     if(authSetupOwner===user.id&&authSetupEpoch===authEpoch)return authSetupTask;
     clearMemberSession();
@@ -2369,6 +2374,7 @@ function onAuthenticated(user){
 async function completeAuthenticatedSetup(user,epoch=authEpoch){
   const current=()=>epoch===authEpoch;
   try {
+    if(!(await checkMemberAccess(epoch)))return;
     const inviteCode=sessionStorage.getItem('pending_invite') ||
       new URLSearchParams(location.search).get('invite');
     let {data:prof,error:profileError}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
@@ -2462,6 +2468,8 @@ async function ensureHolderForCurrentUser(){
   if(epoch!==authEpoch)return null;
   if(error)throw error;
   S.profile.clientId=data.client_id;
+  S.profile.holderId=data.id;
+  S.profile.holdingsLocked=!!data.holdings_locked;
   S.personalHoldings={viceUnits:Number(data.vice_units||0),v4xUnits:Number(data.v4x_units||0)};
   return data;
 }
@@ -2519,12 +2527,27 @@ async function refreshDaoConfig(){
   }
 }
 let viceSyncTimer=null;
+async function checkMemberAccess(epoch=authEpoch){
+  if(APP_MODE!=='LIVE')return true;
+  const {data,error}=await sb.rpc('vice_member_access_status');
+  if(epoch!==authEpoch)return false;
+  if(error)throw error;
+  if(!data||typeof data.allowed!=='boolean')throw new Error('Account access could not be verified');
+  if(data.allowed)return true;
+  const message=data.revoked?'Membership access has been revoked. Contact the Reserve administrator.':
+    data.suspended?'Account access is suspended. Contact an administrator.':'Your session has expired. Please sign in again.';
+  clearMemberSession();
+  try{await sb.auth.signOut({scope:'local'});}catch(e){console.warn('Restricted session cleanup:',e.message);}
+  toast(message,'error');
+  return false;
+}
 function startViceSync(){
   if(viceSyncTimer)clearInterval(viceSyncTimer);
   // Polling is a fallback when Realtime publications are not configured.
   viceSyncTimer=setInterval(async()=>{
     if(!S.user||APP_MODE!=='LIVE'||document.hidden)return;
-    try{await Promise.all([refreshGovernance(),refreshIssuerReferences()]);
+    try{if(!(await checkMemberAccess()))return;
+      await Promise.all([refreshGovernance(),refreshIssuerReferences()]);
       if(['governance','command','portfolio','admin'].includes(S.tab))renderMain();
       renderNav();
       if(typeof CloudMT5!=='undefined'&&(!CloudMT5.state.lastRefresh||Date.now()-CloudMT5.state.lastRefresh>240000))
@@ -2547,7 +2570,7 @@ async function hydrateData(){
       if(!current())return;
       if(error) throw error;
       if(data) S[key] = data.map(denorm);
-    }catch(e){ console.warn('VICE OS table load failed [' + table + ']:', e); }
+    }catch(e){ console.warn('VICE4X table load failed [' + table + ']:', e); }
   }
 
   /* Distributions keep the enriched shape we write */
@@ -2647,6 +2670,22 @@ async function hydrateData(){
       if(batch===19999)throw new Error('IRU replay safety bound reached; use server checkpoints');
     }
     S.iru.state=IruEngine.replay(pages);
+    let reserveAdmins=new Set();
+    if(isRegistryOperator()){
+      const directory=await sb.rpc('list_member_directory');
+      if(!current())return;
+      if(directory.error)throw directory.error;
+      reserveAdmins=new Set((directory.data||[]).filter(p=>p.role==='SUPER_ADMIN').map(p=>p.id));
+    }
+    // Holder IDs can differ from auth IDs. Display current authoritative
+    // identity/control metadata without changing replayed financial balances.
+    for(const row of S.holders||[]){
+      const h=S.iru.state.holders[row.id];
+      if(h)Object.assign(h,{clientId:row.clientId,name:row.name,email:row.email,
+        status:row.status,holdingsLocked:!!row.holdingsLocked,accountSuspended:!!row.accountSuspended,
+        accountRevoked:!!row.accountRevoked,userId:row.userId,profileId:row.profileId,
+        reserveProtected:[row.id,row.userId,row.profileId].some(id=>reserveAdmins.has(id))});
+    }
     // Replay is a derived view, not a substitute for authoritative SQL counters.
     const defects=IruEngine.checkInvariants(S.iru.state);
     if(defects.length)throw new Error('IRU invariant failures: '+defects.slice(0,3).join('; '));
@@ -2729,7 +2768,7 @@ async function logout(){
   S.personalHoldings={viceUnits:0,v4xUnits:0};
   S.iru.state=null; S.iru.registryReady=false;
   ['tb','bnr','sb'].forEach(id => { const el=$(id); if(el) el.style.display='none'; });
-  const mn = document.querySelector('.mn'); if (mn) mn.style.display = 'none';
+  const mn = document.querySelector('main.mn'); if (mn) mn.style.display = 'none';
   $('login').hidden = false;
   $('cmTabs')?.classList.remove('on');
   toast('Signed out','info');
@@ -2793,14 +2832,14 @@ async function refreshEstateRegistry(){
   } else S.estateAdminLedger=null;
 }
 
-async function persistIruEvent(ev){
+async function persistIruEvent(ev,correlationId=crypto.randomUUID()){
   if(APP_MODE==='SIM' && S.user?.id==='sim-user')return {simulated:true};
-  if(!S.user||!isOwner())throw new Error('SUPER_ADMIN authorization required');
+  if(!S.user||!isRegistryOperator())throw new Error('CFO or Reserve administrator authorization required');
   if(!S.iru.registryReady) throw new Error('IRU registry not synchronized. No changes were made: ' + (S.iru.registryError || 'reload and inspect Console'));
   if(['UNITS_ISSUED','UNITS_RETIRED'].includes(ev?.type) && !await verifyStrategicBackend())
     throw new Error('Unit mutations disabled: live canonical-price release gate has not passed');
   const {data,error}=await sb.rpc('append_iru_event',{
-    p_payload:ev,p_correlation_id:crypto.randomUUID()});
+    p_payload:ev,p_correlation_id:correlationId});
   if(error)throw error;
   if(['UNITS_ISSUED','UNITS_RETIRED'].includes(ev?.type)) {
     S.tokenCerts.loaded=false;
@@ -3037,7 +3076,7 @@ function openInviteHelp(){
   const active = urlInvite || sessInvite || '';
   openModal('Have an Invite?', `
     <p style="font-size:.86rem;line-height:1.7;color:var(--tx-2);margin-bottom:14px">
-      VICE OS is invite-only. ${active?'Invite code <strong style="color:var(--gdl)">already detected</strong>.':'Paste your invite code below.'}
+      VICE4X is invite-only. ${active?'Invite code <strong style="color:var(--gdl)">already detected</strong>.':'Paste your invite code below.'}
     </p>
     <div class="ff" style="margin-bottom:14px"><label>Invite Code</label><input id="invInput" value="${esc(active)}" placeholder="vice-xxxxxxxxxx"></div>
     <div class="mact" style="justify-content:flex-start;margin-top:0;padding-top:0;border-top:none">
@@ -3067,7 +3106,7 @@ window.__viceAct = function(t, e){
       setTimeout(openInviteHelp, 200); return;
     }
     case 'signup-invite': {
-      const email = $('invEmail')?.value.trim();
+      const email = normalizeLoginIdentifier($('invEmail')?.value);
       const pw = $('invPass')?.value, cf = $('invConf')?.value;
       const inviteCode = sessionStorage.getItem('pending_invite')
         || new URLSearchParams(location.search).get('invite');
@@ -3833,12 +3872,14 @@ const YAHOO_TF = { '1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'1h','1d':'1d'
 const YAHOO_RANGE = { '1m':'5d','5m':'1mo','15m':'1mo','1h':'3mo','4h':'1y','1d':'2y','1wk':'5y' };
 
 async function fetchCandlesBinance(ticker, tf, limit) {
-  limit = limit || 500;
-  const url = `https://api.binance.com/api/v3/klines?symbol=${ticker}&interval=${BINANCE_TF[tf] || '1h'}&limit=${limit}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('Binance HTTP ' + r.status);
-  const d = await r.json();
-  return d.map(k => ({ t:k[0], o:+k[1], h:+k[2], l:+k[3], c:+k[4], v:+k[5] }));
+  const wanted=Math.min(5000,Math.max(1,Number(limit)||500));let rows=[],endTime;
+  while(rows.length<wanted){
+    const params=new URLSearchParams({symbol:ticker,interval:BINANCE_TF[tf]||'1h',limit:String(Math.min(1000,wanted-rows.length))});if(endTime!=null)params.set('endTime',String(endTime));
+    const r=await fetch('https://api.binance.com/api/v3/klines?'+params);if(!r.ok)throw Error('Binance HTTP '+r.status);
+    const page=await r.json();if(!Array.isArray(page)||page.some(k=>!Array.isArray(k)||![+k[0],+k[1],+k[2],+k[3],+k[4]].every(Number.isFinite)))throw Error('Binance returned invalid candles');
+    if(!page.length)break;const first=Number(page[0][0]);if(endTime!=null&&first>endTime)throw Error('Binance history did not advance');rows=page.concat(rows);endTime=first-1;if(page.length<Number(params.get('limit')))break;
+  }
+  return rows.map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));
 }
 
 async function fetchCandlesYahoo(ticker, tf) {
@@ -3886,7 +3927,7 @@ async function loadLtfCandles(current=()=>true) {
   const ltf=Solace.LTF_FOR_TF[S.ch.tf];
   if(!ltf){if(current()){S.ch.ltfCandles=[];S.ch.ltfTf=null;}return;}
   try{
-    const raw=await fetchCandlesUnified(S.ch.pair,ltf,500);
+    const raw=await fetchCandlesUnified(S.ch.pair,ltf,Math.min(5000,ViceSolaceSystem.options(S.engine).lookback+100));
     if(current()){S.ch.ltfCandles=raw;S.ch.ltfTf=ltf;}
   }catch(e){if(current()){S.ch.ltfCandles=[];S.ch.ltfTf=ltf;console.warn('Lower timeframe unavailable:',e.message);}}
 }
@@ -3897,13 +3938,13 @@ async function loadCandles() {
   const key=pair+'|'+tf;
   if(S.view2.datasetKey!==key){S.view2.priceRange=null;S.view2.end=null;S.view2.datasetKey=key;}
   try {
-    const cs=await fetchCandlesUnified(pair,tf,500);
+    const cs=await fetchCandlesUnified(pair,tf,Math.min(5000,ViceSolaceSystem.options(S.engine).lookback+100));
     if(!current())return;
     if(!Array.isArray(cs)||!cs.length)throw Error('Provider returned no candles');
     S.ch.candles=cs;S.ch.error=null;
     S.ch.source=APP_MODE==='SIM'||pair===PRACTICE?'SIM':parseSymbol(pair).source;
     computeATR();await loadLtfCandles(current);if(!current())return;
-    S.res=Solace.run(cs,S.engine,S.ch.ltfCandles);drawAll();
+    S.res=ViceSolaceSystem.run(cs,{...S.engine,tfSeconds:TF_SEC[tf]||3600,ltfSeconds:TF_SEC[S.ch.ltfTf]||60},S.ch.ltfCandles);drawAll();
   }catch(e){
     if(!current())return;
     S.ch.candles=[];S.ch.ltfCandles=[];S.ch.source='UNAVAILABLE';S.ch.error=e.message||'Provider unavailable';S.res=null;
@@ -3978,6 +4019,8 @@ const IruEngine = (() => {
   const ACTIVE_STATES = new Set(['PENDING','APPROVED','RESERVED','FROZEN']);
   const TYPES = new Set([
     'HOLDER_ADDED','HOLDER_UPDATED','HOLDER_FROZEN','HOLDER_UNFROZEN',
+    'HOLDINGS_LOCKED','HOLDINGS_UNLOCKED','ACCOUNT_SUSPENDED','ACCOUNT_RESUMED',
+    'ACCOUNT_REVOKED','ACCOUNT_RESTORED','HOLDER_CLOSED','UNITS_TRANSFERRED_OUT','UNITS_TRANSFERRED_IN',
     'UNITS_ISSUED','UNITS_RETIRED','UNITS_ISSUANCE_REVERSED',
     'ALLOCATION_CREATED','ALLOCATION_APPROVED','ALLOCATION_RESERVED','ALLOCATION_DISTRIBUTED',
     'ALLOCATION_REVOKED','ALLOCATION_FROZEN','ALLOCATION_UNFROZEN',
@@ -4003,7 +4046,7 @@ const IruEngine = (() => {
   }
 
   const avail = (st, p) => ECON.pool - st.supply[p] - st.committed[p];
-  const countHolders = st => Object.values(st.holders).filter(h => !h.reserve).length;
+  const countHolders = st => Object.values(st.holders).filter(h => !h.reserve&&h.status!=='CLOSED').length;
   const cid = n => `VC-${String(n).padStart(6,'0')}`;
 
   function ensureAvail(st, p, units) {
@@ -4081,7 +4124,7 @@ const IruEngine = (() => {
         if (wallet && !/^0x[0-9a-fA-F]{40}$/.test(wallet)) throw new Error('That wallet address is not a valid Ethereum address.');
         st.holders[ev.holderId] = {
           holderId:ev.holderId,
-          clientId:cid(st.nextClient),
+          clientId:ev.clientId||cid(st.nextClient),
           name:name.slice(0,80),
           email:String(ev.email || '').slice(0,120),
           wallet,
@@ -4098,6 +4141,41 @@ const IruEngine = (() => {
         const h = st.holders[ev.holderId];
         if (!h || h.reserve) throw new Error('Unknown holder.');
         h.status = ev.type === 'HOLDER_FROZEN' ? 'FROZEN' : 'ACTIVE';
+        break;
+      }
+      case 'HOLDINGS_LOCKED':
+      case 'HOLDINGS_UNLOCKED':
+      case 'ACCOUNT_SUSPENDED':
+      case 'ACCOUNT_RESUMED':
+      case 'ACCOUNT_REVOKED':
+      case 'ACCOUNT_RESTORED':
+      case 'HOLDER_CLOSED': {
+        const h=holder(st,ev.holderId);
+        if(ev.type==='HOLDER_CLOSED'){
+          if((st.balances.VICE[ev.holderId]||0n)!==0n||(st.balances.V4X[ev.holderId]||0n)!==0n)
+            throw new Error('Holder balances must be reconciled before closure.');
+          Object.assign(h,{status:'CLOSED',email:'',name:'Closed account · '+h.clientId});
+        }else if(ev.type.startsWith('HOLDINGS_'))h.holdingsLocked=ev.type==='HOLDINGS_LOCKED';
+        else if(ev.type==='ACCOUNT_REVOKED'||ev.type==='ACCOUNT_RESTORED'){
+          h.accountRevoked=ev.type==='ACCOUNT_REVOKED';h.accountSuspended=false;
+          h.status=h.accountRevoked?'REVOKED':'ACTIVE';
+        }else{
+          h.accountSuspended=ev.type==='ACCOUNT_SUSPENDED';h.status=h.accountSuspended?'SUSPENDED':'ACTIVE';
+        }
+        break;
+      }
+      case 'UNITS_TRANSFERRED_OUT':
+      case 'UNITS_TRANSFERRED_IN': {
+        const h=holder(st,ev.holderId),p=program(ev.program),u=parseUnits(ev.units);
+        requireReason(ev.reason,'transfer');
+        if(!ev.transferId||!ev.counterpartyId||ev.counterpartyId===ev.holderId)throw new Error('Invalid transfer reference.');
+        if(st.journal.some(e=>e.type===ev.type&&e.transferId===ev.transferId))throw new Error('Transfer already recorded.');
+        const before=st.balances[p.id][ev.holderId]||0n,out=ev.type==='UNITS_TRANSFERRED_OUT';
+        if(out&&before<u)throw new Error('Transfer exceeds holder balance.');
+        st.balances[p.id][ev.holderId]=before+(out?-u:u);
+        // Each holder can replay their own authorized side. Full-registry replay
+        // sees both sides, so total issued supply is unchanged.
+        st.supply[p.id]+=out?-u:u;
         break;
       }
       case 'HOLDER_UPDATED': {
@@ -4447,7 +4525,7 @@ const IruEngine = (() => {
   }
   function registry(st) {
     const cur = { VICE:st.current.VICE, V4X:st.current.V4X };
-    const rows = Object.values(st.holders).filter(h => !h.reserve).map(h => {
+    const rows = Object.values(st.holders).filter(h => !h.reserve&&h.status!=='CLOSED').map(h => {
       const vice = st.balances.VICE[h.holderId] || 0n;
       const v4x = st.balances.V4X[h.holderId] || 0n;
       const rv = cur.VICE ? vice * cur.VICE.valueCents : null;
@@ -6052,8 +6130,9 @@ const Realtime = (() => {
     const mm = String(Math.floor(elapsed / 60)).padStart(2,'0');
     const ss = String(elapsed % 60).padStart(2,'0');
     root.innerHTML = `
-      <div class="call-card">
-        <div class="call-av">${esc(initial)}</div>
+      <div class="call-card" role="dialog" aria-modal="true" aria-label="Call with ${esc(c.peerName)}">
+        <div class="call-brand">VICE<em>4X</em><span>MEMBER COMMUNICATIONS</span></div>
+        <div class="call-av" aria-hidden="true">${esc(initial)}</div>
         <div class="call-name">${esc(c.peerName)}</div>
         ${c.remoteVideo?'<video id="viceRemoteVideo" autoplay playsinline muted style="width:100%;max-height:240px;background:#000"></video>':''}
         ${c.videoStream?'<video id="viceLocalVideo" autoplay playsinline muted style="width:120px;max-height:90px;background:#000"></video>':''}
@@ -6062,21 +6141,23 @@ const Realtime = (() => {
         ${isLive ? `<div class="call-timer">${mm}:${ss}</div>` : ''}
         <div class="call-actions">
           ${c.state === 'incoming' ? `
-            <button class="call-btn decline" data-act="call-decline" title="Decline">
+            <button class="call-btn decline" data-act="call-decline" title="Decline" aria-label="Decline call">
               <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" transform="rotate(135 12 12)"/></svg>
             </button>
-            <button class="call-btn accept" data-act="call-accept" title="Accept">
+            <button class="call-btn accept" data-act="call-accept" title="Accept" aria-label="Accept call">
               <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             </button>
           ` : `
-            <button class="call-btn mute ${c.muted ? 'off' : ''}" data-act="call-mute" title="${c.muted ? 'Unmute' : 'Mute'}">
+            <button class="call-btn mute ${c.muted ? 'off' : ''}" data-act="call-mute" title="${c.muted ? 'Unmute' : 'Mute'}" aria-label="${c.muted ? 'Unmute microphone' : 'Mute microphone'}" aria-pressed="${c.muted}">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
             </button>
-            <button class="call-btn decline" data-act="call-end" title="End call">
+            <button class="call-btn decline" data-act="call-end" title="End call" aria-label="End call">
               <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" transform="rotate(135 12 12)"/></svg>
             </button>
           `}
         </div>
+        <p class="call-control-labels">${c.state==='incoming'?'Decline · Accept':'Microphone · End call'}</p>
+        <p class="call-device-note">Audio uses your selected device. Screen sharing depends on browser support.</p>
       </div>
     `;
     if($('viceRemoteVideo'))$('viceRemoteVideo').srcObject=c.remoteVideo;
@@ -6119,126 +6200,105 @@ window.Realtime = Realtime;
    ═══════════════════════════════════════════════════════════════════ */
 
 const Notify = (() => {
-  let audioCtx = null;
-  let permissionRequested = false;
-
-  function ensurePermission(){
-    if(permissionRequested) return;
-    permissionRequested = true;
-    try {
-      if('Notification' in window && Notification.permission === 'default'){
-        Notification.requestPermission().catch(()=>{});
-      }
-    } catch(_){}
-  }
-  // No startup permission prompt: Settings > Enable notifications requests it.
-
+  let audioCtx=null, ringTimer=null, pulseTimer=null, ringEpoch=0, registration=null, bannerTimer=null, pendingRoute=null;
+  const soundEnabled=()=>{try{return localStorage.getItem('vice4x-alert-sound')!=='off';}catch{return true;}};
+  const quiet=()=>typeof Realtime!=='undefined'&&Realtime.status()==='DND';
   function getCtx(){
-    if(!audioCtx){
-      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(_){}
-    }
+    if(!audioCtx)try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch{}
     return audioCtx;
   }
-
-  function beep({ freq = 880, dur = 0.14, gain = 0.12, type = 'sine' } = {}){
-    const ctx = getCtx();
-    if(!ctx) return;
-    try {
-      if(ctx.state === 'suspended') ctx.resume();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = type;
-      o.frequency.value = freq;
-      g.gain.value = 0.0001;
-      g.gain.exponentialRampToValueAtTime(gain, ctx.currentTime + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.start();
-      o.stop(ctx.currentTime + dur + 0.02);
-    } catch(_){}
+  function unlock(){const ctx=getCtx();if(ctx?.state==='suspended')ctx.resume().catch(()=>{});}
+  document.addEventListener('pointerdown',unlock,{passive:true});
+  document.addEventListener('keydown',unlock);
+  function beep({freq=880,dur=.14,gain=.12,type='sine'}={}){
+    if(!soundEnabled()||quiet())return;
+    const ctx=getCtx();if(!ctx||ctx.state!=='running')return;
+    try{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=freq;
+      g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(gain,ctx.currentTime+.015);
+      g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+dur);o.connect(g);g.connect(ctx.destination);
+      o.onended=()=>{o.disconnect();g.disconnect();};o.start();o.stop(ctx.currentTime+dur+.02);
+    }catch(e){console.warn('Call audio unavailable:',e.message);}
   }
-
-  function playMessageTone(){
-    beep({ freq: 880, dur: 0.11, gain: 0.10 });
-    setTimeout(() => beep({ freq: 1320, dur: 0.09, gain: 0.08 }), 130);
+  function haptic(pattern=[40]){
+    if(!quiet())try{navigator.vibrate?.(pattern);}catch{}
+    document.querySelectorAll('#call-root .call-av,.rt-badge').forEach(el=>{
+      el.classList.remove('pulse-alert');void el.offsetWidth;el.classList.add('pulse-alert');
+    });
   }
-
-  let callRingTimer = null;
+  function stopCallRingtone(){ringEpoch++;clearInterval(ringTimer);clearTimeout(pulseTimer);ringTimer=null;pulseTimer=null;try{navigator.vibrate?.(0);}catch{}}
   function startCallRingtone(){
-    stopCallRingtone();
-    const ring = () => {
-      beep({ freq: 760, dur: 0.35, gain: 0.13, type: 'triangle' });
-      setTimeout(() => beep({ freq: 760, dur: 0.35, gain: 0.13, type: 'triangle' }), 500);
-    };
-    ring();
-    callRingTimer = setInterval(ring, 2200);
+    stopCallRingtone();const epoch=ringEpoch;
+    const pulse=()=>{if(epoch!==ringEpoch)return;beep({freq:660,dur:.28,gain:.12,type:'triangle'});haptic([180]);};
+    const ring=()=>{pulse();pulseTimer=setTimeout(pulse,440);};ring();ringTimer=setInterval(ring,2200);
   }
-  function stopCallRingtone(){
-    clearInterval(callRingTimer);
-    callRingTimer = null;
+  function validRoute(route){
+    if(!route||route.receiverId!==S.user?.id)return false;
+    if(route.peerId&&!/^[a-f0-9-]{36}$/i.test(route.peerId))return false;
+    if(route.channelId&&!S.comms.channels.some(c=>c.id===route.channelId))return false;
+    return true;
   }
-
-  function haptic(pattern = [40]){
-    try {
-      if(navigator.vibrate) navigator.vibrate(pattern);
-    } catch(_){}
-    try {
-      document.querySelectorAll('.rt-badge, #oi-orb').forEach(el => {
-        el.classList.remove('pulse-alert');
-        void el.offsetWidth;
-        el.classList.add('pulse-alert');
-      });
-    } catch(_){}
+  function navigate(route){
+    if(!S.user){pendingRoute=route;return;}
+    if(!validRoute(route))return;
+    window.focus();
+    if(route.kind==='call'&&Realtime.current()){document.getElementById('call-root')?.focus();return;}
+    if(route.kind==='distributions'){go('distributions');return;}
+    S.comms.activeDm=route.peerId||null;S.comms.activeChannel=route.channelId||null;go('comms');
+    document.getElementById('vice4x-alert')?.remove();
   }
-
-  function systemNotify(title, body, options = {}){
-    try {
-      if(!('Notification' in window)) return;
-      if(Notification.permission !== 'granted') return;
-      if(!document.hidden) return;
-      const n = new Notification(title, {
-        body,
-        tag: options.tag || 'vice-os',
-        silent: true,
-        renotify: true,
-        ...options,
-      });
-      n.onclick = () => {
-        try { window.focus(); n.close(); } catch(_){}
-        if(options.onClick) try { options.onClick(); } catch(_){}
-      };
-      setTimeout(() => { try { n.close(); } catch(_){} }, 8000);
-    } catch(_){}
+  function routeFromTag(tag){return {receiverId:S.user?.id,peerId:tag?.startsWith('dm:')?tag.slice(3):null,channelId:tag?.startsWith('ch:')?tag.slice(3):null};}
+  function inApp(title,body,route,click){
+    document.getElementById('vice4x-alert')?.remove();clearTimeout(bannerTimer);
+    const host=document.createElement('aside');host.id='vice4x-alert';host.className='vice4x-alert';host.setAttribute('aria-live','polite');
+    const button=document.createElement('button');button.className='vice4x-alert-open';
+    const heading=document.createElement('strong');heading.textContent=title;
+    const detail=document.createElement('span');detail.textContent=String(body||'New message').slice(0,120);
+    button.append(heading,detail);button.onclick=()=>{if(validRoute(route)){if(click)click();else navigate(route);}host.remove();};
+    const close=document.createElement('button');close.className='vice4x-alert-close';close.textContent='×';close.setAttribute('aria-label','Dismiss notification');close.onclick=()=>host.remove();
+    host.append(button,close);document.body.append(host);bannerTimer=setTimeout(()=>host.remove(),10000);
   }
-
+  async function systemNotify(title,body,route,options={}){
+    if(!document.hidden||!('Notification'in window)||Notification.permission!=='granted')return;
+    const opts={body,tag:options.tag||'vice4x',data:{route},requireInteraction:!!options.requireInteraction};
+    try{
+      const reg=registration||await navigator.serviceWorker?.getRegistration();
+      if(reg?.active){await reg.showNotification(title,opts);return;}
+      const n=new Notification(title,opts);n.onclick=()=>{navigate(route);n.close();};
+    }catch(e){console.warn('Device notification unavailable; in-site alerts remain active:',e.message);}
+  }
+  async function request(){
+    unlock();beep({freq:990,dur:.1});
+    if(!('Notification'in window)){toast('In-site sound and message alerts enabled. Device notifications are unavailable in this browser.','info');return;}
+    try{const state=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;
+      toast(state==='granted'?'Device and in-site alerts enabled':state==='denied'?'In-site alerts enabled. Device notifications are blocked in browser settings.':'In-site alerts enabled; device permission not granted',state==='granted'?'success':'info');
+    }catch(e){toast('In-site alerts enabled. Add VICE4X to your Home Screen for supported iPhone device notifications.','info');}
+  }
+  if('serviceWorker'in navigator&&window.isSecureContext){
+    navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).then(r=>{registration=r;return r.update();}).catch(e=>console.warn('Alert service worker:',e.message));
+    navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='VICE4X_NOTIFICATION_OPEN')navigate(e.data.route);});
+  }
   return {
-    message(senderName, text, meta = {}){
-      playMessageTone();
-      haptic([20, 60, 20]);
-      systemNotify(
-        `VICE OS · ${senderName}`,
-        String(text || '').slice(0, 120),
-        { tag: meta.tag || 'msg', onClick: meta.onClick }
-      );
+    message(senderName,text,meta={}){
+      const route=meta.route||routeFromTag(meta.tag);
+      if(!quiet()){beep();haptic([20,60,20]);}
+      inApp(senderName,text,route,meta.onClick);
+      void systemNotify('VICE4X · '+senderName,'New message · open VICE4X to read',route,{tag:meta.tag});
     },
-    callStarted(peerName){
-      startCallRingtone();
-      haptic([200, 100, 200, 100, 200]);
-      systemNotify(`Incoming call from ${peerName}`, 'Tap to answer', {
-        tag: 'call',
-        requireInteraction: true,
-      });
+    callStarted(peerName){startCallRingtone();const c=Realtime.current();if(c?.dir==='out')return;
+      void systemNotify('VICE4X · '+peerName,'Incoming call · open to answer',{receiverId:S.user?.id,kind:'call'}, {tag:'vice4x-call',requireInteraction:true});},
+    callEnded(){stopCallRingtone();registration?.getNotifications({tag:'vice4x-call'}).then(list=>list.forEach(n=>n.close())).catch(()=>{});},
+    clear(){stopCallRingtone();pendingRoute=null;clearTimeout(bannerTimer);document.getElementById('vice4x-alert')?.remove();registration?.getNotifications().then(list=>list.forEach(n=>n.close())).catch(()=>{});},
+    resumeRoute(){
+      if(pendingRoute){const r=pendingRoute;pendingRoute=null;navigate(r);}
+      const q=new URLSearchParams(location.search);if(q.has('alert')){
+        try{navigate(JSON.parse(q.get('alert')));}catch{}q.delete('alert');history.replaceState(null,'',location.pathname+(q.size?'?'+q:'')+location.hash);
+      }
     },
-    callEnded(){
-      stopCallRingtone();
-    },
-    haptic,
-    beep,
-    request: ensurePermission,
+    haptic,beep,request,navigate,startCallRingtone,stopCallRingtone
   };
 })();
-window.Notify = Notify;
+window.Notify=Notify;
+
 
 /* ═══════════════════════════════════════════════════════════════════
    MESSAGE ENCRYPTION — AES-GCM with HKDF per-thread keys
@@ -6949,7 +7009,7 @@ const Link = (() => {
     clearTimeout(timer);
     if (st._stopped||APP_MODE!=='LIVE'||!S.user?.id)return;
     if (!st.url) { st.status = 'off'; notify(); return; }
-    if(location.protocol==='https:' && !st.url.startsWith('wss://')) { st.status='error'; st.msg='HTTPS VICE OS requires a WSS bridge behind TLS.'; notify(); return; }
+    if(location.protocol==='https:' && !st.url.startsWith('wss://')) { st.status='error'; st.msg='HTTPS VICE4X requires a WSS bridge behind TLS.'; notify(); return; }
     if (typeof WebSocket === 'undefined') { st.status = 'off'; notify(); return; }
     if (ws && (ws.readyState === 0 || ws.readyState === 1)) return;
     st.status = 'connecting';
@@ -7172,7 +7232,7 @@ const Link = (() => {
       const acct = accts.find(a => a.id === id);
       if (!acct) return;
       if (st.status !== 'live') {
-        toast('VICE Link is not connected. Run VICE OS on your PC.','warn');
+        toast('VICE Link is not connected. Run VICE4X on your PC.','warn');
         return;
       }
       try {
@@ -7273,7 +7333,7 @@ const CloudMT5 = (() => {
     }
   }
   async function request(action,args={}){
-    if(APP_MODE!=='LIVE'||!S.user)throw new Error('Sign in to VICE OS LIVE before using cloud connections.');
+    if(APP_MODE!=='LIVE'||!S.user)throw new Error('Sign in to VICE4X LIVE before using cloud connections.');
     const {data,error}=await sb.functions.invoke('vice-mt5-cloud',{body:{action,...args}});
     if(error){
       let message=error.message||'Cloud connector unavailable';
@@ -7775,14 +7835,14 @@ const Academy = (() => {
 
 const KB = [
   ['connect-mt5','Connect MT5 terminals','Copy VICE_Link_Exporter.mq5 into the MT5 Experts folder, compile in MetaEditor, and attach it to a chart. Set the bridge server mt5_data_dir to the EA-exported Files/VICE_LINK directory. Install Node.js 20+ and run server/server.js locally using a strong VICE_LINK_TOKEN. This integration reads chart and account data only; never enter your broker password in the website.',['mt5','bridge','connect','terminal','broker','login','password','ea']],
-  ['add-broker-account','Add an MT5 broker account','Sign in to your official MT5 terminal directly. In VICE OS → MT5, enter the matching server and login to register a read-only connection to the local bridge. The bridge checks the currently active terminal account. No broker password is collected by VICE OS.',['broker','account','login','password','server','mt5']],
-  ['pair-phone','Use VICE OS on your phone','For local use pair with the six-digit code in the Windows bridge console. The default bridge listens on localhost only; a phone or hosted HTTPS site needs a trusted TLS-protected WSS proxy with strict origin rules, not a public ws:// link.',['phone','iphone','pair','pairing','code','mobile']],
+  ['add-broker-account','Add an MT5 broker account','Sign in to your official MT5 terminal directly. In VICE4X → MT5, enter the matching server and login to register a read-only connection to the local bridge. The bridge checks the currently active terminal account. No broker password is collected by VICE4X.',['broker','account','login','password','server','mt5']],
+  ['pair-phone','Use VICE4X on your phone','For local use pair with the six-digit code in the Windows bridge console. The default bridge listens on localhost only; a phone or hosted HTTPS site needs a trusted TLS-protected WSS proxy with strict origin rules, not a public ws:// link.',['phone','iphone','pair','pairing','code','mobile']],
   ['import-data','Import MT5 price history','In MT5 open View → Symbols (Ctrl+U) → Bars, choose the symbol and timeframe, Request, then Export. In Markets, tap Import MT5 bars. One M1 or M5 export unlocks every higher timeframe.',['import','csv','export','history','bars','chart']],
   ['invite-call','Invite someone to a call','In Comms open a DM and tap the call button. Or send an invite link from Admin → Invite Links.',['invite','call','video','voice','room','link']],
-  ['invite-platform','Invite someone to VICE OS','Admin → VIP Invites → Create VIP invite. Choose the role and send.',['invite','beta','link','signup','register','holder']],
+  ['invite-platform','Invite someone to VICE4X','Admin → VIP Invites → Create VIP invite. Choose the role and send.',['invite','beta','link','signup','register','holder']],
   ['wallet-create','Create or restore the VICE Wallet','Open Wallet. Create a new wallet to get a 24-word recovery phrase, shown once.',['wallet','create','restore','recovery','phrase','seed','keys']],
   ['two-step','Two-step verification','Open Security or Profile → Two-step verification, scan the TOTP enrollment QR using an authenticator app, and enter the six-digit code to activate the factor. Make sure your Supabase Auth settings enforce the desired MFA assurance policy.',['two-step','2fa','authy','code','recovery','mfa']],
-  ['documents-esign','Sign a document','In Documents select Sign, review the identified file, type your profile name and confirm consent. VICE OS records a server-side typed-name attestation bound to the file SHA-256 digest.',['sign','document','esign','signature','contract']],
+  ['documents-esign','Sign a document','In Documents select Sign, review the identified file, type your profile name and confirm consent. VICE4X records a server-side typed-name attestation bound to the file SHA-256 digest.',['sign','document','esign','signature','contract']],
   ['documents-download','Download or save a document','Open Documents and use Download. Supabase Storage issues a short-lived, access-controlled URL for each available file; the files are not publicly readable.',['download','save','document','file','export']],
   ['holders-tokens','Can holders see their tokens?','Yes. Appointed holders authenticate with their invited email or username and can see their scoped VICE/V4X IRU balances, tier and legacy records. Client ID is an identifier, not a password.',['holder','tokens','v4x','vice','balance','portal']],
   ['iru-value','What the IRU value and Locked mean','IRU values use VICE management reference rates. Locked status reflects transfer restrictions under the governing documents. Recorded unit rights and any proposed collateral use are subject to those documents, applicable law and lender approval.',['iru','value','token','locked','vice','v4x']],
@@ -7951,7 +8011,7 @@ const OI = (() => {
           + S.engine2.internal.positions.filter(p => p.status === 'OPEN').length,
       }),
     },
-    search_knowledge: { d:'Search the VICE OS help library.',
+    search_knowledge: { d:'Search the VICE4X help library.',
       run: inp => ({
         results:kbSearch(inp && inp.query).map(e => ({ id:e[0], title:e[1], text:e[2] }))
       }),
@@ -8283,7 +8343,7 @@ function drawSolace(){
     _ctx.fillText(S.ch.error?'Market data unavailable — retry or import verified data':'Select an instrument and load data',_W/2,_H/2);
     _cv._priceRange=null;return;
   }
-  const P = S.chart.colors, cs = S.ch.candles, res = S.res;
+  const P = S.chart.colors, cs = S.ch.candles;
   _ctx.fillStyle = P.bg;
   _ctx.fillRect(0, 0, _W, _H);
 
@@ -8291,6 +8351,7 @@ function drawSolace(){
   const visCount = Math.min(S.view2.count, cs.length);
   const end = S.view2.end == null ? cs.length : Math.min(cs.length, S.view2.end);
   const startIdx = Math.max(0, end - visCount);
+  const res = S.res.snapshots ? ViceSolaceSystem.at(S.res,end) : S.res;
   if (end - startIdx < 2) return;
 
   let vmin = Infinity, vmax = -Infinity;
@@ -8323,7 +8384,9 @@ function drawSolace(){
   if(manual&&Number.isFinite(manual.min)&&Number.isFinite(manual.max)&&manual.max>manual.min){vmin=manual.min;vmax=manual.max;}
   _cv._priceRange={min:vmin,max:vmax};
 
-  const xAt = i => PAD.l + (i - startIdx) / Math.max(1, end - startIdx - 1) * cw;
+  const span = Math.max(1, end - startIdx - 1 + (S.engine.extendBars??40));
+  const xAt = i => PAD.l + (i - startIdx) / span * cw;
+  const rayX = from => ViceSolaceSystem.rayStart(from,startIdx,end,xAt);
   const yAt = v => PAD.t + (1 - (v - vmin) / (vmax - vmin)) * ch;
 
   /* Grid */
@@ -8365,27 +8428,12 @@ function drawSolace(){
     drawHist(res.f100History, P.hist);
   }
 
-  /* Internal pole bands */
-  if (res.internal && res.internal.hi != null && res.internal.lo != null) {
-    const yHi = yAt(res.internal.hi);
-    const yLo = yAt(res.internal.lo);
-    _ctx.save();
-    _ctx.strokeStyle = P.internal;
-    _ctx.globalAlpha = 0.55;
-    _ctx.lineWidth = 1;
-    _ctx.setLineDash([1, 4]);
-    _ctx.beginPath(); _ctx.moveTo(PAD.l, yHi); _ctx.lineTo(_W - PAD.r, yHi); _ctx.stroke();
-    _ctx.beginPath(); _ctx.moveTo(PAD.l, yLo); _ctx.lineTo(_W - PAD.r, yLo); _ctx.stroke();
-    _ctx.setLineDash([]);
-    _ctx.globalAlpha = 1;
-    _ctx.fillStyle = P.internal;
-    _ctx.font = '9px "JetBrains Mono", monospace';
-    _ctx.textAlign = 'right';
-    if(S.chart.show.labels !== false){
-      _ctx.fillText('INT-H', PAD.l + 40, yHi - 3);
-      _ctx.fillText('INT-L', PAD.l + 40, yLo + 10);
+  /* System zones and active gap, extending right from the confirmed anchor. */
+  if(S.chart.show.zones&&res.last&&res.zone){
+    for(const [level,edge,from,color] of [[res.last.F100,res.zone.top,res.last.f100From,P.f100],[res.last.F0,res.zone.bottom,res.last.f0From,P.f0]]){
+      const x=rayX(from);if(x==null)continue;_ctx.save();_ctx.globalAlpha=.08;_ctx.fillStyle=color;_ctx.fillRect(x,Math.min(yAt(level),yAt(edge)),_W-PAD.r-x,Math.abs(yAt(level)-yAt(edge)));_ctx.restore();
     }
-    _ctx.restore();
+    if(res.gap){const g=res.gap,x=rayX(g.from);if(x!=null){_ctx.save();_ctx.globalAlpha=.14;_ctx.fillStyle=g.bull?P.f0:P.f100;_ctx.fillRect(x,yAt(g.top),_W-PAD.r-x,yAt(g.bottom)-yAt(g.top));_ctx.restore();}}
   }
 
   /* Trade geometry. Text is spaced independently of precise price lines. */
@@ -8397,7 +8445,8 @@ function drawSolace(){
       y=Math.max(min,Math.min(max,y+(attempts%2?-1:1)*(13+attempts*3)));
     viceLabelSlots.push(y);return y;
   };
-  const drawLine = (price, color, dash, label, alpha) => {
+  const drawLine = (price, color, dash, label, alpha, from) => {
+    const x=rayX(from);if(x==null)return;
     if (price == null || !isFinite(price)) return;
     const y = yAt(price);
     _ctx.save();
@@ -8405,31 +8454,35 @@ function drawSolace(){
     _ctx.globalAlpha = alpha || 1;
     _ctx.lineWidth = 1.5;
     if (dash) _ctx.setLineDash(dash);
-    _ctx.beginPath(); _ctx.moveTo(PAD.l, y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
+    _ctx.beginPath(); _ctx.moveTo(x, y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
     _ctx.setLineDash([]);
     if (label && S.chart.show.labels !== false) {
       _ctx.globalAlpha = 1;
       _ctx.fillStyle = color;
       _ctx.font = '9px "JetBrains Mono", monospace';
       _ctx.textAlign = 'left';
-      _ctx.fillText(label, PAD.l + 4, viceFreeLabelY(y - 3));
+      _ctx.fillText(label, Math.min(x+4,_W-PAD.r-180), viceFreeLabelY(y - 3));
     }
     _ctx.restore();
   };
   if (S.chart.show.trades && res.trade && res.trade.macro) {
     const t = res.trade.macro;
-    drawLine(t.entry, P.entry, null, `MACRO ${t.side} ENTRY ${fmtP(t.entry)} · 1:${t.rr.toFixed(1)}`, 0.95);
-    drawLine(t.stop, P.stop, [3, 3], `STOP ${fmtP(t.stop)}`, 0.75);
-    drawLine(t.target, P.target, [4, 4], `TARGET ${fmtP(t.target)}`, 0.65);
+    drawLine(t.entry, P.entry, null, `MACRO ${t.side} ENTRY ${fmtP(t.entry)} · 1:${t.rr.toFixed(1)}`, 0.95,t.from);
+    drawLine(t.stop, P.stop, [3, 3], `STOP ${fmtP(t.stop)}`, 0.75,t.from);
+    drawLine(t.target, P.target, [4, 4], `TARGET ${fmtP(t.target)}`, 0.65,t.from);
   }
   if (S.chart.show.trades && res.trade && res.trade.internal) {
     const t = res.trade.internal;
-    drawLine(t.entry, P.internal, [4, 3], `INT ${t.side} ${fmtP(t.entry)}`, 0.7);
-    drawLine(t.target, P.internal, [2, 4], `INT BE ${fmtP(t.target)}`, 0.5);
+    drawLine(t.entry, P.internal, [4, 3], `INT ${t.side} ${fmtP(t.entry)}`, 0.7,t.from);
+    drawLine(t.target, P.internal, [2, 4], `INT TARGET ${fmtP(t.target)}`, 0.5,t.from);
+    drawLine(t.stop,P.stop,[2,3],`INT STOP ${fmtP(t.stop)}`,0.65,t.from);
   }
 
+  if(S.chart.show.internal&&res.pivot){const p=res.pivot;drawLine(p.level,p.type===1?'#00c853':'#ff1744',p.armed?null:[5,4],`INT ${p.type===1?'HIGH':'LOW'} · ${p.armed?'ARMED':p.pending?'BREAK PENDING':'WATCHING'} · x${p.tests||1}`,p.armed?1:.65,p.from);}
+  if(S.chart.show.choch&&res.macroChoch){const c=res.macroChoch;drawLine(c.level,c.dir===1?P.chochBull:P.chochBear,[3,3],`MACRO CHoCH ${c.dir===1?'BULL':'BEAR'}${c.confirmed?' · CONFIRMED':''}`,0.7,c.bar);}
+
   /* Candles / bars / line */
-  const cw2 = Math.max(1.5, cw / (end - startIdx) - 1);
+  const cw2 = Math.max(1.5, cw / span - 1);
   if (S.chart.type === 'line') {
     _ctx.save();
     _ctx.strokeStyle = P.bullB;
@@ -8497,13 +8550,13 @@ function drawSolace(){
   /* Current F0 / F100 tags */
   const last = res.last;
   if (last) {
-    if (last.F0 != null) {
+    if (S.chart.show.poles && last.F0 != null && rayX(last.f0From)!=null) {
       const y = yAt(last.F0);
       _ctx.save();
       _ctx.strokeStyle = P.f0;
       _ctx.lineWidth = 1.6;
-      _ctx.setLineDash([6, 3]);
-      _ctx.beginPath(); _ctx.moveTo(PAD.l, y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
+      _ctx.setLineDash(res.sellArmed?[6,3]:[]);
+      _ctx.beginPath(); _ctx.moveTo(rayX(last.f0From), y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
       _ctx.setLineDash([]);
       _ctx.fillStyle = P.f0;
       _ctx.fillRect(_W - PAD.r, y - 8, PAD.r - 2, 16);
@@ -8514,13 +8567,13 @@ function drawSolace(){
       if(S.chart.show.labels !== false)_ctx.fillText('F0 ' + fmtP(last.F0), _W - PAD.r + 6, y);
       _ctx.restore();
     }
-    if (last.F100 != null) {
+    if (S.chart.show.poles && last.F100 != null && rayX(last.f100From)!=null) {
       const y = yAt(last.F100);
       _ctx.save();
       _ctx.strokeStyle = P.f100;
       _ctx.lineWidth = 1.6;
-      _ctx.setLineDash([6, 3]);
-      _ctx.beginPath(); _ctx.moveTo(PAD.l, y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
+      _ctx.setLineDash(res.sellArmed?[]:[6,3]);
+      _ctx.beginPath(); _ctx.moveTo(rayX(last.f100From), y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
       _ctx.setLineDash([]);
       _ctx.fillStyle = P.f100;
       _ctx.fillRect(_W - PAD.r, y - 8, PAD.r - 2, 16);
@@ -8541,37 +8594,23 @@ function drawSolace(){
       if(f.bar<startIdx||f.bar>=end||f.confirmedAt>=end)continue;
       const high=f.side==='HIGH',x=xAt(f.bar),y=yAt(f.price)+(high?-6:6);
       if(!Number.isFinite(x)||!Number.isFinite(y)||y<PAD.t||y>_H-PAD.b)continue;
-      _ctx.fillStyle=high?P.f100:P.f0;_ctx.beginPath();_ctx.arc(x,y,3,0,Math.PI*2);_ctx.fill();
+      _ctx.globalAlpha=f.confirmed===false?.4:1;_ctx.fillStyle=high?P.f100:P.f0;_ctx.beginPath();_ctx.arc(x,y,3,0,Math.PI*2);_ctx.fill();
     }
     _ctx.restore();
   }
 
-  /* Internal pole markers */
-  if (S.chart.show.internal && res.internal && res.internal.hiBar >= 0 && res.internal.loBar >= 0) {
-    _ctx.save();
-    const drawDiamond = (x, y, color, size) => {
-      if (!isFinite(x) || !isFinite(y)) return;
-      _ctx.fillStyle = color;
-      _ctx.beginPath();
-      _ctx.moveTo(x, y - size); _ctx.lineTo(x + size, y);
-      _ctx.lineTo(x, y + size); _ctx.lineTo(x - size, y);
-      _ctx.closePath();
-      _ctx.fill();
-    };
-    drawDiamond(_W - PAD.r - 12, yAt(res.internal.hi) - 8, P.internal, 4);
-    drawDiamond(_W - PAD.r - 12, yAt(res.internal.lo) + 8, P.internal, 4);
-    _ctx.restore();
-  }
+  /* The internal fractal stays attached to its actual price/time anchor. */
+  if(S.chart.show.internal&&res.pivot&&res.pivot.origin>=startIdx&&res.pivot.origin<end){const p=res.pivot;_ctx.save();_ctx.fillStyle=p.type===1?'#00c853':'#ff1744';_ctx.globalAlpha=p.armed?1:.4;_ctx.beginPath();_ctx.arc(xAt(p.origin),yAt(p.level)+(p.type===1?-7:7),4,0,Math.PI*2);_ctx.fill();_ctx.restore();}
 
   /* CHoCH line */
-  if (S.chart.show.choch && res.choch && res.choch.dir !== 0 && res.choch.level != null) {
+  if (S.chart.show.choch && res.choch && res.choch.dir !== 0 && res.choch.level != null && rayX(res.choch.bar)!=null) {
     const y = yAt(res.choch.level);
     const color = res.choch.dir === 1 ? P.chochBull : P.chochBear;
     _ctx.save();
     _ctx.strokeStyle = color;
     _ctx.lineWidth = 1.8;
     _ctx.setLineDash([3, 3]);
-    _ctx.beginPath(); _ctx.moveTo(PAD.l, y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
+    _ctx.beginPath(); _ctx.moveTo(rayX(res.choch.bar), y); _ctx.lineTo(_W - PAD.r, y); _ctx.stroke();
     _ctx.setLineDash([]);
     _ctx.fillStyle = color;
     _ctx.font = '10px "JetBrains Mono", monospace';
@@ -8883,7 +8922,7 @@ function signed(v, cur){
 function linkStatusLine(){
   const s = Link.state;
   return {
-    off:'VICE Link is not connected. It runs inside the VICE OS Windows app on the same PC as your MT5 terminals.',
+    off:'VICE Link is not connected. It runs inside the VICE4X Windows app on the same PC as your MT5 terminals.',
     connecting:'Connecting to VICE Link…',
     pair:'This device needs pairing with your PC. Open System → Bridge on the PC and enter the pairing code.',
     error: s.msg || 'VICE Link is not reachable. Reconnecting…',
@@ -8894,7 +8933,7 @@ function linkStatusLine(){
 function renderLivePositions(P){
   const positions = P.accounts.flatMap(a => (a.positions || []).map(p => ({ ...p, a })));
   return `<section class="band">
-    <div class="band-head"><h2>Open positions</h2><span class="meta">Read-only · VICE OS never trades</span></div>
+    <div class="band-head"><h2>Open positions</h2><span class="meta">Read-only · VICE4X never trades</span></div>
     ${positions.length
       ? `<div class="scroll-x"><table class="pos"><thead><tr>
           <th>Symbol</th><th>Account</th><th>Side</th><th>Lots</th><th>Open</th>
@@ -9013,7 +9052,7 @@ function viewCommand(el){
 
   const holderStrip = (() => {
     if(!isHolder) return '';
-    const holder = S.iru.state && S.user ? S.iru.state.holders[S.user.id] : null;
+    const holder = S.iru.state && S.user ? S.iru.state.holders[currentHolderId()] : null;
     const tierLabel = holder && holder.tier ? `${holder.tier.tier} · ${holder.tier.name}` : null;
     const legacyLabel = holder && holder.legacy ? `${holder.legacy.order} · ${holder.legacy.name}` : null;
     const avatarStyle = S.profile.avatarUrl
@@ -9042,7 +9081,7 @@ function viewCommand(el){
 
   const myDistributions = (() => {
     const mine = S.distributions.filter(d => {
-      const holder = S.iru.state && S.user ? S.iru.state.holders[S.user.id] : null;
+      const holder = S.iru.state && S.user ? S.iru.state.holders[currentHolderId()] : null;
       if(!holder) return false;
       if(d.holderClientId && d.holderClientId === holder.clientId) return true;
       if(d.holderId && d.holderId === S.user.id) return true;
@@ -9249,10 +9288,11 @@ function viewMarkets(el){
       <div>
         <div class="eb">Trading</div>
         <h1>SOLACE <em>Chart</em></h1>
-        <p>F0/F100 macro anchors · internal poles from LTF · CHoCH · trade geometry · historical levels kept faint</p>
+        <p>VICESYSTEM SOLACE v10.6 · closed-bar structure · internal pivot · CHoCH · right-extending levels</p>
       </div>
       <div class="ph-acts">
         <button class="btn btn-gd" data-act="open-symbol-sheet">🔍 Search</button>
+        <button class="btn btn-g" data-act="v4x-system-settings">System settings</button>
         <button class="btn btn-g" data-act="import-bars">Import MT5 bars</button>
         <button class="btn btn-g" data-act="toggle-fullscreen">Fullscreen</button>
         <button class="btn btn-g" data-act="support-open">Support</button>
@@ -9566,14 +9606,14 @@ function viewVicebot(el){
       <div>
         <div class="eb">Trading</div>
         <h1>VICEBOT <em>2030</em></h1>
-        <p>Dual-engine: MACRO CHoCH → opposite pole · INTERNAL CHoCH hedge → macro breakeven. Max 18 (9+9).</p>
+        <p>KAHZI personal workspace · supplied VICEBOT SOLACE V27.60 and nine-position basket source. Native MT5 execution is configured separately.</p>
       </div>
       <div class="ph-acts">
-        <button class="btn ${E.running ? 'btn-r' : 'btn-p'}" data-act="toggle-engine">${E.running ? 'Stop' : 'Start'} Engine</button>
+        <button class="btn ${E.running ? 'btn-r' : 'btn-p'}" data-act="toggle-engine" ${canExecuteBot()?'':'disabled'}>${E.running ? 'Disable' : 'Enable'} Personal Analysis</button>
       </div>
     </div>
     <div class="stats">
-      <div class="st"><span class="l">Engine</span><div class="v ${E.running ? 'gr' : 'rd'}">${E.running ? 'RUNNING' : 'STOPPED'}</div><div class="n">${APP_MODE}</div></div>
+      <div class="st"><span class="l">Personal analysis</span><div class="v ${E.running ? 'gr' : 'rd'}">${E.running ? 'ENABLED' : 'DISABLED'}</div><div class="n">${APP_MODE}</div></div>
       <div class="st"><span class="l">Macro</span><div class="v gd">${macroOpen.length}/${E.MAX_MACRO}</div><div class="n">${E.macro.side || '—'}</div></div>
       <div class="st"><span class="l">Internal</span><div class="v vi">${internalOpen.length}/${E.MAX_INTERNAL}</div><div class="n">hedge</div></div>
       <div class="st"><span class="l">Total</span><div class="v ${totalOpen() >= E.MAX_TOTAL ? 'rd' : ''}">${totalOpen()}/${E.MAX_TOTAL}</div></div>
@@ -9862,7 +9902,7 @@ function viewComms(el){
 }
 
 
-// VICE OS secure media messages: storage is private; chat is not audited E2EE.
+// VICE4X secure media messages: storage is private; chat is not audited E2EE.
 const VICE_MEDIA_PREFIX='VICE_MEDIA_V1:';
 let viceVoiceRecording=null;
 function viceCommsBubble(value){
@@ -10147,7 +10187,7 @@ function commsSettings(){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewVip(el){
-  const holder = S.iru.state && S.user ? S.iru.state.holders[S.user.id] : null;
+  const holder = S.iru.state && S.user ? S.iru.state.holders[currentHolderId()] : null;
   const hasVip = S.profile.vipAccess || S.profile.role === 'SUPER_ADMIN';
   const tierLabel = holder && holder.tier ? `${holder.tier.tier} · ${holder.tier.name}` : null;
   const legacyLabel = holder && holder.legacy ? `${holder.legacy.order} · ${holder.legacy.name}` : null;
@@ -10192,8 +10232,8 @@ function viewIRU(el){
   if(!S.tokenCerts.loaded&&!S.tokenCerts.loading&&S.user?.id&&S.user.id!=='sim-user')
     ViceTokenCertificates.load().then(()=>{if(S.tab==='iru')renderMain();}).catch(()=>{});
   const st = S.iru.state || IruEngine.emptyState();
-  const me = S.user ? st.holders[S.user.id] : null;
-  const mine = me ? IruEngine.holderView(st, S.user.id) : null;
+  const me = S.user ? st.holders[currentHolderId()] : null;
+  const mine = me ? IruEngine.holderView(st, currentHolderId()) : null;
   const cap = IruEngine.capacity(st);
 
   if(!mine){
@@ -10253,7 +10293,7 @@ function viewIRU(el){
       ${mine.legal ? `<div class="rw"><span class="rw-l">Status</span><span class="rw-v">${esc(mine.legal.status)}</span></div>
         <div class="rw"><span class="rw-l">Counsel</span><span class="rw-v">${esc(mine.legal.counsel || '—')}</span></div>
         <div class="rw"><span class="rw-l">Recorded</span><span class="rw-v">${whenText(mine.legal.at)}</span></div>` : '<p class="muted">No legal status on record.</p>'}
-      <p class="note">IRUs are internal accounting units. They are not shares, equity, membership interests, or ownership of anything.</p>
+      <p class="note">IRU rights and transfer restrictions are governed by the applicable issuance and holder agreements. Any collateral use requires lender acceptance, an agreed valuation and properly documented security arrangements; recording a reference value does not itself establish these conditions.</p>
     </section>
   `;
 }
@@ -10265,7 +10305,7 @@ function viewIRU(el){
 function viewDistributions(el){
   const isAdmin = can('exec') || isOwner();
   const mine = isAdmin ? S.distributions : S.distributions.filter(d => {
-    const holder = S.iru.state && S.user ? S.iru.state.holders[S.user.id] : null;
+    const holder = S.iru.state && S.user ? S.iru.state.holders[currentHolderId()] : null;
     if(!holder) return false;
     if(d.holderClientId && d.holderClientId === holder.clientId) return true;
     if(d.holderId && d.holderId === S.user.id) return true;
@@ -10346,7 +10386,7 @@ function viewDocuments(el){
 function viewHolders(el){
   const st = S.iru.state || IruEngine.emptyState();
   const cap = IruEngine.capacity(st);
-  const rows = Object.values(st.holders).filter(h => !h.reserve);
+  const rows = Object.values(st.holders).filter(h => !h.reserve&&h.status!=='CLOSED');
   const q = S.iru.query.trim().toLowerCase();
   const filtered = q
     ? rows.filter(h => (h.name || '').toLowerCase().includes(q) || (h.clientId || '').toLowerCase().includes(q) || (h.email || '').toLowerCase().includes(q))
@@ -10356,7 +10396,7 @@ function viewHolders(el){
       <div><div class="eb">Records</div><h1>Holder <em>Registry</em></h1>
         <p>${cap.current} / ${cap.max} appointed. Every change is journaled.</p></div>
       <div class="ph-acts">
-        ${can('assign') || isOwner() ? '<button class="btn btn-p" data-act="holder-add">+ Appoint holder</button>' : ''}
+        ${isRegistryOperator() ? '<button class="btn btn-p" data-act="holder-add">+ Appoint holder</button><button class="btn btn-g" data-act="strategic-manager">2,500,000 holder pool</button>' : ''}
       </div>
     </div>
     <div class="stats">
@@ -10380,7 +10420,7 @@ function viewHolders(el){
           return `<tr>
             <td class="mn">${esc(h.clientId)}</td>
             <td><b>${esc(h.name)}</b>${h.email ? `<div class="meta">${esc(h.email)}</div>` : ''}</td>
-            <td><span class="bdg ${h.status === 'ACTIVE' ? 'gr' : 'rd'}">${esc(h.status)}</span></td>
+            <td><span class="bdg ${h.status === 'ACTIVE' ? 'gr' : 'rd'}">${esc(h.status)}</span>${h.holdingsLocked?'<div class="meta">Holdings frozen</div>':''}</td>
             <td>${h.tier ? `<span class="bdg nt">${esc(h.tier.tier)}</span>` : '<span class="meta">—</span>'}</td>
             <td>${h.legacy ? `<span class="bdg gd">${esc(h.legacy.order)}</span>` : '<span class="meta">—</span>'}</td>
             <td class="mn right">${fmtNum(Number(v))}</td>
@@ -10457,8 +10497,8 @@ function viewTreasury(el){
       <summary class="treasury-toggle">Private administrative accounting · SUPER_ADMIN</summary>
       <p class="note">Internal reserve ledger only. Balances are founder-attributed management references, not independently verified custody, corporate shares, or cash.</p>
       <div class="stats">
-        <div class="st"><span class="l">VICE · unassigned internal ledger</span><div class="v">${fmtNum(managedReserveUnits('VICE'))}</div></div>
-        <div class="st"><span class="l">V4X · unassigned internal ledger</span><div class="v">${fmtNum(managedReserveUnits('V4X'))}</div></div>
+        <div class="st"><span class="l">VICE · Estate/Admin Reserve</span><div class="v">${fmtNum(managedReserveUnits('VICE'))}</div></div>
+        <div class="st"><span class="l">V4X · Estate/Admin Reserve</span><div class="v">${fmtNum(managedReserveUnits('V4X'))}</div></div>
         <div class="st"><span class="l">Outstanding reserved units</span><div class="v">${fmtNum(Number(S.estateAdminLedger?.programs?.VICE?.reserved_units||0)+Number(S.estateAdminLedger?.programs?.V4X?.reserved_units||0))}</div></div>
       </div>
       ${APP_MODE==='LIVE'?`<div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button class="btn btn-gd" data-act="estate-manager" ${!S.estateAdminLedger?'disabled':''}>Estate allocations</button><button class="btn btn-g" data-act="strategic-manager">Strategic allocations</button></div>`:''}
@@ -10794,7 +10834,7 @@ function viewProfile(el){
   const avatarStyle = p.avatarUrl
     ? `background-image:url('${p.avatarUrl}');background-size:cover;background-position:center;color:transparent`
     : '';
-  const holder = S.iru.state && S.user ? S.iru.state.holders[S.user.id] : null;
+  const holder = S.iru.state && S.user ? S.iru.state.holders[currentHolderId()] : null;
   const badges = [];
   if (p.role === 'SUPER_ADMIN') badges.push({ label:'FOUNDER · CEO · ESTATE ADMIN', cls:'gd' });
   else if (p.vipAccess) badges.push({ label:'VIP', cls:'gd' });
@@ -11238,7 +11278,7 @@ function paintOI(){
           </div>
         `).join('') : `<div class="oi-empty">
           ${st.mode === 'support'
-            ? 'Hi — I\'m the VICE OS support assistant. Ask me anything about connecting MT5, importing charts, your wallet, or your account.'
+            ? 'Hi — I\'m the VICE4X support assistant. Ask me anything about connecting MT5, importing charts, your wallet, or your account.'
             : 'Ask about your chart, portfolio, distributions, or system health.'}
         </div>`}
         ${st.busy ? '<div class="oi-busy">Thinking…</div>' : ''}
@@ -11281,14 +11321,14 @@ function paintOI(){
         document.documentElement.classList.add('bnr-hidden');
         const bnr = $('bnr');
         if (bnr) { bnr.style.display = 'none'; bnr.remove(); }
-        const mn = document.querySelector('.mn');
+        const mn = document.querySelector('main.mn');
         if (mn) mn.style.marginTop = 'var(--nh)';
         return;
       }
       case 'bnr-reset': {
         try { localStorage.removeItem('vice-banner-hidden'); } catch(_){}
         document.documentElement.classList.remove('bnr-hidden');
-        const mn = document.querySelector('.mn');
+        const mn = document.querySelector('main.mn');
         if (mn) mn.style.marginTop = '';
         location.reload();
         return;
@@ -11471,16 +11511,7 @@ function paintOI(){
       }
       case 'comms-refresh': { Realtime.refresh().then(() => { toast('Peers refreshed','success'); renderMain(); }); return; }
       case 'comms-reconnect': { (async () => { Realtime.disconnect(); await Realtime.connect(); toast('Reconnecting…','info'); })(); return; }
-      case 'notify-enable': {
-        if (!('Notification' in window)) { toast('Browser notifications unavailable','warn'); return; }
-        if (Notification.permission === 'denied') { toast('Notifications blocked by browser settings. Allow this site there first.','warn'); return; }
-        Notification.requestPermission().then(status => {
-          toast(status === 'granted' ? 'Browser notifications enabled' : `Notifications: ${status}`,
-            status === 'granted' ? 'success' : 'warn');
-          if (S.tab === 'profile' || S.tab === 'security') renderMain();
-        }).catch(e=>toast('Notification permission: '+e.message,'error'));
-        return;
-      }
+      case 'notify-enable': { void Notify.request(); return; }
 
       /* ─── CALLS ─── */
       case 'call-accept': { Realtime.acceptCall(); return; }
@@ -11516,7 +11547,7 @@ function paintOI(){
       case 'mt5-set-url': {
         const url = prompt('Secure VICE Link endpoint (wss://…):', Link.state.url || 'wss://your-secure-mt5-bridge.example');
         if(url == null)return;
-        if(!/^wss:\/\//i.test(url.trim())){toast('HTTPS VICE OS requires a secure wss:// MT5 bridge','error');return;}
+        if(!/^wss:\/\//i.test(url.trim())){toast('HTTPS VICE4X requires a secure wss:// MT5 bridge','error');return;}
         const token=prompt('VICE Link token (your private random secret, 24+ characters):', Link.state.token || '');
         if(token==null)return;
         if(token.trim().length<24){toast('Bridge token must have 24+ characters','error');return;}
@@ -11556,13 +11587,7 @@ function paintOI(){
 
       /* ─── VICEBOT ─── */
       case 'toggle-engine': {
-        S.engine2.running = !S.engine2.running;
-        S.engine2.events.push({
-          t:Date.now(),
-          kind: S.engine2.running ? 'ok' : 'warn',
-          msg: `Engine ${S.engine2.running ? 'started' : 'stopped'} by ${S.profile.name}`
-        });
-        renderMain();
+        Vice4xOperations.toggleBot().catch(e=>toast(e.message,'error'));
         return;
       }
 
@@ -11680,7 +11705,7 @@ function paintOI(){
                 <p class="note">Keep recovery and device access secured. Sign-in assurance is enforced by your Supabase authentication settings.</p>`);
               return;
             }
-            const out = await sb.auth.mfa.enroll({ factorType:'totp', friendlyName:'VICE OS Authenticator' });
+            const out = await sb.auth.mfa.enroll({ factorType:'totp', friendlyName:'VICE4X Authenticator' });
             if(out.error) throw out.error;
             const id=out.data?.id, secret=out.data?.totp?.secret;
             const qr=out.data?.totp?.qr_code;
@@ -11735,6 +11760,10 @@ function paintOI(){
       case 'holder-add': { openHolderAddModal(); return; }
       case 'holder-add-submit': { submitHolderAdd(); return; }
       case 'holder-view': { openHolderViewModal(t.dataset.id); return; }
+      case 'holder-control': { openHolderControlModal(t.dataset.id,t.dataset.control); return; }
+      case 'holder-control-submit': { submitHolderControl(t); return; }
+      case 'holder-transfer': { openOwnHoldingsTransferModal(t.dataset.id); return; }
+      case 'holder-transfer-submit': { submitOwnHoldingsTransfer(t); return; }
       case 'holder-view-close': { closeModal(); return; }
       case 'holder-issue': { openIssueUnitsModal(t.dataset.id); return; }
       case 'holder-issue-submit': { submitIssueUnits(t.dataset.id); return; }
@@ -11882,7 +11911,7 @@ function paintOI(){
             q:'I need help',
             agents:['Support Agent'],
             trace:[],
-            answer:'Hi — I\'m the VICE OS support assistant. Ask me anything about connecting MT5, importing charts, your wallet, or managing your account. If I can\'t resolve it, tap "Open a ticket" below and a human will follow up.',
+            answer:'Hi — I\'m the VICE4X support assistant. Ask me anything about connecting MT5, importing charts, your wallet, or managing your account. If I can\'t resolve it, tap "Open a ticket" below and a human will follow up.',
             at: new Date().toISOString(),
             mode:'support',
           });
@@ -12091,7 +12120,7 @@ async function saveRole(){
 // that function AND installs the verification RPC. Fail closed if unavailable.
 async function verifyStrategicBackend(){
   S.strategicBackendVerified=false;
-  if(!S.user || APP_MODE!=='LIVE' || !isOwner())return false;
+  if(!S.user || APP_MODE!=='LIVE' || !isRegistryOperator())return false;
   if(S.daoPriceSyncStatus!=='CANONICAL'){
     try{await refreshDaoConfig();}catch(_){return false;}
   }
@@ -12108,13 +12137,13 @@ async function verifyStrategicBackend(){
 // append_iru_event; estate IRUs are never issued through these functions.
 let strategicActionBusy=false;
 async function openStrategicManager(){
-  if(APP_MODE!=='LIVE'||!isOwner()){
-    toast('Authenticated SUPER_ADMIN required','error');return;
+  if(APP_MODE!=='LIVE'||!isRegistryOperator()){
+    toast('Authenticated CFO or Reserve administrator required','error');return;
   }
   try{
     const backendReady=await verifyStrategicBackend();
     const [hr,ar,er]=await Promise.all([
-      sb.from('holders').select('id,name,client_id,holder_type,status')
+      sb.from('holders').select('id,name,client_id,holder_type,status,holdings_locked')
         .order('created_at',{ascending:true}).limit(250),
       sb.from('allocations').select('id,holder_id,class,units,status,price,created_at')
         .order('created_at',{ascending:false}).limit(100),
@@ -12125,9 +12154,10 @@ async function openStrategicManager(){
     if(ar.error)throw ar.error;
     if(er.error)throw er.error;
     const holders=(hr.data||[]).filter(h=>h.holder_type!=='ESTATE_RESERVE'
-      && h.status!=='ESTATE_RESERVE' && h.status!=='FROZEN');
+      && h.status==='ACTIVE' && !h.holdings_locked);
     const options=holders.map(h=>`<option value="${esc(h.id)}">${esc(h.client_id||'Holder')} · ${esc(h.name||'Unnamed')}</option>`).join('');
-    const rows=(ar.data||[]).map(a=>{
+    const closedIds=new Set((hr.data||[]).filter(h=>h.status==='CLOSED').map(h=>h.id));
+    const rows=(ar.data||[]).filter(a=>!closedIds.has(a.holder_id)).map(a=>{
       const action=backendReady?(a.status==='PENDING'?'APPROVE':a.status==='APPROVED'?'RESERVE':a.status==='RESERVED'?'DISTRIBUTE':null):null;
       return `<div class="rw"><span class="rw-l"><b>${esc(a.class||'?')} · ${fmtNum(Number(a.units||0))} units</b>
           <span class="meta">${esc(a.status||'Unknown')} · ${esc(String(a.id).slice(0,12))} · Strategic pool</span></span>
@@ -12151,7 +12181,7 @@ async function openStrategicManager(){
   }catch(e){toast('Strategic allocation control unavailable: '+e.message,'error');}
 }
 async function reviewStrategicCorrection(seq){
-  if(APP_MODE!=='LIVE'||!isOwner())return;
+  if(APP_MODE!=='LIVE'||!isRegistryOperator())return;
   const epoch=authEpoch;
   try{
     const {data,error}=await sb.from('iru_events').select('seq,payload').eq('seq',Number(seq)).eq('event_type','UNITS_ISSUED').single();
@@ -12165,7 +12195,7 @@ async function reviewStrategicCorrection(seq){
   }catch(e){toast('Correction review unavailable: '+e.message,'error');}
 }
 async function submitStrategicCorrection(){
-  if(strategicActionBusy||APP_MODE!=='LIVE'||!isOwner())return;
+  if(strategicActionBusy||APP_MODE!=='LIVE'||!isRegistryOperator())return;
   const epoch=authEpoch;
   const reason=($('correctionReason')?.value||'').trim();
   if(reason.length<16){toast('Provide at least 16 characters explaining the correction and authority','error');return;}
@@ -12183,7 +12213,7 @@ async function submitStrategicCorrection(){
 async function submitStrategicAllocation(){
   if(strategicActionBusy)return;strategicActionBusy=true;
   try{
-    if(APP_MODE!=='LIVE'||!isOwner())throw Error('SUPER_ADMIN required');
+    if(APP_MODE!=='LIVE'||!isRegistryOperator())throw Error('CFO or Reserve administrator required');
     if(!await verifyStrategicBackend())throw Error('Financial writes disabled: backend canonical-price migration not verified');
     const p_holder_id=$('strategicHolder')?.value;
     const p_program=$('strategicProgram')?.value;
@@ -12202,7 +12232,7 @@ async function submitStrategicAllocation(){
 async function advanceStrategicAllocation(id,action){
   if(strategicActionBusy)return;strategicActionBusy=true;
   try{
-    if(APP_MODE!=='LIVE'||!isOwner())throw Error('SUPER_ADMIN required');
+    if(APP_MODE!=='LIVE'||!isRegistryOperator())throw Error('CFO or Reserve administrator required');
     if(!await verifyStrategicBackend())throw Error('Financial writes disabled: backend canonical-price migration not verified');
     if(!['APPROVE','RESERVE','DISTRIBUTE'].includes(action))throw Error('Invalid action');
     if(!confirm('Confirm '+action+' for strategic allocation '+String(id).slice(0,8)+'?'))return;
@@ -12246,7 +12276,7 @@ async function openEstateManager(){
     const programs=S.estateAdminLedger.programs||{};
     const row=p=>{
       const x=programs[p]||{};
-      return `<div class="rw"><span class="rw-l">${p} · Internal reserve unassigned</span>
+      return `<div class="rw"><span class="rw-l">${p} · Reserve under administration</span>
         <span class="rw-v">${fmtNum(Number(x.unassigned_units||0))} · Reserved ${fmtNum(Number(x.reserved_units||0))}</span></div>`;
     };
     const allocations=(S.estateAdminLedger.allocations||[]).map(a=>{
@@ -12296,6 +12326,7 @@ async function submitEstateAllocation(){
   }catch(e){toast('Estate allocation rejected: '+e.message,'error');}
   finally{estateActionBusy=false;}
 }
+function estateExpectedStatus(action){return {APPROVE:'APPROVED',RESERVE:'RESERVED',DISTRIBUTE:'DISTRIBUTED',REVOKE:'REVOKED'}[action];}
 async function advanceEstateAllocation(id,action){
   if(estateActionBusy)return;
   estateActionBusy=true;
@@ -12311,12 +12342,12 @@ async function advanceEstateAllocation(id,action){
       : ['vice_estate_advance_allocation',{p_allocation_id:id,p_action:action}];
     const {data,error}=await sb.rpc(args[0],args[1]);
     if(error)throw error;
-    if(!data||data.status!==(action==='DISTRIBUTE'?'DISTRIBUTED':action==='REVOKE'?'REVOKED':action))
+    if(!data||data.status!==estateExpectedStatus(action))
       throw Error('Unexpected response from reserve server; refresh/reconcile before retry');
     await refreshEstateRegistry();
     toast('Estate allocation: '+data.status+' · '+String(id).slice(0,8),'success');
     renderMain();await openEstateManager();
-  }catch(e){toast('Estate action not confirmed: '+e.message,'error');}
+  }catch(e){await refreshEstateRegistry().catch(()=>{});toast('Estate action: '+e.message+'. Refresh the allocation list before retrying.','error');}
   finally{estateActionBusy=false;}
 }
 
@@ -12345,7 +12376,7 @@ function openHolderAddModal(){
 
 async function submitHolderAdd(){
   const name = $('hName')?.value.trim();
-  const email = $('hEmail')?.value.trim();
+  const email = normalizeLoginIdentifier($('hEmail')?.value);
   const holderType = $('hType')?.value || 'Standard';
   const wallet = $('hWallet')?.value.trim();
   if(!name){ toast('Name required','error'); return; }
@@ -12378,29 +12409,109 @@ function openHolderViewModal(holderId){
   const st = S.iru.state || IruEngine.emptyState();
   const v = IruEngine.holderView(st, holderId);
   if(!v){ toast('Holder not found','error'); return; }
-  const canManage = can('assign') || isOwner();
+  const h=st.holders[holderId];
+  const own=holderId===currentHolderId();
+  const protectedReserve=h.reserveProtected||h.reserve||h.status==='ESTATE_RESERVE'||h.holderType==='ESTATE_RESERVE';
+  const canManage = isRegistryOperator()&&!protectedReserve&&h.status!=='CLOSED';
+  const canControl=isRegistryOperator()&&!own&&!protectedReserve&&h.status!=='CLOSED';
   openModal(`Holder · ${v.identity.clientId}`, `
     <div class="rw"><span class="rw-l">Name</span><span class="rw-v">${esc(v.identity.name)}</span></div>
     <div class="rw"><span class="rw-l">Status</span><span class="rw-v">${esc(v.identity.status)}</span></div>
+    <div class="rw"><span class="rw-l">Holdings</span><span class="rw-v">${h.holdingsLocked?'Frozen':'Unlocked'}</span></div>
     <div class="rw"><span class="rw-l">Type</span><span class="rw-v">${esc(v.identity.holderType || 'Standard')}</span></div>
     <div class="rw"><span class="rw-l">VICE units</span><span class="rw-v mn">${fmtNum(Number(v.VICE.held))}</span></div>
     <div class="rw"><span class="rw-l">V4X units</span><span class="rw-v mn">${fmtNum(Number(v.V4X.held))}</span></div>
     ${v.classification.tier ? `<div class="rw"><span class="rw-l">Tier</span><span class="rw-v">${esc(v.classification.tier.tier)} · ${esc(v.classification.tier.name)}</span></div>` : ''}
     ${v.classification.legacy ? `<div class="rw"><span class="rw-l">Legacy</span><span class="rw-v">${esc(v.classification.legacy.order)} · ${esc(v.classification.legacy.name)}</span></div>` : ''}
     ${canManage ? `<div class="mact">
-      <button class="btn btn-g" data-act="holder-issue" data-id="${esc(holderId)}">Issue units</button>
+      <button class="btn btn-g" data-act="holder-issue" data-id="${esc(holderId)}">Issue from holder pool</button>
       <button class="btn btn-g" data-act="holder-tier" data-id="${esc(holderId)}">Assign tier</button>
       <button class="btn btn-g" data-act="holder-legacy" data-id="${esc(holderId)}">Record legacy</button>
       <button class="btn btn-g" data-act="holder-entry" data-id="${esc(holderId)}">Entry class</button>
     </div>` : ''}
+    ${canControl?`<div class="mact" style="flex-wrap:wrap">
+      <button class="btn btn-g" data-act="holder-control" data-id="${esc(holderId)}" data-control="${h.holdingsLocked?'UNLOCK':'LOCK'}">${h.holdingsLocked?'Unfreeze':'Freeze'} holdings</button>
+      ${!h.accountRevoked?`<button class="btn btn-g" data-act="holder-control" data-id="${esc(holderId)}" data-control="${h.accountSuspended?'RESUME':'SUSPEND'}">${h.accountSuspended?'Restore access':'Suspend account'}</button>`:''}
+      ${isOwner()?`<button class="btn btn-g" data-act="holder-control" data-id="${esc(holderId)}" data-control="${h.accountRevoked?'RESTORE':'REVOKE'}">${h.accountRevoked?'Restore membership':'Revoke membership'}</button>`:''}
+      ${!isOwner()&&h.status==='ACTIVE'&&!h.holdingsLocked?`<button class="btn btn-p" data-act="holder-transfer" data-id="${esc(holderId)}">Distribute from my holdings</button>`:''}
+    </div><p class="note">Controls preserve holdings and transaction history. Reserve accounts and their administrator are protected.</p>`:''}
     <div class="mact"><button class="btn btn-g" data-act="modal-close">Close</button></div>
   `);
+}
+
+const HOLDER_CONTROL_LABELS={LOCK:'Freeze holdings',UNLOCK:'Unfreeze holdings',SUSPEND:'Suspend account',RESUME:'Restore account access',REVOKE:'Revoke membership',RESTORE:'Restore membership'};
+let holderOperation=null;
+function openHolderControlModal(holderId,action){
+  if(!isRegistryOperator()||!HOLDER_CONTROL_LABELS[action])return;
+  if(['REVOKE','RESTORE'].includes(action)&&!isOwner())return;
+  const h=S.iru.state?.holders[holderId];if(!h)return;
+  holderOperation={kind:'CONTROL',epoch:authEpoch,holderId,action,id:crypto.randomUUID(),busy:false,payload:null};
+  const description={LOCK:'Stops changes to IRU holdings while keeping account access available.',
+    UNLOCK:'Allows authorized holding transactions again. Other account restrictions still apply.',
+    SUSPEND:'Stops account access and holding transactions, and ends existing login sessions.',
+    RESUME:'Allows a fresh login. Any separate holdings freeze stays in place.',
+    REVOKE:'Revokes membership access and ends existing login sessions. Balances, certificates and financial history are retained.',
+    RESTORE:'Restores membership access for a fresh login. Any separate holdings freeze stays in place.'}[action];
+  openModal(HOLDER_CONTROL_LABELS[action],`<p><b>${esc(h.name)}</b> · ${esc(h.clientId)}</p><p class="note">${description}</p>
+    <label class="field">Reason (required)<textarea id="holderControlReason" minlength="8" maxlength="500" placeholder="Record the reason for this administrative action"></textarea></label>
+    <div class="mact"><button class="btn btn-g" data-act="holder-view" data-id="${esc(holderId)}">Cancel</button>
+      <button class="btn btn-p" data-act="holder-control-submit">Confirm ${esc(HOLDER_CONTROL_LABELS[action].toLowerCase())}</button></div>`);
+}
+async function finishHolderOperation(op,data){
+  if(op.epoch!==authEpoch)return;
+  holderOperation=null;closeModal();
+  const summary=op.kind==='TRANSFER'?`Distribution confirmed · ledger ${data.seq_out}/${data.seq_in}`:`${HOLDER_CONTROL_LABELS[op.action]} confirmed · ledger ${data.seq}`;
+  toast(summary,'success');
+  await hydrateData();renderMain();
+  if(S.iru.registryReady)openHolderViewModal(op.holderId);
+}
+async function submitHolderControl(button){
+  const op=holderOperation;if(!op||op.kind!=='CONTROL'||op.busy)return;
+  const reason=$('holderControlReason')?.value.trim();
+  if(!reason||reason.length<8){toast('Enter a reason of at least 8 characters.','error');return;}
+  // Preserve exactly the first attempted request on retry after an uncertain response.
+  op.payload||={p_holder_id:op.holderId,p_action:op.action,p_reason:reason,p_correlation_id:op.id};
+  op.busy=true;button.disabled=true;
+  try{
+    const {data,error}=await sb.rpc('vice_set_holder_control',op.payload);
+    if(error)throw error;if(!data?.seq)throw new Error('No confirmed control receipt returned');
+    await finishHolderOperation(op,data);
+  }catch(e){toast('Control not confirmed: '+e.message+'. Retry checks the same request.','error');}
+  finally{op.busy=false;button.disabled=false;}
+}
+function openOwnHoldingsTransferModal(holderId){
+  if(!isRegistryOperator())return;
+  const h=S.iru.state?.holders[holderId],src=S.iru.state?.holders[currentHolderId()];
+  if(!h||!src||holderId===currentHolderId())return;
+  const v=S.iru.state.balances.VICE[currentHolderId()]||0n,x=S.iru.state.balances.V4X[currentHolderId()]||0n;
+  holderOperation={kind:'TRANSFER',epoch:authEpoch,holderId,id:crypto.randomUUID(),busy:false,payload:null};
+  openModal('Distribute from my holdings',`<p><b>From:</b> ${esc(src.name)} · ${esc(src.clientId)}<br><b>To:</b> ${esc(h.name)} · ${esc(h.clientId)}</p>
+    <p class="note">Your recorded holdings: ${fmtNum(Number(v))} VICE · ${fmtNum(Number(x))} V4X. This transfer debits your holdings and credits the recipient. Total issued units and the Estate Reserve remain unchanged.</p>
+    <div class="fields"><label class="field">Program<select id="holderTransferProgram"><option>VICE</option><option>V4X</option></select></label>
+      <label class="field">Whole units<input id="holderTransferUnits" inputmode="numeric" placeholder="Number of units"></label>
+      <label class="field fc">Reason<textarea id="holderTransferReason" minlength="8" maxlength="500"></textarea></label></div>
+    <div class="mact"><button class="btn btn-g" data-act="holder-view" data-id="${esc(holderId)}">Cancel</button>
+      <button class="btn btn-p" data-act="holder-transfer-submit">Confirm distribution</button></div>`);
+}
+async function submitOwnHoldingsTransfer(button){
+  const op=holderOperation;if(!op||op.kind!=='TRANSFER'||op.busy)return;
+  const units=$('holderTransferUnits')?.value.trim(),reason=$('holderTransferReason')?.value.trim();
+  if(!/^\d+$/.test(units||'')||Number(units)<1||Number(units)>2500000||!reason||reason.length<8){toast('Enter positive whole units and a reason of at least 8 characters.','error');return;}
+  op.payload||={p_target_holder_id:op.holderId,p_program:$('holderTransferProgram').value,p_units:Number(units),p_reason:reason,p_correlation_id:op.id};
+  op.busy=true;button.disabled=true;
+  try{
+    const {data,error}=await sb.rpc('vice_transfer_own_iru',op.payload);
+    if(error)throw error;if(!data?.seq_out||!data?.seq_in)throw new Error('No confirmed transfer receipt returned');
+    await finishHolderOperation(op,data);
+  }catch(e){toast('Distribution not confirmed: '+e.message+'. Retry checks the same request.','error');}
+  finally{op.busy=false;button.disabled=false;}
 }
 
 function openIssueUnitsModal(holderId){
   const st = S.iru.state || IruEngine.emptyState();
   const h = st.holders[holderId];
   if(!h) return;
+  holderOperation={kind:'ISSUE',epoch:authEpoch,holderId,id:crypto.randomUUID(),busy:false,payload:null};
   const cap = IruEngine.capacity(st);
   const aV = IruEngine.supplyView(st, 'VICE').remaining;
   const aX = IruEngine.supplyView(st, 'V4X').remaining;
@@ -12422,10 +12533,12 @@ function openIssueUnitsModal(holderId){
 }
 
 async function submitIssueUnits(holderId){
+  const op=holderOperation;if(!op||op.kind!=='ISSUE'||op.holderId!==holderId||op.busy)return;
   const program = $('iuProgram')?.value;
   const units = $('iuUnits')?.value.trim();
   const reason = $('iuReason')?.value.trim();
   if(!units || !reason){ toast('Units and reason required','error'); return; }
+  op.busy=true;
   try {
     const st = S.iru.state || IruEngine.emptyState();
     const ev = {
@@ -12437,16 +12550,19 @@ async function submitIssueUnits(holderId){
       by: S.user?.email || 'system',
       at: nowIso(),
     };
-    const validated = IruEngine.apply(structuredClone(st), ev);
-    await persistIruEvent(ev);
-    S.iru.state = validated;
+    IruEngine.apply(structuredClone(st), ev);
+    op.payload||=ev;
+    const receipt=await persistIruEvent(op.payload,op.id);
+    if(op.epoch!==authEpoch)return;
+    if(!receipt?.seq&&!receipt?.simulated)throw new Error('No confirmed issuance receipt');
+    holderOperation=null;
     closeModal();
     toast('Units issued','success');
     audit('UNITS_ISSUED', `Issue ${units} ${program}`, 'holder', holderId);
-    renderMain();
+    await hydrateData();renderMain();
   } catch(e) {
     toast('Failed: ' + e.message,'error');
-  }
+  }finally{op.busy=false;}
 }
 
 function openTierModal(holderId){
@@ -12739,7 +12855,7 @@ function openInviteCreateModal(){
 
 function submitInviteCreate(){
   const forUser = $('invName')?.value.trim();
-  const email = $('invEmail')?.value.trim();
+  const email = normalizeLoginIdentifier($('invEmail')?.value);
   const role = $('invRole')?.value || 'HOLDER';
   const vip = $('invVip')?.value === 'yes';
   const note = $('invNote')?.value.trim() || '';
@@ -12787,7 +12903,7 @@ function submitInviteCreate(){
 function buildInviteEmailHtml(inviteUrl, role, forUser, inviterName){
   const name = forUser || 'there';
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>VICE OS Invite</title></head>
+<html><head><meta charset="utf-8"><title>VICE4X Invite</title></head>
 <body style="margin:0;padding:0;background:#07080a;font-family:Inter,Arial,sans-serif;color:#ece8e1">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#07080a;padding:32px 12px">
     <tr><td align="center">
@@ -12798,7 +12914,7 @@ function buildInviteEmailHtml(inviteUrl, role, forUser, inviterName){
         </td></tr>
         <tr><td style="padding:20px 32px 0;text-align:center">
           <h1 style="font-family:Georgia,serif;font-style:italic;font-weight:300;font-size:26px;color:#ece8e1;margin:0 0 8px">You're invited</h1>
-          <p style="color:#a3968e;font-size:15px;line-height:1.6;margin:0">${name}, you've been granted access to VICE OS.</p>
+          <p style="color:#a3968e;font-size:15px;line-height:1.6;margin:0">${name}, you've been granted access to VICE4X.</p>
         </td></tr>
         <tr><td style="padding:24px 32px 8px">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:rgba(0,0,0,.35);border:1px solid rgba(201,168,76,.14);border-radius:12px">
@@ -12807,7 +12923,7 @@ function buildInviteEmailHtml(inviteUrl, role, forUser, inviterName){
           </table>
         </td></tr>
         <tr><td style="padding:24px 32px 8px;text-align:center">
-          <a href="${inviteUrl}" style="display:inline-block;background:linear-gradient(135deg,#ecd28a,#c9a84c);color:#1a0a0a;font-weight:600;font-size:15px;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:.04em">Open VICE OS →</a>
+          <a href="${inviteUrl}" style="display:inline-block;background:linear-gradient(135deg,#ecd28a,#c9a84c);color:#1a0a0a;font-weight:600;font-size:15px;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:.04em">Open VICE4X →</a>
         </td></tr>
         <tr><td style="padding:16px 32px 32px;text-align:center">
           <p style="color:#6b5f59;font-size:12px;line-height:1.6;margin:0">Or paste this link:<br>
@@ -12825,8 +12941,8 @@ function openInviteEmail(id){
   if(!inv){ toast('Invite not found','error'); return; }
   const url = location.origin + location.pathname + '?invite=' + inv.code;
   const to = inv.email || inv.forUser || '';
-  const subject = encodeURIComponent('You are invited to VICE OS');
-  const bodyPlain = `You are invited to VICE OS.\n\nRole: ${ROLE_LABELS[inv.role] || inv.role}\nInvited by: ${S.profile.name}\n\nOpen: ${url}\n\n— VICE Capital Inc.`;
+  const subject = encodeURIComponent('You are invited to VICE4X');
+  const bodyPlain = `You are invited to VICE4X.\n\nRole: ${ROLE_LABELS[inv.role] || inv.role}\nInvited by: ${S.profile.name}\n\nOpen: ${url}\n\n— VICE Capital Inc.`;
   const mailto = `mailto:${encodeURIComponent(to)}?subject=${subject}&body=${encodeURIComponent(bodyPlain)}`;
   const html = buildInviteEmailHtml(url, ROLE_LABELS[inv.role] || inv.role, inv.forUser || inv.for_user, S.profile.name);
   try { window.open(mailto, '_blank'); } catch(_){}
@@ -13083,7 +13199,7 @@ viceAuthReady.then(ready => {
       try { Realtime.disconnect(); } catch(_){}
       const login = $('login'); if(login) login.hidden = false;
       ['tb','bnr','sb'].forEach(id => { const el=$(id); if(el) el.style.display='none'; });
-      const mn = document.querySelector('.mn'); if(mn) mn.style.display = 'none';
+      const mn = document.querySelector('main.mn'); if(mn) mn.style.display = 'none';
       $('cmTabs')?.classList.remove('on');
     } else if(event === 'SIGNED_IN' && session && session.user){
       if(S.user?.id!==session.user.id){
@@ -13230,15 +13346,15 @@ function runSplash(){
 
 window.addEventListener('error', (e) => {
   if(e && e.message && /ResizeObserver/.test(e.message)) return;
-  console.warn('VICE OS error:', e.message || e.error);
+  console.warn('VICE4X error:', e.message || e.error);
 });
 
 window.addEventListener('unhandledrejection', (e) => {
-  console.warn('VICE OS unhandled promise:', e.reason);
+  console.warn('VICE4X unhandled promise:', e.reason);
 });
 
 
-/* VICE OS standalone QR Model 2, byte-mode, error-correction M, versions 1–9.
+/* VICE4X standalone QR Model 2, byte-mode, error-correction M, versions 1–9.
    Matrix implementation is self-contained; no external runtime dependency. */
 const ViceQR = (() => {
   const BLOCKS = [null,[[26,16]],[[44,28]],[[70,44]],[[50,32],[50,32]],
@@ -13375,8 +13491,8 @@ const ViceCertificates=(()=>{
     const nm=lines(c.name,28),course=lines(c.course,44);
     const txt=(x,y,z,size,color='#ece8e1',style='normal',anchor='middle',extra='')=>
       `<text x="${x}" y="${y}" text-anchor="${anchor}" fill="${color}" font-family="Georgia,serif" font-size="${size}" font-style="${style}" ${extra}>${esc(z)}</text>`;
-    const issued=new Date(c.issuedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-    const nameTop=1410-(nm.length-1)*75,courseTop=1910-(course.length-1)*52;
+    const issued=new Date(c.issuedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'UTC'});
+    const nameTop=1510-(nm.length-1)*25,courseTop=2000-(course.length-1)*25;
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
 <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10141d"/><stop offset=".53" stop-color="#07080a"/><stop offset="1" stop-color="#18140d"/></linearGradient>
 <radialGradient id="glow" cx="50%" cy="15%" r="65%"><stop stop-color="#c9a84c" stop-opacity=".17"/><stop offset="1" stop-color="#c9a84c" stop-opacity="0"/></radialGradient>
@@ -13385,23 +13501,23 @@ const ViceCertificates=(()=>{
 <rect x="${MARGIN}" y="${MARGIN}" width="${WIDTH-2*MARGIN}" height="${HEIGHT-2*MARGIN}" fill="none" stroke="url(#gold)" stroke-width="7"/>
 <rect x="${MARGIN+28}" y="${MARGIN+28}" width="${WIDTH-2*(MARGIN+28)}" height="${HEIGHT-2*(MARGIN+28)}" fill="none" stroke="#c9a84c" stroke-opacity=".55" stroke-width="2"/>
 ${cornerOrnament(180,180)}${cornerOrnament(2370,180,-1,1)}${cornerOrnament(180,3120,1,-1)}${cornerOrnament(2370,3120,-1,-1)}
-<g transform="translate(1210 510)" fill="none" stroke="url(#gold)" stroke-width="30"><path d="M-140 -100L-25 100L140 -100"/><path d="M-110 -100H-30"/><path d="M35 -100H110"/></g>
+<svg data-vice-logo="official" x="1100" y="345" width="350" height="303.1" viewBox="0 0 1000 866" aria-label="VICE Capital emblem"><path fill="url(#gold)" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/></svg>
 ${txt(1275,760,'V I C E   C A P I T A L   I N C.',48,'#d7b971','normal','middle','letter-spacing="6"')}
 ${txt(1275,1030,'Sovereign Certificate',130,'#f0d79a','italic')}
 ${txt(1275,1154,'of Completion',126,'#f0d79a','italic')}
 <path d="M540 1240H1190 M1360 1240H2010" stroke="#c9a84c" stroke-opacity=".7" stroke-width="3"/><circle cx="1275" cy="1240" r="10" fill="#c9a84c"/>
 ${txt(1275,1325,'THIS CERTIFIES THAT',32,'#c9a84c','normal','middle','letter-spacing="12"')}
-${nm.map((a,i)=>txt(1275,nameTop+i*135,a,119,'#f8f2e7','italic')).join('')}
-<path d="M690 1540H1860" stroke="#c9a84c" stroke-opacity=".5" stroke-width="3"/>
-${txt(1275,1710,'HAS SUCCESSFULLY COMPLETED',32,'#c9a84c','normal','middle','letter-spacing="9"')}
-${course.map((a,i)=>txt(1275,courseTop+i*80,a,65,'#e7ddd0','italic')).join('')}
+${nm.map((a,i)=>txt(1275,nameTop+i*90,a,nm.length>2?76:100,'#f8f2e7','italic')).join('')}
+<path d="M690 1760H1860" stroke="#c9a84c" stroke-opacity=".5" stroke-width="3"/>
+${txt(1275,1850,'HAS SUCCESSFULLY COMPLETED',32,'#c9a84c','normal','middle','letter-spacing="9"')}
+${course.map((a,i)=>txt(1275,courseTop+i*75,a,65,'#e7ddd0','italic')).join('')}
 <rect x="540" y="2220" width="1470" height="225" rx="10" fill="#c9a84c" fill-opacity=".06" stroke="#c9a84c" stroke-opacity=".45" stroke-width="3"/>
 ${txt(1275,2290,'OVERALL ASSESSMENT SCORE',33,'#c9a84c','normal','middle','letter-spacing="8"')}
 ${txt(1275,2390,`${Number(c.overallScore)||0}%`,95,'#f2ddac')}
 ${txt(560,2700,'DATE ISSUED',27,'#c9a84c','normal','start','letter-spacing="8"')}
 ${txt(560,2765,issued,49,'#ece8e1','normal','start')}
 <circle cx="1290" cy="2690" r="88" stroke="#c9a84c" stroke-width="5" fill="#c9a84c" fill-opacity=".07"/>
-${txt(1290,2711,'VICE',39,'#ecd28a')}
+<svg data-vice-logo="official" x="1240" y="2647" width="100" height="86.6" viewBox="0 0 1000 866" aria-label="VICE Capital emblem"><path fill="url(#gold)" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/></svg>
 ${txt(1290,2845,'AUTHORIZED ISSUER',23,'#c9a84c','normal','middle','letter-spacing="5"')}
 ${qSvg}
 ${txt(560,2945,sim?'SIMULATION — NOT VERIFIED':String(c.id),32,sim?'#e59b6a':'#dfc182','normal','start')}
@@ -13498,7 +13614,7 @@ const ViceTokenCertificates = (()=>{
   const WIDTH=2550,HEIGHT=3300;
   const titles={ISSUANCE:'Certificate of Issuance',ALLOCATION:'Certificate of Allocation',
     DISTRIBUTION:'Certificate of Distribution',CONSOLIDATION:'Consolidated Holdings Certificate',
-    RETIREMENT:'Certificate of Unit Retirement'};
+    RETIREMENT:'Certificate of Unit Retirement',RESERVE:'Estate Reserve Certificate'};
   const verifyUrl=c=>new URL('./verify.html?id='+encodeURIComponent(c.cert_id),location.href).href;
   const formatUnits=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
   const moneyCents=v=>{
@@ -13537,8 +13653,9 @@ const ViceTokenCertificates = (()=>{
       <rect width="2550" height="3300" fill="#07080a"/><rect x="170" y="170" width="2210" height="2960" fill="none" stroke="url(#vice-certificate-gold)" stroke-width="8"/>
       <rect x="200" y="200" width="2150" height="2900" fill="none" stroke="#7c652f" stroke-width="2"/>
       ${ViceCertificates.cornerOrnament(170,170)}${ViceCertificates.cornerOrnament(2380,170,-1,1)}${ViceCertificates.cornerOrnament(170,3130,1,-1)}${ViceCertificates.cornerOrnament(2380,3130,-1,-1)}
-      <text x="1275" y="540" text-anchor="middle" font-size="175" font-family="Georgia,serif" font-style="italic" fill="url(#vice-certificate-gold)">V I C E</text>
-      <text x="1275" y="615" text-anchor="middle" font-size="36" font-family="monospace" letter-spacing="15" fill="#c9a84c">CAPITAL INC.</text>
+      <svg data-vice-logo="official" x="1150" y="285" width="250" height="216.5" viewBox="0 0 1000 866" aria-label="VICE Capital emblem"><path fill="url(#vice-certificate-gold)" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/></svg>
+      <text x="1275" y="610" text-anchor="middle" font-size="100" font-family="Georgia,serif" font-style="italic" fill="url(#vice-certificate-gold)">V I C E</text>
+      <text x="1275" y="685" text-anchor="middle" font-size="36" font-family="monospace" letter-spacing="15" fill="#c9a84c">CAPITAL INC.</text>
       <text x="1275" y="865" text-anchor="middle" font-size="90" font-family="Georgia,serif" font-style="italic" fill="#f4e4bb">${esc(titles[c.kind]||'Verified IRU Certificate')}</text>
       <path d="M540 940H2010" stroke="#c9a84c" stroke-width="3"/><circle cx="1275" cy="940" r="10" fill="#c9a84c"/>
       <text x="1275" y="1060" text-anchor="middle" font-size="34" font-family="monospace" letter-spacing="9" fill="#c9a84c">THIS CERTIFIES THAT</text>
@@ -13687,17 +13804,11 @@ document.addEventListener('change',e=>{
 });
 
 
-// v1.0.3 deliberately retires the previous offline HTML cache: account pages
-// must be network-fresh after deployments. Never erase IndexedDB wallet data.
-if('serviceWorker' in navigator && location.protocol==='https:'){
-  navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister())))
-    .catch(e=>console.warn('Retire old service worker:',e));
-  if('caches' in window) caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('vice-os-')).map(k=>caches.delete(k))))
-    .catch(e=>console.warn('Retire old shell caches:',e));
-}
-
+// Notifications worker never caches application pages or private responses.
 </script>
 <link rel="stylesheet" href="vice-mega.css?v=1364">
 <script src="vice-mega.js?v=1364"></script>
+<link rel="stylesheet" href="vice4x-operations.css?v=20261018">
+<script src="vice4x-operations.js?v=20261018"></script>
 </body>
 </html>

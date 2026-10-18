@@ -29,7 +29,7 @@ assert(read('supabase/migrations/'+migrations[2]).includes('email_outbox'));
 assert(read('supabase/migrations/'+migrations[3]).includes('trg_vice_distribution_certificate'));
 const qrStart=html.indexOf('const ViceQR = (() => {'),qrEnd=html.indexOf('/* ═',qrStart+500);
 const certStart=html.indexOf('const ViceBarcode = (()=>{'),
- certEnd=html.indexOf('// v1.0.3 deliberately retires',certStart);
+ certEnd=html.indexOf('// Notifications worker never caches',certStart);
 assert(qrStart>0&&qrEnd>qrStart&&certStart>0&&certEnd>certStart,'Barcode implementation missing');
 const ctx=vm.createContext({console,BigInt,Intl,Date,Number,URL,TextEncoder,
  esc:s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
@@ -51,4 +51,6 @@ const svg=ctx.test.ViceTokenCertificates.render(cert);
 assert(svg.includes('2550')&&svg.includes('3300'),'Letter print dimensions missing');
 assert(svg.includes('Combined internal reference'),'Snapshot render missing');
 assert(svg.includes('Code 39 ID'),'Barcode ID missing');
+assert(svg.includes('data-vice-logo="official"'),'IRU certificate official logo missing');
+assert(verify.includes('data-vice-logo="official"')&&!verify.includes('<span>V</span>'),'Verification must use the official logo');
 console.log('PASS certificate source: QR, Code39, historical holdings, issuer RPC integration');

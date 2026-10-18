@@ -86,6 +86,16 @@ async function ownerRow(db,user,id){
 }
 function cleanRow(row){return {id:row.id,label:row.label,server:row.server,mode:row.account_mode,
  connectionState:row.connection_state,createdAt:row.created_at};}
+async function verifyCloudMemberAccess(client,uid){
+ const access=await client.rpc('vice_member_access_status');
+ if(access.error)return {error:'Account access verification unavailable',status:503};
+ if(access.data?.allowed!==true)return {error:'Account access is suspended, revoked or expired',status:403};
+ const profile=await client.from('profiles').select('id').eq('id',uid).maybeSingle();
+ if(profile.error)return {error:'Membership verification unavailable',status:503};
+ if(profile.data?.id!==uid)return {error:'Approved VICE membership required',status:403};
+ return null;
+}
+
 Deno.serve(async(req)=>{
  try {
  const origin=req.headers.get('origin')||'';
@@ -99,10 +109,12 @@ Deno.serve(async(req)=>{
  if(!supabaseUrl||!anonKey||!adminKey)return reply({error:'Connector backend not configured'},503,origin);
  const bearer=(req.headers.get('authorization')||'').match(/^Bearer\s+(.+)$/i)?.[1];
  if(!bearer)return reply({error:'Sign in to VICE OS first'},401,origin);
- const anon=createClient(supabaseUrl,anonKey,{auth:{persistSession:false,autoRefreshToken:false}});
+ const anon=createClient(supabaseUrl,anonKey,{global:{headers:{Authorization:'Bearer '+bearer}},auth:{persistSession:false,autoRefreshToken:false}});
  const {data:who,error:authError}=await anon.auth.getUser(bearer);
  if(authError||!who?.user?.id)return reply({error:'Invalid or expired VICE session'},401,origin);
  const uid=who.user.id;
+ const denied=await verifyCloudMemberAccess(anon,uid);
+ if(denied)return reply({error:denied.error},denied.status,origin);
  const db=createClient(supabaseUrl,adminKey,{auth:{persistSession:false,autoRefreshToken:false}});
  let body={};try{body=await req.json()}catch{return reply({error:'Invalid JSON'},400,origin)}
  if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).length>12||'password' in body||'token' in body||'login' in body)

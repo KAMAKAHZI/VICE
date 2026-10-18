@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),p=require('node:path');
 const site='dist/site';
-const required=['index.html','guide.html','verify.html','version.json','manifest.json','manifest.webmanifest','sw.js','vice-mega.js','vice-mega.css','_headers','_redirects'];
+const required=['index.html','guide.html','verify.html','version.json','manifest.json','manifest.webmanifest','sw.js','vice-mega.js','vice-mega.css','vice4x-operations.js','vice4x-operations.css','vice-solace-system.js','_headers','_redirects'];
 const found=fs.readdirSync(site).sort(),safe=[...required].sort();
 assert.deepEqual(found,safe,'Public deployment must be exact whitelisted assets');
 for(const fname of found)assert(fs.statSync(p.join(site,fname)).isFile(),'Unexpected path: '+fname);

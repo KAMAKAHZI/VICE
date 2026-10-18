@@ -12,7 +12,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
   try{const ext=path.extname(target);res.setHeader('Content-Type',({'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json'})[ext]||'text/plain');res.end(fs.readFileSync(target));}catch{res.writeHead(404);res.end();}
  });
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
- const browser=await chromium.launch({headless:true});
+ const browser=await chromium.launch({headless:true,...(process.env.VICE_CHROMIUM_PATH?{executablePath:process.env.VICE_CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
  try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
    const page=await browser.newPage({viewport});const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -48,7 +48,25 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
    assert.equal(await page.locator('#oi-root').evaluate(e=>e.classList.contains('on')),false,'Chart dragging does not open O.I.');
    assert.equal(await page.locator('#view [data-act="oi-open"]').count(),1,'O.I. remains available in the chart toolbar');
    assert.equal(await page.locator('#view [data-act="support-open"]').count(),1,'Support remains available in the chart toolbar');
-   console.log('PASS chart body/price-axis drag',viewport.width);
+   assert.equal(await page.evaluate(()=>S.res.version),'10.6','Browser runs supplied System adaptation');
+   await page.locator('[data-act="v4x-system-settings"]').click();
+   await page.locator('#v4x-system-form').waitFor({state:'visible'});
+   await page.locator('[data-system-key="mode"]').selectOption('Scalp');
+   await page.locator('[data-act="v4x-system-save"]').click();
+   await page.waitForFunction(()=>S.res?.params.mode==='Scalp');
+   assert.equal(await page.evaluate(()=>S.res.params.lookback),250);
+   console.log('PASS chart body/price-axis drag and System settings',viewport.width);
+   await page.evaluate(()=>{S.tab='admin';renderMain();});
+   const buildRow=page.locator('.rw').filter({has:page.locator('.rw-l',{hasText:'Build'})});
+   if(await buildRow.count())assert((await buildRow.boundingBox()).height<100,'Monospace build label does not inherit full-page height');
+   await page.evaluate(()=>{S.tab='lending';renderMain();});
+   await page.locator('[data-act="v4x-loan-new"]').click();
+   await page.locator('#v4x-loan-form').waitFor({state:'visible'});
+   await page.locator('#v4x-principal').fill('100');await page.locator('#v4x-appraisal_value').fill('400');
+   assert.match(await page.locator('#v4x-ltv').textContent(),/25.00%/);
+   assert.equal(await page.evaluate(()=>document.querySelector('.mdl').scrollWidth>document.querySelector('.mdl').clientWidth+2),false,'Loan form fits mobile modal');
+   await page.evaluate(()=>closeModal());
+   console.log('PASS compact settings and lending form',viewport.width);
    const renderFailures=await page.evaluate(()=>{
      const failures=[];
      for(const tab of TABS){S.tab=tab;renderMain();const text=document.getElementById('view')?.textContent||'';if(/^Error:/.test(text.trim()))failures.push(tab+': '+text);}

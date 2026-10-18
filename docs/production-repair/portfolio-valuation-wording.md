@@ -1,4 +1,4 @@
-# VICE OS / Portfolio valuation disclosure
+# VICE4X / Portfolio valuation disclosure
 
 Copy update • 2026-10-17 UTC • release 1.3.8.0-IRU-CERTIFICATES
 

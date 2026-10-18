@@ -1,4 +1,4 @@
-# VICE OS production repair console
+# VICE4X production repair console
 
 Status: repair release published and verified on October 16, 2026. Full institutional feature acceptance remains open; see the release report for exact evidence and limitations.
 

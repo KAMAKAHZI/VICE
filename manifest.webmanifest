@@ -1,5 +1,5 @@
 {
-  "name": "VICE OS", "short_name": "VICE OS",
+  "name": "VICE4X", "short_name": "VICE4X",
   "description": "VICE Capital Institutional Operating System",
   "start_url": "./", "scope": "./", "display": "standalone",
   "background_color": "#07080a", "theme_color": "#07080a",

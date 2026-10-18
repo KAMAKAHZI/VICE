@@ -149,7 +149,7 @@
     panel.style.marginTop='18px';
     const connected=Boolean(addr);
     panel.innerHTML=`<div class="band-head"><h2>External EVM wallet</h2><span class="chip file">Provider-approved transactions</span></div>
-      <p class="muted">Connect MetaMask or another installed EIP-1193 provider for real Ethereum-compatible balances and transaction signing. VICE OS never receives your private key.</p>
+      <p class="muted">Connect MetaMask or another installed EIP-1193 provider for real Ethereum-compatible balances and transaction signing. VICE4X never receives your private key.</p>
       <div class="actions" style="margin:12px 0"><button class="btn btn-gd" data-act="vice-evm-connect">${connected?'Refresh connection':'Connect external wallet'}</button></div>
       ${connected?`<p class="meta">Account: <code>${esc(addr)}</code> · Chain ${esc(chain)} · Native balance ${esc(balance)}</p>
       <div class="fields"><label class="field fc">Recipient EVM address<input id="viceEvmTo" placeholder="0x…" autocomplete="off"></label>

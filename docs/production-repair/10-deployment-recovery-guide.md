@@ -1,4 +1,4 @@
-# VICE OS / Deployment and Recovery Guide
+# VICE4X / Deployment and Recovery Guide
 
 Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 

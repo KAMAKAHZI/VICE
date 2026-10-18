@@ -1,4 +1,4 @@
-# VICE OS / Supabase Database Reference
+# VICE4X / Supabase Database Reference
 
 Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 

@@ -1,8 +1,10 @@
-# VICE OS / Administrator Guide
+# VICE4X / Administrator Guide
 
 Internal engineering • 2026-10-16 UTC • 1.3.8.0-IRU-CERTIFICATES
 
 Administrative controls are visible by role, but database permissions remain authoritative. Use the role-management RPC; the client must never promote users by editing profile labels. No SUPER_ADMIN promotion is provided in the role tool.
+
+The [October 17 registry authority update](registry-controls-20261017.md) delegates the 2,500,000 strategic holder pool to the CFO while retaining KAHZI's final control over both pools and exclusive Estate Reserve authority. The registry now provides confirmed transfers from own holdings, freezes, suspensions, and Reserve-administrator membership revocation/restoration.
 
 Create invitations only for intended recipients. Confirm the recipient, role and expiration. Allocation approval/distribution changes real records: inspect approved contribution records and reconcile before submitting. Do not use production allocations as test fixtures.
 
