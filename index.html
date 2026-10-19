@@ -2654,7 +2654,9 @@ async function hydrateData(){
   };
   for(const [key, table] of Object.entries(tables)){
     try{
-      const { data, error } = await sb.from(table).select('*').order('created_at',{ascending:false}).limit(500);
+      const query = sb.from(table).select('*');
+      if(table==='external_accounts' || table==='mt5_accounts') query.eq('owner_id',S.user.id);
+      const { data, error } = await query.order('created_at',{ascending:false}).limit(500);
       if(!current())return;
       if(error) throw error;
       if(data) S[key] = data.map(denorm);
@@ -2975,6 +2977,8 @@ function externalUsd(){
 function documentedExternalUsd(){
   // Historical, user-supplied statement figures: never present as current cash.
   return (S.externalAccounts||[]).filter(a=>
+    APP_MODE==='SIM' || (S.user?.id && String(a.ownerId||a.owner_id||'')===String(S.user.id))
+  ).filter(a=>
     a.currency==='USD' && a.status!=='REJECTED' &&
     Number.isFinite(Number(a.balance)) && Number(a.balance)>=0
   ).reduce((sum,a)=>sum+Number(a.balance),0);
