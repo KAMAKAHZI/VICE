@@ -9204,7 +9204,8 @@ function walletBalancesHtml(){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewCommand(el){
-  const total = totalAccountPortfolioUsd() + documentedExternalUsd();
+  const documentedExternal = documentedExternalUsd();
+  const total = totalAccountPortfolioUsd() + documentedExternal;
   const managedVice=managedReserveUnits('VICE');
   const managedV4x=managedReserveUnits('V4X');
   const hasReserve=isOwner();
