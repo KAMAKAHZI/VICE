@@ -9282,7 +9282,7 @@ function viewCommand(el){
     </div>
     ${holderStrip}
     <section class="portfolio-hero" aria-label="Total portfolio management reference">
-      <div class="portfolio-hero-label">TOTAL CONSOLIDATED PORTFOLIO REFERENCE</div>
+      <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
       <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':isOwner()?'Management reference basis · Estate/Admin Reserve + personal IRUs + linked equity':'Management reference basis · Personal IRUs + linked equity'}</span>
         <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
