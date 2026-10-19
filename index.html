@@ -10654,7 +10654,7 @@ function viewGovernance(el){
       <div class="row-l"><b>${esc(p.id)}</b>
       <span class="meta">Institutional structural proposal · Executive review only · Member voting not authorized</span>
       <span class="meta">Current: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')} · Requested: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
-      <span class="meta">Published ${fmtD(p.published_at)} · Review until ${fmtD(p.validation_until)}</span></div>
+      <span class="meta">Published ${fmtD(p.published_at)} · Review until ${fmtD(p.validation_until)}</span><span class="meta">Executive quorum: ${Number(p.verified_executive_signatures||0)}/2 verified · CEO: ${p.ceo_signed?'SIGNED & VERIFIED':'AWAITING'} · CFO: ${p.cfo_signed?'SIGNED & VERIFIED':'AWAITING'}</span></div>
       <div class="row-r"><span class="bdg ${p.status==='REJECTED'?'rd':'gd'}">${esc(p.status)}</span></div>
     </div>`;
   }).join('');
