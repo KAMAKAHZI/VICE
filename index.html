@@ -10587,7 +10587,7 @@ function viewGovernance(el){
            <span class="meta">${p.opensAt?'Opens '+fmtD(p.opensAt):''}${p.closesAt?' · Closes '+fmtD(p.closesAt):''}</span></div>
           <div class="row-r" style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <span class="bdg ${status==='PASSED'?'gr':status==='REJECTED'?'rd':'gd'}">${esc(status||'DRAFT')}</span>
-            <span class="meta">${fmtNum(p.votesFor||0)} FOR units (${((Number(p.votesFor)||0)/200000).toFixed(3)}%) · ${fmtNum(p.votesAgainst||0)} AGAINST units (${((Number(p.votesAgainst)||0)/200000).toFixed(3)}%)</span>
+            <span class="meta">${fmtNum(p.votesFor||0)} FOR units (${(Math.max(0,Number(p.votesFor)||0)+Math.max(0,Number(p.votesAgainst)||0))>0?((Math.max(0,Number(p.votesFor)||0)/(Math.max(0,Number(p.votesFor)||0)+Math.max(0,Number(p.votesAgainst)||0)))*100).toFixed(2):'0.00'}%) · ${fmtNum(p.votesAgainst||0)} AGAINST units (${(Math.max(0,Number(p.votesFor)||0)+Math.max(0,Number(p.votesAgainst)||0))>0?((Math.max(0,Number(p.votesAgainst)||0)/(Math.max(0,Number(p.votesFor)||0)+Math.max(0,Number(p.votesAgainst)||0)))*100).toFixed(2):'0.00'}%)</span>
             ${voted?`<span class="bdg gr">Your vote: ${esc(voted.choice)}</span>`:''}
             ${live&&eligible?`<button class="btn btn-sm btn-gd" data-act="prop-vote" data-id="${esc(p.id)}" data-choice="FOR">Vote for</button>
              <button class="btn btn-sm btn-g" data-act="prop-vote" data-id="${esc(p.id)}" data-choice="AGAINST">Vote against</button>`:''}
