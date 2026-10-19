@@ -9204,8 +9204,7 @@ function walletBalancesHtml(){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewCommand(el){
-  const documentedExternal = documentedExternalUsd();
-  const total = totalAccountPortfolioUsd() + documentedExternal;
+  const total = totalAccountPortfolioUsd() + documentedExternalUsd();
   const managedVice=managedReserveUnits('VICE');
   const managedV4x=managedReserveUnits('V4X');
   const hasReserve=isOwner();
@@ -9286,7 +9285,7 @@ function viewCommand(el){
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
       <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':isOwner()?'Management reference basis · Estate/Admin Reserve + personal IRUs + linked equity':'Management reference basis · Personal IRUs + linked equity'}</span>
         <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
-      <p class="portfolio-hero-note">${portfolioReliabilityNote()} · Includes ${fmtUsd(documentedExternal)} of recorded external USD balances (historical statement values, not verified current cash).</p>
+      <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
       <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
     </section>
     ${viceReferenceCards()}
@@ -9517,7 +9516,7 @@ function viewPortfolio(el){
   const iru = iruUsd(), reserve=managedReserveUsd(), df = defiUsd(), mt = mt5Usd(), ex = externalUsd();
   const verifiedReferenceTotal = totalAccountPortfolioUsd();
   const documentedExternal = documentedExternalUsd();
-  const total = verifiedReferenceTotal + documentedExternal; // Display combined management reference + dated statement balance
+  const total = verifiedReferenceTotal + documentedExternal;
   const live = liveBridgeAccounts().length > 0;
   const accts = live ? liveBridgeAccounts() : [];
   el.innerHTML = `
@@ -9531,7 +9530,7 @@ function viewPortfolio(el){
     <section class="portfolio-hero" aria-label="Total portfolio reference value">
       <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
-      <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':'IRU management references + dated recorded external balances'}</span>
+      <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':'Management reference basis · IRUs + eligible linked equity'}</span>
         <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
       <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
       <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
