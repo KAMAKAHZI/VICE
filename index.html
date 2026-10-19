@@ -12216,35 +12216,48 @@ function paintOI(){
 
 function openOuvModal(){
   if(!isOwner())return;
-  openModal('Publish IRU OUV version',`<p class="note">Issuer internal reference only. Current approved reference policy is $2 VICE / $320 V4X (1:160). Changing these numbers requires a separate approved policy migration. No guaranteed market value, personal ownership, or collateral eligibility.</p>
+  openModal('Propose IRU OUV revision',`<p class="note">Submit for CEO/CFO executive review. No reference values, certificates, or historical records change at submission. Official OUV remains effective until the separate authorized governance executor completes all checks.</p>
    <div class="fields">
-    <label class="field">VICE public OUV (USD)<input id="ouvVice" type="number" min="0.0001" step="0.0001" value="${S.iruClasses[0].ouv}"></label>
-    <label class="field">V4X private OUV (USD)<input id="ouvV4x" type="number" min="0.0001" step="0.0001" value="${S.iruClasses[1].ouv}"></label>
-    <label class="field fc">Version / decision reference<input id="ouvVersion" maxlength="100" placeholder="e.g. 2026-Q4-BOARD-01"></label>
-    <label class="field fc">Effective date (may be historical)<input id="ouvEffective" type="date" value="${new Date().toISOString().slice(0,10)}"></label>
-    <label class="field fc">Basis / reason<input id="ouvNote" maxlength="600" placeholder="Supporting valuation rationale"></label>
+    <label class="field">Proposed VICE public OUV (USD)<input id="ouvVice" type="number" min="0.00000001" step="any" value="${S.iruClasses[0].ouv}" oninput="document.getElementById('ouvV4x').value=(Number(this.value)*160).toFixed(8)"></label>
+    <label class="field">Calculated V4X private OUV (USD) · 160×<input id="ouvV4x" type="number" readonly value="${(S.iruClasses[0].ouv*160).toFixed(8)}"></label>
+    <label class="field fc">Proposal reference<input id="ouvVersion" maxlength="100" placeholder="e.g. 2026-Q4-BOARD-01"></label>
+    <label class="field fc">Supporting rationale<input id="ouvNote" maxlength="600" placeholder="Supporting valuation rationale"></label>
    </div><div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button>
-   <button class="btn btn-p" data-act="ouv-save">Publish OUV</button></div>`);
+   <button class="btn btn-p" data-act="ouv-save">Submit for CEO/CFO review</button></div>`);
 }
 async function saveOuv(){
   if(!isOwner())return;
-  const vice=Number($('ouvVice')?.value),v4x=Number($('ouvV4x')?.value);
-  const version=($('ouvVersion')?.value||'').trim(),note=($('ouvNote')?.value||'').trim(),effective=$('ouvEffective')?.value;
-  if(!(vice>0&&v4x>0&&Number.isFinite(vice)&&Number.isFinite(v4x))||!version||!note||!effective){toast('Provide valid values, reference, effective date and basis','error');return;}
-  if(APP_MODE!=='LIVE'){toast('LIVE mode is required to publish issuer data','warn');return;}
-  const row={version,vice_ouv:vice,v4x_ouv:v4x,note,effective_at:new Date(effective+'T12:00:00Z').toISOString()};
+  const vice=Number($('ouvVice')?.value);
+  const version=($('ouvVersion')?.value||'').trim(),note=($('ouvNote')?.value||'').trim();
+  if(!(vice>0&&vice<=1e10&&Number.isFinite(vice))||!version||note.length<8){
+    toast('Enter a valid proposed OUV, proposal reference and rationale (8+ characters)','error');return;
+  }
+  if(APP_MODE!=='LIVE'||!S.user){toast('Sign in to LIVE to submit a proposal','warn');return;}
+  const baselineVice=Number(S.iruClasses[0].ouv),baselineV4x=Number(S.iruClasses[1].ouv);
+  if(!(baselineVice>0&&baselineV4x>0)){toast('Current approved OUV unavailable; refresh before submitting','error');return;}
+  const id='PROP-'+new Date().toISOString().slice(0,10).replaceAll('-','')+'-'+crypto.randomUUID().slice(0,12).toUpperCase();
+  const payload={protocol_version:'VICE4X-SOVEREIGN-ELITE-v3.0',proposal_id:id,
+    parameters:{previous_baseline:{vice_ouv:baselineVice,v4x_ouv:baselineV4x},
+      target_scaled_tier:{vice_ouv:vice,v4x_ouv:Number((vice*160).toFixed(8))},structural_ratio:160},
+    proposal_reference:version,justification:note};
+  const button=document.querySelector('[data-act="ouv-save"]');
+  if(button){button.disabled=true;button.textContent='Saving proposal…';}
   try{
-    const canonical=await sb.rpc('vice_set_dao_prices',{
-      p_vice:vice,p_v4x:v4x,p_reason:note+' | '+version,
-      p_effective_at:new Date(effective+'T12:00:00Z').toISOString()});
-    if(canonical.error)throw canonical.error;
-    const {data,error}=await sb.from('ouv_versions').insert(row).select('*').single();
-    if(error){toast('DAO prices saved; secondary OUV history failed: '+error.message,'warn');}
-    if(data)S.ouvVersions.unshift(denorm(data));
-    S.iruClasses[0].ouv=vice; S.iruClasses[1].ouv=v4x;
-    await audit('OUV_PUBLISHED',`Publish ${version}`,'vice_dao_config',data?.id||'1');
-    closeModal();toast('OUV reference version published','success');renderMain();
-  }catch(e){toast('OUV publication failed: '+e.message,'error');}
+    const submitted=await sb.rpc('vice_sovereign_submit',{p_payload:payload});
+    if(submitted.error)throw submitted.error;
+    if(submitted.data!==id)throw Error('Institutional service returned an unexpected proposal ID');
+    const {data:record,error}=await sb.from('vice_sovereign_proposals')
+      .select('id,status,validation_issues').eq('id',id).maybeSingle();
+    if(error)throw Error('Submission acknowledged, but record verification failed: '+error.message);
+    if(!record)throw Error('Submission acknowledged but not visible in the institutional registry. Verify permissions or publication before resubmitting. ID: '+id);
+    if(record.status==='REJECTED'||(record.validation_issues||[]).length){
+      throw Error('Proposal recorded but requires correction: '+JSON.stringify(record.validation_issues||[])+'. ID: '+id);
+    }
+    await refreshGovernance();
+    closeModal();toast('Institutional proposal saved: '+id+' · CEO/CFO review required','success');
+    renderMain();
+  }catch(e){toast('OUV proposal not confirmed: '+e.message,'error');}
+  finally{if(button){button.disabled=false;button.textContent='Submit for CEO/CFO review';}}
 }
 async function openRoleModal(){
   if(!isOwner())return;
