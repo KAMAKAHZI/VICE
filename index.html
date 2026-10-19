@@ -837,7 +837,7 @@ body.chart-view #oi-orb,body.chart-view #support-orb{display:none}
   padding:10px 14px;background:var(--srf);border:1px solid var(--line);
   border-left:3px solid var(--tx3);border-radius:8px;font-size:.82rem;color:var(--tx);
   min-width:220px;max-width:340px;box-shadow:0 12px 32px rgba(0,0,0,.5);
-  animation:toastIn .3s var(--spring);pointer-events:auto;
+  animation:toastIn .3s var(--spring);pointer-events:none; /* Status notifications must never swallow underlying mobile taps */
 }
 .tst.ok{border-left-color:var(--gr)}
 .tst.err{border-left-color:var(--rd)}
@@ -2144,9 +2144,7 @@ function go(tab){
   if(window.innerWidth <= 900) setSidebarOpen(false);
   if(same){ renderMain(); paintCmTabs(); return; }
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // View-transition snapshots can swallow clicks on rapidly rendered mobile menus/forms.
-  // Keep native navigation immediate on compact touch viewports.
-  if(window.innerWidth>900 && !reduce && typeof document.startViewTransition === 'function'){
+  if(!reduce && typeof document.startViewTransition === 'function'){
     document.documentElement.dataset.dir = dir;
     try { document.startViewTransition(() => renderMain()); } catch(_) { renderMain(); }
   } else {
