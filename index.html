@@ -9204,7 +9204,7 @@ function walletBalancesHtml(){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewCommand(el){
-  const total = totalAccountPortfolioUsd();
+  const total = totalAccountPortfolioUsd() + documentedExternalUsd();
   const managedVice=managedReserveUnits('VICE');
   const managedV4x=managedReserveUnits('V4X');
   const hasReserve=isOwner();
@@ -9522,7 +9522,7 @@ function viewPortfolio(el){
   el.innerHTML = `
     <div class="ph">
       <div><div class="eb">Portfolio</div><h1>Institutional <em>Portfolio</em></h1></div>
-      <div class="ph-acts">${live
+      <div class="ph-acts">${isOwner()?'<button class="btn btn-gd" data-act="ouv-edit">Update OUV</button>':''}${live
         ? '<span class="chip live"><i></i>Live MT5</span>'
         : '<span class="chip blocked"><i></i>Bridge off</span>'}</div>
     </div>
@@ -10845,10 +10845,10 @@ function viewAdmin(el){
     </section>
     <section class="band">
       <div class="band-head"><h2>Issuer IRU reference values</h2></div>
-      <p class="meta">Published to signed-in holders after database save. Historical versions remain recorded.</p>
+      <p class="meta">Enter one proposed VICE OUV; V4X is calculated at 160×. Submission creates a pending governance record, not an immediate price change. CEO/CFO authorization and execution controls remain mandatory.</p>
       <div class="rw"><span class="rw-l">VICE public IRU OUV</span><span class="rw-v">${fmtUsd(S.iruClasses[0].ouv)}</span></div>
       <div class="rw"><span class="rw-l">V4X private IRU OUV</span><span class="rw-v">${fmtUsd(S.iruClasses[1].ouv)}</span></div>
-      <button class="btn btn-gd" data-act="ouv-edit">Propose OUV revision · CEO/CFO approval</button>
+      <button class="btn btn-p" data-act="ouv-edit">Update OUV · Submit for Approval</button>
     </section>
     <section class="band">
       <div class="band-head"><h2>Member roles</h2></div>
