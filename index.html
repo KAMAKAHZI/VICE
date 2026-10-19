@@ -10397,8 +10397,8 @@ function viewIRU(el){
       </div>
     </div>
     <div class="stats">
-      <div class="st"><span class="l">VICE units</span><div class="v gd">${fmtNum(Number(mine.VICE.held))}</div><div class="n">${mine.VICE.valueCents ? Money.fmt(mine.VICE.valueCents) + ' ref' : 'no ref value'}</div></div>
-      <div class="st"><span class="l">V4X units</span><div class="v">${fmtNum(Number(mine.V4X.held))}</div><div class="n">${mine.V4X.valueCents ? Money.fmt(mine.V4X.valueCents) + ' ref' : 'no ref value'}</div></div>
+      <div class="st"><span class="l">VICE units</span><div class="v gd">${fmtNum(Number(mine.VICE.held))}</div><div class="n">${mine.VICE.refCents ? Money.fmt(mine.VICE.refCents) + ' ref' : 'no allocated reference value'}</div></div>
+      <div class="st"><span class="l">V4X units</span><div class="v">${fmtNum(Number(mine.V4X.held))}</div><div class="n">${mine.V4X.refCents ? Money.fmt(mine.V4X.refCents) + ' ref' : 'no allocated reference value'}</div></div>
       <div class="st"><span class="l">Total ref value</span><div class="v gr">${(mine.VICE.refCents || mine.V4X.refCents) ? Money.fmt((mine.VICE.refCents || 0n) + (mine.V4X.refCents || 0n)) : '—'}</div></div>
       <div class="st"><span class="l">Allocations</span><div class="v">${mine.allocations.length}</div></div>
     </div>
