@@ -2517,6 +2517,19 @@ async function refreshGovernance(){
   if(epoch!==authEpoch)return;
   if(!vote.error)S.proposalVotes=vote.data||[];
 }
+// Read-only, activity-derived institutional reference snapshot.
+// Official OUV is governed separately and is NEVER overwritten by this indicator.
+async function refreshViceScarcitySnapshot(){
+  const epoch=authEpoch;
+  if(!S.user||APP_MODE!=='LIVE'||!sb)return;
+  const {data,error}=await sb.rpc('vice_scarcity_snapshot');
+  if(epoch!==authEpoch)return;
+  if(error){S.scarcitySyncStatus='UNAVAILABLE';console.warn('Scarcity reference unavailable:',error.message);return;}
+  if(!data||!data.official_ouv||!data.scarcity_reference_indicator){S.scarcitySyncStatus='INVALID';return;}
+  S.scarcitySnapshot=data;
+  S.scarcitySyncStatus='VERIFIED';
+  window.dispatchEvent(new CustomEvent('vice:scarcity-reference-updated',{detail:{asOf:data.as_of}}));
+}
 async function refreshIssuerReferences(){
   const epoch=authEpoch;
   if(!S.user||APP_MODE!=='LIVE')return;
@@ -2529,6 +2542,7 @@ async function refreshIssuerReferences(){
     S.iruClasses[0].ouv=Number(current.viceOuv);S.iruClasses[1].ouv=Number(current.v4xOuv);
   }
   await refreshDaoConfig(); // Canonical public display value; supersedes prior OUV versions.
+  await refreshViceScarcitySnapshot(); // Separately maintained calculated indicator; never changes official OUV.
 }
 async function refreshDaoConfig(){
   const epoch=authEpoch;
