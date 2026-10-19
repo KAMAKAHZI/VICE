@@ -10576,7 +10576,7 @@ function viewHolders(el){
 
 function viewGovernance(el){
   const props = S.proposals || [];
-  const sovereign = (S.sovereignProposals || []).filter(p=>p.status!=='REJECTED');
+  const sovereign = (S.sovereignProposals || []).filter(p=>p.status==='REVIEW' && Array.isArray(p.validation_issues) && p.validation_issues.length===0);
   const sovereignCards = sovereign.map(p=>{
     const refs=p.payload?.parameters?.target_scaled_tier||{};
     const baseline=p.payload?.parameters?.previous_baseline||{};
