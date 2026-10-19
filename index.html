@@ -2458,12 +2458,14 @@ async function completeAuthenticatedSetup(user,epoch=authEpoch){
     // Show the authenticated interface immediately; optional data can hydrate
     // afterward and a failed IRU read should not blank the sidebar.
     if(!current())return;
-    showApp();
+    // Avoid a misleading partial portfolio total while external accounts load.
+    // Hydrate authenticated financial records before first dashboard render.
     try { await hydrateData(); } catch(e) {
       console.error('Data hydration failed:',e);
       toast('Some records could not load. Check browser Console.','warn');
     }
     if(!current())return;
+    showApp();
     // Refresh current view with hydrated records while preserving navigation.
     try { renderMain(); paintUserBadges(); } catch(e) { console.warn('Refresh after hydrate:',e); }
     // Nonblocking, owner-scoped read after account hydration; never requests MT5 credentials.
@@ -3012,7 +3014,7 @@ function portfolioReliabilityNote(){
     : 'IRUs are displayed at VICE management reference values, alongside eligible verified linked account equity. Intended collateral use is subject to lender approval, independent valuation and executed agreements.';
 }
 function portfolioValuationTerms(){
-  return 'IRU values reflect recorded units multiplied by the applicable VICE management reference rate. Any proposed pledge of IRUs as digital property collateral is subject to the holder\'s documented rights, transfer restrictions, applicable law, lender underwriting, valuation acceptable to the lender and definitive agreements. Realizable value, available cash and any credit limit are determined separately. This display does not determine an IRU\'s legal or regulatory classification. Recorded statement-based external balances may appear in the consolidated reference calculation with their historical as-of dates; they are not independently verified current cash or lender-accepted collateral. Estate Reserve and Administrative Reserve amounts shown in an administrator\'s view remain separately designated institutional records.';
+  return 'VICE CAPITAL INC. — INSTITUTIONAL VALUATION & COLLATERAL REVIEW. The consolidated display aggregates separately classified records under the VICE4X sui generis private digital-property and Internal Revenue Unit (IRU) framework. IRU amounts are internal management reference calculations based on recorded unit quantities and the currently effective OUV; they are not corporate shares, independent fair market valuations, realizable cash, or lender-approved collateral. The Estate Reserve and Administrative Reserve remain designated institutional records administered by authorized executives, distinct from personal holder allocations. External corporate account figures are recorded from supporting statements and identified by their reporting dates; a historical statement balance is not confirmation of currently available cash. Each proposed pledge remains subject to documented legal rights, applicable transfer restrictions, independent diligence, lender underwriting, any appraisal required by the institution, and executed security agreements. Certificates evidence only the specific rights and quantities recorded in the governing registry; external account balances are excluded from IRU certificate valuations. No platform reference display constitutes a bank guarantee, credit approval, or representation of regulatory classification.';
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -9284,9 +9286,7 @@ function viewCommand(el){
     <section class="portfolio-hero" aria-label="Total portfolio management reference">
       <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
-      <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':isOwner()?'Management reference basis · Estate/Admin Reserve + personal IRUs + linked equity':'Management reference basis · Personal IRUs + linked equity'}</span>
-        <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
-      <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
+      <div class="portfolio-hero-actions"><button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
       <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
     </section>
     ${viceReferenceCards()}
@@ -9529,9 +9529,7 @@ function viewPortfolio(el){
     <section class="portfolio-hero" aria-label="Total portfolio reference value">
       <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
-      <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':'Management reference basis · IRUs + eligible linked equity'}</span>
-        <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
-      <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
+      <div class="portfolio-hero-actions"><button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
       <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
     </section>
     ${viceReferenceCards()}
