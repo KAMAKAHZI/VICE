@@ -35,6 +35,7 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.64.1
           npx playwright install --with-deps chromium
           node tests/vice-browser-smoke.cjs
+          node tests/vice-pwa-layout.mjs
         env:
           VICE_BROWSER_ORIGIN: https://vice4x.netlify.app
       - name: Publish truthful public production report (including failure)

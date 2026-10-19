@@ -1,6 +1,10 @@
 # VICE4X production repair console
 
-Status: repair release published and verified on October 16, 2026. Full institutional feature acceptance remains open; see the release report for exact evidence and limitations.
+Status: the October 18 institutional release is published; the mobile navigation/icon correction is in release acceptance. Full institutional feature acceptance remains open. The records below distinguish verified behavior from remaining dependencies.
+
+- [Mobile navigation and install identity](./2026-10-19-mobile-release.md)
+- [October 18 member operations and institutional release](./2026-10-18-release.md)
+- [Institutional Core: OMEGA, governance and diagnostics](./12-institutional-core.md)
 
 - [User Guide](./01-user-guide.md)
 - [Administrator Guide](./02-administrator-guide.md)

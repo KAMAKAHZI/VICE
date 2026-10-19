@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="VICE4X metallic gold emblem">
+<defs><linearGradient id="vice-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d4e1b"/><stop offset=".14" stop-color="#e9c979"/><stop offset=".29" stop-color="#fff2bd"/><stop offset=".36" stop-color="#ba8b31"/><stop offset=".49" stop-color="#f5db91"/><stop offset=".53" stop-color="#836020"/><stop offset=".68" stop-color="#d4ab4f"/><stop offset=".82" stop-color="#fff0b1"/><stop offset="1" stop-color="#a57c2b"/></linearGradient>
+<radialGradient id="backdrop"><stop stop-color="#292317"/><stop offset="1" stop-color="#07080a"/></radialGradient>
+<filter id="edge" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="2" stdDeviation="0" flood-color="#fff2ba" flood-opacity=".33"/><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity=".65"/></filter></defs>
+<rect width="1024" height="1024" fill="#07080a"/><circle cx="512" cy="495" r="440" fill="url(#backdrop)"/>
+<path transform="translate(212 252.2) scale(.6)" filter="url(#edge)" fill="url(#vice-gold)" d="M500 866L259.1 448.8L414 180.4L477.1 289.6L395.5 430.9L500 611.9L589.4 457.1L736.1 457.1ZM1000 0L759.1 417.2L449.3 417.2L512.3 308L675.4 308L779.9 127.1L601.2 127.1L527.8 0ZM0 0L481.8 0L636.7 268.3L510.6 268.3L429.1 127.1L220.1 127.1L309.4 281.9L236.1 408.9Z"/>
+</svg>
