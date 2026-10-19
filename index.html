@@ -1836,7 +1836,7 @@ function applyModeUI(){
         if(bnrTxt) bnrTxt.textContent = 'Demonstration Mode — Simulated Data';
       } else {
         bnr.classList.remove('sim');
-        if(bnrTxt) bnrTxt.textContent = window.viceOuvBannerText || 'VICE —  ◆  V4X —  ◆  OUV REVISION PENDING';
+        if(bnrTxt) bnrTxt.textContent = window.viceOuvBannerText || 'VICE ◆ V4X ◆ OUV RECORD ACTIVE';
       }
     }
   }
@@ -2586,11 +2586,11 @@ async function refreshDaoConfig(){
     console.error('Invalid server reference price policy; administrative review required');
     return;
   }
-  S.daoPriceSyncStatus=(vice===2&&v4x===320)?'CANONICAL':'CONFLICT';
+  S.daoPriceSyncStatus=Math.abs(v4x-vice*160)<0.00000001?'CANONICAL':'CONFLICT';
   S.iruClasses[0].ouv=vice;S.iruClasses[1].ouv=v4x;
   // Banner is driven by effective, server-recorded OUV versions only.
   // Never label a submitted proposal or unverified percentage as appreciation.
-  window.viceOuvBannerText='VICE —  ◆  V4X —  ◆  OUV REVISION PENDING';
+  window.viceOuvBannerText='VICE ◆ V4X ◆ OUV RECORD ACTIVE';
   try {
     const {data:versions,error:versionsError}=await sb.from('ouv_versions')
       .select('vice_ouv,v4x_ouv,effective_at')
@@ -9553,7 +9553,7 @@ function viewPortfolio(el){
         ? '<span class="chip live"><i></i>Live MT5</span>'
         : '<span class="chip blocked"><i></i>Bridge off</span>'}</div>
     </div>
-    ${S.daoPriceSyncStatus!=='CANONICAL' && APP_MODE==='LIVE'?`<p class="note warn">Management reference policy sync: ${esc(S.daoPriceSyncStatus)}. Confirm the 2/320 policy in the live registry before relying on account reference calculations.</p>`:''}
+    ${S.daoPriceSyncStatus!=='CANONICAL' && APP_MODE==='LIVE'?`<p class="note warn">Management reference policy sync: ${esc(S.daoPriceSyncStatus)}. Confirm the effective 1:160 OUV policy in the live registry before relying on account reference calculations.</p>`:''}
     <section class="portfolio-hero" aria-label="Total portfolio reference value">
       <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
