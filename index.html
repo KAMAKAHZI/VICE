@@ -2144,7 +2144,9 @@ function go(tab){
   if(window.innerWidth <= 900) setSidebarOpen(false);
   if(same){ renderMain(); paintCmTabs(); return; }
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!reduce && typeof document.startViewTransition === 'function'){
+  // View-transition snapshots can swallow clicks on rapidly rendered mobile menus/forms.
+  // Keep native navigation immediate on compact touch viewports.
+  if(window.innerWidth>900 && !reduce && typeof document.startViewTransition === 'function'){
     document.documentElement.dataset.dir = dir;
     try { document.startViewTransition(() => renderMain()); } catch(_) { renderMain(); }
   } else {
