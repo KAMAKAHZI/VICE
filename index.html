@@ -12288,7 +12288,7 @@ function openOuvModal(){
     <label class="field">Proposed VICE public OUV (USD)<input id="ouvVice" type="number" min="0.00000001" step="any" value="${S.iruClasses[0].ouv}" oninput="document.getElementById('ouvV4x').value=(Number(this.value)*160).toFixed(8)"></label>
     <label class="field">Calculated V4X private OUV (USD) · 160×<input id="ouvV4x" type="number" readonly value="${(S.iruClasses[0].ouv*160).toFixed(8)}"></label>
     <label class="field fc">Proposal reference<input id="ouvVersion" maxlength="100" placeholder="e.g. 2026-Q4-BOARD-01"></label>
-    <label class="field fc">Supporting rationale<input id="ouvNote" maxlength="600" placeholder="Supporting valuation rationale"></label>
+    <label class="field fc">Supporting rationale<textarea id="ouvNote" rows="5" maxlength="2400" placeholder="Describe the documented methodology, economic basis, evidence reviewed, effective date, and material limitations. Do not claim independent FMV or collateral acceptance without supporting evidence."></textarea></label><p class="meta">Required institutional basis: documented methodology and evidence; comparison with prior approved OUV; approval and effective-date controls. The 1:160 ratio alone does not substantiate appreciation.</p>
    </div><div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button>
    <button class="btn btn-p" data-act="ouv-save">Submit for CEO/CFO review</button></div>`);
 }
@@ -12296,8 +12296,8 @@ async function saveOuv(){
   if(!isOwner())return;
   const vice=Number($('ouvVice')?.value);
   const version=($('ouvVersion')?.value||'').trim(),note=($('ouvNote')?.value||'').trim();
-  if(!(vice>0&&vice<=1e10&&Number.isFinite(vice))||!version||note.length<8){
-    toast('Enter a valid proposed OUV, proposal reference and rationale (8+ characters)','error');return;
+  if(!(vice>0&&vice<=1e10&&Number.isFinite(vice))||!version||note.length<40){
+    toast('Enter a valid proposed OUV, proposal reference and documented rationale (40+ characters)','error');return;
   }
   if(APP_MODE!=='LIVE'||!S.user){toast('Sign in to LIVE to submit a proposal','warn');return;}
   const baselineVice=Number(S.iruClasses[0].ouv),baselineV4x=Number(S.iruClasses[1].ouv);
@@ -12306,7 +12306,7 @@ async function saveOuv(){
   const payload={protocol_version:'VICE4X-SOVEREIGN-ELITE-v3.0',proposal_id:id,
     parameters:{previous_baseline:{vice_ouv:baselineVice,v4x_ouv:baselineV4x},
       target_scaled_tier:{vice_ouv:vice,v4x_ouv:Number((vice*160).toFixed(8))},structural_ratio:160},
-    proposal_reference:version,justification:note};
+    proposal_reference:version,justification:note,valuation_basis:{classification:'INTERNAL_MANAGEMENT_REFERENCE',methodology_summary:note,prior_effective_ouv:{vice:baselineVice,v4x:baselineV4x},proposed_change_pct:Number(((vice/baselineVice-1)*100).toFixed(4)),independent_fmv_asserted:false,bank_collateral_acceptance_asserted:false,approval_status:'PENDING_GOVERNANCE'}};
   const button=document.querySelector('[data-act="ouv-save"]');
   if(button){button.disabled=true;button.textContent='Saving proposal…';}
   try{
