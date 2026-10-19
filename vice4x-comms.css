@@ -29,3 +29,10 @@ body:has(.cm-tabs.on) #vice4x-ticker{bottom:calc(72px + var(--safe-bottom))}.vc-
 .vice4x-alert{top:calc(var(--header-height) + 8px);right:max(18px,var(--safe-right));width:min(390px,calc(100vw - var(--safe-left) - var(--safe-right) - 36px))}
 
 @media(max-width:600px){#call-root{padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)}#call-root .call-card{height:calc(100dvh - var(--safe-top) - var(--safe-bottom));max-height:calc(100dvh - var(--safe-top) - var(--safe-bottom));padding:28px 20px}}
+
+/* Desktop communication tabs must occupy the content lane, not the fixed sidebar.
+   On wide viewports the 120-z-index sidebar previously intercepted pointer taps,
+   blocking Chats/Calls/Contacts/Settings and failing two-peer acceptance. */
+@media (min-width:901px){
+  .cm-tabs{left:calc(var(--sw) + var(--safe-left));right:var(--safe-right);z-index:121}
+}
