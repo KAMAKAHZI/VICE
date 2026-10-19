@@ -1830,7 +1830,7 @@ function applyModeUI(){
         if(bnrTxt) bnrTxt.textContent = 'Demonstration Mode — Simulated Data';
       } else {
         bnr.classList.remove('sim');
-        if(bnrTxt) bnrTxt.textContent = window.viceOuvBannerText || 'OUV | APPRECIATION PENDING';
+        if(bnrTxt) bnrTxt.textContent = window.viceOuvBannerText || 'VICE —  ◆  V4X —  ◆  OUV REVISION PENDING';
       }
     }
   }
@@ -2584,7 +2584,7 @@ async function refreshDaoConfig(){
   S.iruClasses[0].ouv=vice;S.iruClasses[1].ouv=v4x;
   // Banner is driven by effective, server-recorded OUV versions only.
   // Never label a submitted proposal or unverified percentage as appreciation.
-  window.viceOuvBannerText='OUV | APPRECIATION PENDING';
+  window.viceOuvBannerText='VICE —  ◆  V4X —  ◆  OUV REVISION PENDING';
   try {
     const {data:versions,error:versionsError}=await sb.from('ouv_versions')
       .select('vice_ouv,v4x_ouv,effective_at')
@@ -2598,7 +2598,7 @@ async function refreshDaoConfig(){
       const growth=previous>0?(vice/previous-1)*100:NaN;
       if(Number.isFinite(growth)){
         const symbol=growth>=0?'▲':'▼';
-        window.viceOuvBannerText='OUV '+symbol+' '+Math.abs(growth).toFixed(2)+'% | APPRECIATION VERIFIED';
+        window.viceOuvBannerText='VICE '+symbol+' '+Math.abs(growth).toFixed(2)+'%  ◆  V4X '+symbol+' '+Math.abs(growth).toFixed(2)+'%  ◆  OUV REVISION VERIFIED';
       }
     }
   } catch(e){console.warn('OUV banner history unavailable:',e.message);}
