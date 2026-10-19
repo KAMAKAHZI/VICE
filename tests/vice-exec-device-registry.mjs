@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const sql=fs.readFileSync('supabase/migrations/20261019194500_vice_exec_devices.sql','utf8');
+assert.match(sql,/CREATE TABLE IF NOT EXISTS public\.vice_exec_devices/);
+assert.match(sql,/ENABLE ROW LEVEL SECURITY/);
+assert.match(sql,/REVOKE ALL ON public\.vice_exec_devices FROM PUBLIC,anon,authenticated/);
+assert.match(sql,/ON CONFLICT\(role,fingerprint\) DO NOTHING/);
+assert.doesNotMatch(sql,/UPDATE\s+public\.vice_exec_signers/i);
+assert.doesNotMatch(sql,/DELETE\s+FROM/i);
+assert.doesNotMatch(sql,/GRANT\s+(INSERT|UPDATE|DELETE|ALL)\s+ON\s+public\.vice_exec_devices\s+TO\s+authenticated/i);
+console.log('PASS: additive registry migration preserves current executive signer and denies client writes');
