@@ -10372,6 +10372,29 @@ function viewVip(el){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewIRU(el){
+  // Founder executive identity controls the issuer reserve; it is not
+  // implicitly an individually issued VIP/holder allocation.
+  if(isOwner()){
+    const reserve=7500000;
+    const vice=Number(S.iruClasses[0]?.ouv)||0;
+    const v4x=Number(S.iruClasses[1]?.ouv)||0;
+    const fmt=v=>Number(v).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+    el.innerHTML=`
+      <div class="ph"><div><div class="eb">Institutional Record</div><h1>Estate &amp; <em>Administrative Reserve</em></h1>
+        <p>VC-000001 · VICE Capital Inc. · Founder &amp; CEO — authorized reserve controller, not a personal IRU allocation.</p></div></div>
+      <section class="band"><div class="band-head"><h2>Issuer reserve · VC-000001</h2><span class="bdg gd">INSTITUTIONAL</span></div>
+        <div class="rw"><span class="rw-l">Legal entity</span><span class="rw-v">VICE Capital Inc.</span></div>
+        <div class="rw"><span class="rw-l">Authorized controller</span><span class="rw-v">Founder &amp; CEO</span></div>
+        <div class="rw"><span class="rw-l">VICE reserve units</span><span class="rw-v">${fmtNum(reserve)}</span></div>
+        <div class="rw"><span class="rw-l">V4X reserve units</span><span class="rw-v">${fmtNum(reserve)}</span></div>
+        <div class="rw"><span class="rw-l">Current VICE management OUV</span><span class="rw-v">${fmt(vice)}</span></div>
+        <div class="rw"><span class="rw-l">Current V4X management OUV</span><span class="rw-v">${fmt(v4x)}</span></div>
+        <div class="rw"><span class="rw-l">Combined reserve management reference</span><span class="rw-v">${fmt(reserve*(vice+v4x))}</span></div>
+        <p class="note">Reference calculations use the current displayed issuer OUV and stated reserve allocation, not an independently appraised fair market value. Reserve control does not constitute personal ownership. Historical certificates and signed balances are not modified by this display.</p>
+        <div class="actions"><button class="btn btn-gd" data-go="governance">Governance</button><button class="btn btn-gd" data-go="admin">Propose OUV revision</button></div>
+      </section>`;
+    return;
+  }
   if(!S.tokenCerts.loaded&&!S.tokenCerts.loading&&S.user?.id&&S.user.id!=='sim-user')
     ViceTokenCertificates.load().then(()=>{if(S.tab==='iru')renderMain();}).catch(()=>{});
   const st = S.iru.state || IruEngine.emptyState();
