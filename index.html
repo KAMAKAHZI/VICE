@@ -2516,6 +2516,13 @@ async function refreshGovernance(){
   const vote=await sb.from('vice_proposal_votes').select('proposal_id,choice').eq('voter_id',S.user.id).limit(500);
   if(epoch!==authEpoch)return;
   if(!vote.error)S.proposalVotes=vote.data||[];
+  // Sovereign structural proposals are separate executive records. Surface them
+  // read-only in Member Proposals; never treat member ballots as CEO/CFO quorum.
+  const sovereign=await sb.from('vice_sovereign_proposals')
+    .select('id,payload,status,published_at,validation_until,validation_issues')
+    .order('published_at',{ascending:false}).limit(100);
+  if(epoch!==authEpoch)return;
+  S.sovereignProposals=sovereign.error?[]:(sovereign.data||[]);
 }
 // Read-only, activity-derived institutional reference snapshot.
 // Official OUV is governed separately and is NEVER overwritten by this indicator.
@@ -10569,6 +10576,18 @@ function viewHolders(el){
 
 function viewGovernance(el){
   const props = S.proposals || [];
+  const sovereign = S.sovereignProposals || [];
+  const sovereignCards = sovereign.map(p=>{
+    const refs=p.payload?.parameters?.target_scaled_tier||{};
+    const baseline=p.payload?.parameters?.previous_baseline||{};
+    return `<div class="row" style="display:block;border-bottom:1px solid var(--bd);padding:14px 0">
+      <div class="row-l"><b>${esc(p.id)}</b>
+      <span class="meta">Institutional structural proposal · Executive review only · Member voting not authorized</span>
+      <span class="meta">Current: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')} · Requested: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
+      <span class="meta">Published ${fmtD(p.published_at)} · Review until ${fmtD(p.validation_until)}</span></div>
+      <div class="row-r"><span class="bdg ${p.status==='REJECTED'?'rd':'gd'}">${esc(p.status)}</span></div>
+    </div>`;
+  }).join('');
   const live=APP_MODE==='LIVE';
   const now=Date.now();
   const statusOf=p=>p.status==='OPEN'&&p.closesAt&&new Date(p.closesAt).getTime()<=now?'CLOSED':p.status;
@@ -10577,7 +10596,8 @@ function viewGovernance(el){
       <p>Founder-controlled DAO · CEO 75% / holder pool 25% · one weighted ballot per member · UTC closing times.</p></div>
       <div class="ph-acts">${isOwner()||can('create')?'<button class="btn btn-p" data-act="prop-new">+ Publish proposal</button>':''}
         <button class="btn btn-g" data-act="gov-refresh">Refresh</button></div></div>
-    <section class="band"><div class="band-head"><h2>Proposals</h2><span class="meta">${props.length}</span></div>
+    <section class="band"><div class="band-head"><h2>Proposals</h2><span class="meta">${props.length+sovereign.length}</span></div>
+      ${sovereignCards}
       ${props.length?props.map(p=>{
         const status=statusOf(p), voted=S.proposalVotes.find(v=>v.proposal_id===p.id);
         const eligible=status==='OPEN'&&(!p.opensAt||new Date(p.opensAt).getTime()<=now)&&(!p.closesAt||new Date(p.closesAt).getTime()>now);
