@@ -10833,12 +10833,20 @@ function viewSecurity(el){
       <div class="band-head"><h2>Account</h2></div>
       <div class="rw"><span class="rw-l">Signed in</span><span class="rw-v">${esc(S.profile.email)}</span></div>
       <div class="rw"><span class="rw-l">Role</span><span class="rw-v">${esc(ROLE_LABELS[S.profile.role] || S.profile.role)}</span></div>
-      <div class="rw"><span class="rw-l">Two-step</span><span class="rw-v"><span class="chip file"><i></i>available</span></span></div>
+      <div class="rw"><span class="rw-l">Two-step</span><span class="rw-v">Authenticator-based MFA · check enrollment below</span></div>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn-g" data-act="profile-change-pass">Change password</button>
-        <button class="btn btn-g" data-act="profile-2fa">Two-step verification</button>
+        <button class="btn btn-g" data-act="profile-2fa">Manage authenticator MFA</button><button class="btn btn-gd" data-act="security-recovery">Account recovery</button>
         <button class="btn btn-r" data-act="sign-out">Sign out</button>
       </div>
+    </section>
+    <section class="band"><div class="band-head"><h2>Account recovery & key custody</h2></div>
+      <p class="meta">Account password recovery is email-based. Wallet private keys and recovery phrases are never retrievable by VICE OS; restore them only through your original wallet's secure recovery process.</p>
+      <div class="rw"><span class="rw-l">Password recovery</span><span class="rw-v">Verified email reset link</span></div>
+      <div class="rw"><span class="rw-l">Authenticator recovery</span><span class="rw-v">Retain your authenticator backup before changing devices. Lost MFA requires a separately authorized identity-verified support process.</span></div>
+      <div class="rw"><span class="rw-l">Wallet key recovery</span><span class="rw-v">Non-custodial · no platform escrow or seed-phrase collection</span></div>
+      <p class="note warn">Never paste seed phrases, private keys, backup codes, or authentication secrets into messages, forms, or support tickets. A password reset does not restore a lost wallet key.</p>
+      <div class="actions"><button class="btn btn-g" data-act="security-recovery">Open recovery workflow</button></div>
     </section>
     <section class="band">
       <div class="band-head"><h2>Encryption</h2></div>
@@ -11912,6 +11920,24 @@ function paintOI(){
           if(error){ toast('Failed: ' + error.message,'error'); return; }
           toast('Password updated','success');
         })();
+        return;
+      }
+      case 'security-recovery': {
+        openModal('Secure account recovery',`<p>Recover access without disclosing private keys or recovery phrases.</p>
+          <div class="rw"><span class="rw-l">1 · Account password</span><span class="rw-v">Request a reset link to your account email.</span></div>
+          <div class="rw"><span class="rw-l">2 · Authenticator</span><span class="rw-v">Use your backed-up authenticator. If lost, contact authorized support for identity review; no automatic MFA bypass.</span></div>
+          <div class="rw"><span class="rw-l">3 · Wallet</span><span class="rw-v">Restore through the original wallet provider with your own offline recovery material. VICE OS cannot recover or view wallet secrets.</span></div>
+          <p class="note warn">Never share seed phrases, private keys, or one-time codes with staff.</p>
+          <div class="mact"><button class="btn btn-p" data-act="security-send-reset">Email password reset link</button></div>`);
+        return;
+      }
+      case 'security-send-reset': {
+        (async()=>{try{
+          if(!sb || !S.user?.email || APP_MODE==='SIM')throw Error('Sign in to a live account first');
+          const {error}=await sb.auth.resetPasswordForEmail(S.user.email,{redirectTo:window.location.origin+'?reset=1'});
+          if(error)throw error;
+          closeModal();toast('If eligible, a recovery link will arrive at your account email.','success');
+        }catch(e){toast('Recovery request failed: '+e.message,'error');}})();
         return;
       }
       case 'profile-2fa': {
