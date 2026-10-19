@@ -1830,7 +1830,7 @@ function applyModeUI(){
         if(bnrTxt) bnrTxt.textContent = 'Demonstration Mode — Simulated Data';
       } else {
         bnr.classList.remove('sim');
-        if(bnrTxt) bnrTxt.textContent = 'Institutional Record';
+        if(bnrTxt) bnrTxt.textContent = window.viceOuvBannerText || 'OUV | APPRECIATION PENDING';
       }
     }
   }
@@ -2582,6 +2582,28 @@ async function refreshDaoConfig(){
   }
   S.daoPriceSyncStatus=(vice===2&&v4x===320)?'CANONICAL':'CONFLICT';
   S.iruClasses[0].ouv=vice;S.iruClasses[1].ouv=v4x;
+  // Banner is driven by effective, server-recorded OUV versions only.
+  // Never label a submitted proposal or unverified percentage as appreciation.
+  window.viceOuvBannerText='OUV | APPRECIATION PENDING';
+  try {
+    const {data:versions,error:versionsError}=await sb.from('ouv_versions')
+      .select('vice_ouv,v4x_ouv,effective_at')
+      .lte('effective_at',new Date().toISOString())
+      .order('effective_at',{ascending:false}).limit(2);
+    if(epoch!==authEpoch)return;
+    if(!versionsError && versions?.length>=2 &&
+      Math.abs(Number(versions[0].vice_ouv)-vice)<0.00000001 &&
+      Math.abs(Number(versions[0].v4x_ouv)-v4x)<0.00000001) {
+      const previous=Number(versions[1].vice_ouv);
+      const growth=previous>0?(vice/previous-1)*100:NaN;
+      if(Number.isFinite(growth)){
+        const symbol=growth>=0?'▲':'▼';
+        window.viceOuvBannerText='OUV '+symbol+' '+Math.abs(growth).toFixed(2)+'% | APPRECIATION VERIFIED';
+      }
+    }
+  } catch(e){console.warn('OUV banner history unavailable:',e.message);}
+  if(document.getElementById('bnrText') && APP_MODE==='LIVE')applyModeUI();
+
   if(S.daoPriceSyncStatus==='CONFLICT'){
     console.warn('SERVER POLICY CONFLICT: requested latest founder policy 2/320, received',vice,v4x);
   }
