@@ -13,16 +13,8 @@ try{for(const width of [1440,390]){
  await page.waitForFunction(()=>document.querySelector('#view')?.textContent.includes('Manual records are available now.'));
  await page.locator('#inst-model [name="grossProfit"]').fill('150000');await page.locator('#inst-model [name="costs"]').fill('10000');await page.locator('#inst-model [name="lossCarry"]').fill('5000');assert.match(await page.locator('#inst-model-output').textContent(),/63,375/);assert.match(await page.locator('#inst-model-output').textContent(),/37,500/);
  assert.equal(await page.locator('[data-inst="apollo"]').isDisabled(),true);
- await page.evaluate(()=>{
-  window.__instClickTrace=[];
-  const trace=e=>{if(window.__instClickTrace.length<12)window.__instClickTrace.push({type:e.type,target:e.target?.outerHTML?.slice(0,210),cancelBubble:e.cancelBubble,defaultPrevented:e.defaultPrevented,current:e.currentTarget?.tagName})};
-  document.addEventListener('pointerdown',trace,true);document.addEventListener('click',trace,true);document.addEventListener('click',trace,false);
- });
+ assert.equal(await page.evaluate(()=>Array.from(document.querySelectorAll('#toasts .tst')).every(el=>getComputedStyle(el).pointerEvents==='none')),true,'Toast notifications must not intercept touch/click actions');
  await page.locator('[data-inst="lead-new"]').click();
- if(!(await page.locator('#inst-lead').count())){
-  const diag=await page.evaluate(()=>({width:innerWidth,role:S.profile?.role,mode:APP_MODE,tab:S.tab,button:document.querySelector('[data-inst="lead-new"]')?.outerHTML,modal:document.querySelector('#modal')?.outerHTML.slice(0,400),toast:document.querySelector('#toasts')?.textContent,view:document.querySelector('#view')?.textContent.slice(0,400),sidebar:document.querySelector('#sb')?.className,trace:window.__instClickTrace,geometry:(()=>{let e=document.querySelector('[data-inst="lead-new"]'),r=e?.getBoundingClientRect();return r?{x:r.x,y:r.y,w:r.width,h:r.height,hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.outerHTML.slice(0,170)}:null})()}));
-  throw Error('Institutional lead form did not open: '+JSON.stringify(diag));
- }
  await page.locator('#inst-lead [name="full_name"]').fill('Synthetic <Executive>');await page.locator('#inst-lead [name="company"]').fill('Test & Co');await page.locator('#inst-lead [name="email"]').fill('test@example.test');await page.locator('[data-inst="lead-save"]').click();await page.waitForFunction(()=>document.querySelector('[data-inst-lead]')?.textContent.includes('Synthetic <Executive>'));
  assert.equal(await page.locator('executive').count(),0);await page.locator('[data-inst-search]').fill('missing');assert.equal(await page.locator('[data-inst-lead]:visible').count(),0);await page.locator('[data-inst-search]').fill('Synthetic');
  await page.locator('[data-inst="draft"]').click();await page.locator('[data-inst="draft-view"]').waitFor();await page.locator('[data-inst="draft-view"]').click();assert.match(await page.locator('.inst-preview').textContent(),/15% fixed annual/);assert.match(await page.locator('.inst-preview').textContent(),/not a forecast or guaranteed/);await page.evaluate(()=>closeModal());
