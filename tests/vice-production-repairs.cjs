@@ -40,9 +40,11 @@ test('Authentication coalesces duplicate initialization',async()=>{
  const a=c.onAuthenticated({id:'a'}),b=c.onAuthenticated({id:'a'});assert.equal(a,b);assert.equal(calls,1);resolve();await a;
 });
 test('Logout cleanup removes member records, messages, certificates, and quiz answers',()=>{
+ let navigationOpen=true;
  const S={user:{id:'a'},profile:{role:'SUPER_ADMIN'},comms:{messages:{secret:1}},academy:{quiz:{secret:1}},support:{tickets:[1]},oi:{messages:[1]},iru:{state:{secret:1}},documents:[1]};
- const c=run(section('function clearMemberSession(', 'function onAuthenticated('),{authEpoch:0,viceSyncTimer:null,S,Realtime:{disconnect(){}},Link:{stop(){}},viceAbortVoiceRecording(){},safeResetCloudMt5Session(){},closeModal(){},closeSheet(){}});
+ const c=run(section('function clearMemberSession(', 'function onAuthenticated('),{authEpoch:0,viceSyncTimer:null,S,setSidebarOpen(open){navigationOpen=open;},Realtime:{disconnect(){}},Link:{stop(){}},viceAbortVoiceRecording(){},safeResetCloudMt5Session(){},closeModal(){},closeSheet(){}});
  c.clearMemberSession();assert.equal(S.user,null);assert.equal(S.profile.role,null);assert.equal(S.documents.length,0);assert.equal(Object.keys(S.comms.messages).length,0);assert.equal(Object.keys(S.academy.quiz).length,0);assert.equal(c.authEpoch,1);
+ assert.equal(navigationOpen,false,'Successful logout clears menu and its backdrop');
 });
 test('Failed or canceled signout preserves synchronization',async()=>{
  let cleared=false;const c=run(section('async function logout(', 'async function audit('),{viceSyncTimer:123,APP_MODE:'LIVE',confirm:()=>true,viceAbortVoiceRecording(){},sb:{auth:{signOut:async()=>({error:new Error('offline')})}},toast(){},clearMemberSession(){cleared=true},clearInterval(){cleared=true}});

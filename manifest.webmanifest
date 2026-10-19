@@ -1,10 +1,16 @@
 {
-  "name": "VICE4X", "short_name": "VICE4X",
-  "description": "VICE Capital Institutional Operating System",
-  "start_url": "./", "scope": "./", "display": "standalone",
-  "background_color": "#07080a", "theme_color": "#07080a",
+  "name": "VICE4X — Institutional Operating System",
+  "short_name": "VICE4X",
+  "id": "/",
+  "scope": "/",
+  "description": "The institutional operating system for VICE Capital Inc.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07080a",
+  "theme_color": "#07080a",
   "orientation": "any",
   "icons": [
-    {"src":"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2307080a'/%3E%3Cpath fill='%23c9a84c' d='M12 14h12l8 18 8-18h12L34 52h-5z'/%3E%3C/svg%3E", "sizes":"any", "type":"image/svg+xml", "purpose":"any maskable"}
+    { "src": "/vice4x-icon-192.png?v=20261019", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/vice4x-icon-512.png?v=20261019", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

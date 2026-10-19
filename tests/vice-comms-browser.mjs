@@ -19,6 +19,10 @@ try{
   },{n,ids,gif});
  }
  for(const page of pages){
+  if(page===pages[0]){
+   const lanes=await page.evaluate(()=>({tabs:document.getElementById('cmTabs').getBoundingClientRect().left,sidebar:document.getElementById('sb').getBoundingClientRect().right}));
+   assert(lanes.tabs>=lanes.sidebar-1,'Desktop Comms navigation must not overlap the sidebar');
+  }
   for(const tab of ['calls','contacts','settings','chats']){await page.locator('#cmTabs [data-cm-tab="'+tab+'"]').click();assert.equal(await page.evaluate(()=>S.comms.tab),tab);}
   await page.locator('#cmTabs [data-cm-tab="contacts"]').click();assert.equal(await page.locator('#view .vice-avatar img').count(),1);await page.locator('[data-member-search]').fill('missing');assert.equal(await page.locator('[data-member-row]:visible').count(),0);await page.locator('[data-member-search]').fill('Synthetic');assert.equal(await page.locator('[data-member-row]:visible').count(),1);
   await page.evaluate(()=>{S.personalHoldings={viceUnits:7500000,v4xUnits:7500000};go('portfolio');});await page.locator('.v4x-reference-cards [data-money-precision-toggle]').first().click();assert.equal(await page.locator('.v4x-reference-cards [data-money-precision-toggle]').nth(1).textContent(),'Show full amount');

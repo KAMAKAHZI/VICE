@@ -70,6 +70,7 @@ jobs:
           done
       - run: npx playwright install --with-deps chromium
       - run: node tests/vice-browser-smoke.cjs
+      - run: node tests/vice-pwa-layout.mjs
       - run: node tests/vice-comms-browser.mjs
       - run: node tests/vice-institutional-browser.mjs
       - run: node tests/vice-backend-acceptance.mjs

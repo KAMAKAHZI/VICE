@@ -45,3 +45,10 @@ No authorized real-user staging credentials supplied. Disposable PostgreSQL fixt
 - Newer main-branch desktop clock/refresh-storm and local signout fixes were merged into this repair without overwriting them. Hosted browser navigation waits for DOM/login readiness rather than all third-party network activity to settle.
 
 - Optional wallet readiness previously rerendered whichever page was active, detaching charts and document forms. Wallet refreshes now target only wallet-related views; the regression test and hosted desktop/mobile browser acceptance pass.
+
+
+## Installed mobile app — October 19 UTC
+
+- Status bar intercepted navigation because fixed header ignored safe-area padding on the root. Shared inset-aware header/banner/sidebar/content offsets, 44-pixel menu targets, inert closed navigation and dismiss/focus/rotation cleanup correct the behavior. Changed `index.html` and `vice4x-comms.css`. Ten browser-emulated viewport regressions pass; old source reproduces the header-height failure.
+- Home icon used a generic V and referenced unpublished PNGs. Manifests now share one identity; SVG, Apple 180px and maskable 192/512px icons use the official metallic logo. Added generation script, public whitelist entries, two asset tests and exact-production asset comparisons.
+- See [mobile release record](2026-10-19-mobile-release.md) for scope, verification and production identity.

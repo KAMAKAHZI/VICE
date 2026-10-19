@@ -47,7 +47,7 @@ async function route(path,label,check){
 let assetsMatch=false;
 for(let attempt=1;attempt<=attempts;attempt++){
  const mismatches=[];
- for(const file of ['index.html','guide.html','verify.html','vice-mega.js','vice-mega.css','sw.js','manifest.json','manifest.webmanifest','version.json','vice4x-operations.js','vice4x-operations.css','vice-solace-system.js','vice4x-comms.js','vice4x-comms.css','governance.html','vice4x-institutional-core.js','vice4x-institutional.js','vice4x-institutional.css']){
+ for(const file of ['index.html','guide.html','verify.html','vice-mega.js','vice-mega.css','sw.js','manifest.json','manifest.webmanifest','version.json','vice4x-operations.js','vice4x-operations.css','vice-solace-system.js','vice4x-comms.js','vice4x-comms.css','governance.html','vice4x-institutional-core.js','vice4x-institutional.js','vice4x-institutional.css','vice4x-icon.svg','vice4x-icon-192.png','vice4x-icon-512.png','apple-touch-icon.png']){
   try{
    const response=await request('/'+file+'?release='+Date.now());
    const bytes=Buffer.from(await response.arrayBuffer());
@@ -55,7 +55,7 @@ for(let attempt=1;attempt<=attempts;attempt++){
    if(!response.ok||!matchesPublishedAsset(file,bytes,expectedBytes))mismatches.push(file);
   }catch(e){mismatches.push(file+': '+e.message)}
  }
- if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Eighteen public assets match source; only the verified Netlify guide-link rewrite is permitted');break;}
+ if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Twenty-two public assets match source; only the verified Netlify guide-link rewrite is permitted');break;}
  if(attempt===attempts)record('exact_public_assets','FAIL','Mismatched or unavailable: '+mismatches.join(', '));
  else await pause(delayMs);
 }
