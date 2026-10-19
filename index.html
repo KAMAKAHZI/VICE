@@ -3012,7 +3012,7 @@ function portfolioReliabilityNote(){
     : 'IRUs are displayed at VICE management reference values, alongside eligible verified linked account equity. Intended collateral use is subject to lender approval, independent valuation and executed agreements.';
 }
 function portfolioValuationTerms(){
-  return 'IRU values reflect recorded units multiplied by the applicable VICE management reference rate. Any proposed pledge of IRUs as digital property collateral is subject to the holder\'s documented rights, transfer restrictions, applicable law, lender underwriting, valuation acceptable to the lender and definitive agreements. Realizable value, available cash and any credit limit are determined separately. This display does not determine an IRU\'s legal or regulatory classification. DEMO balances and unverified saved account data are excluded from LIVE totals. Estate Reserve and Administrative Reserve amounts shown in an administrator\'s view remain separately designated institutional records.';
+  return 'IRU values reflect recorded units multiplied by the applicable VICE management reference rate. Any proposed pledge of IRUs as digital property collateral is subject to the holder\'s documented rights, transfer restrictions, applicable law, lender underwriting, valuation acceptable to the lender and definitive agreements. Realizable value, available cash and any credit limit are determined separately. This display does not determine an IRU\'s legal or regulatory classification. Recorded statement-based external balances may appear in the consolidated reference calculation with their historical as-of dates; they are not independently verified current cash or lender-accepted collateral. Estate Reserve and Administrative Reserve amounts shown in an administrator\'s view remain separately designated institutional records.';
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -13831,7 +13831,7 @@ const ViceTokenCertificates = (()=>{
     const issued=new Date(c.issued_at).toLocaleString('en-US',{timeZone:'UTC',dateStyle:'long',timeStyle:'short'})+' UTC';
     const status=c.revoked?'REVOKED':'ISSUER RECORD';
     const refLabel=c.value_basis||'INTERNAL_REFERENCE';
-    const caution='Certificate references exclude all external bank and brokerage accounts. IRUs are internal accounting units and do not, by themselves, establish equity, ownership, transferability, redemption rights, market price, independent appraisal or lender acceptance.';
+    const caution='SUI GENERIS · MIXED-FORM PRIVATE DIGITAL-PROPERTY RECORD. Internal Revenue Units (IRUs) are issuer-administered records, distinct from blockchain tokens, corporate stock, DAO voting rights, member benefits, loan collateral and independently appraised fair market value. Unit counts and historical issuance records are distinct from issuer OUV reference arithmetic. External bank and brokerage accounts are excluded. This certificate alone establishes no stock ownership, guaranteed distribution, liquidity, redemption, collateral eligibility, lender commitment or third-party valuation. Any pledge requires documented rights, applicable-law review, independent lender underwriting and definitive agreements.';
     const snapTime=s.as_of||c.issued_at;
     // Issuance snapshots are immutable: never inject bank account balances into certificate values.
     const lines=[
