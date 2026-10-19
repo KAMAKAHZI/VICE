@@ -9281,11 +9281,11 @@ function viewCommand(el){
     </div>
     ${holderStrip}
     <section class="portfolio-hero" aria-label="Total portfolio management reference">
-      <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
+      <div class="portfolio-hero-label">TOTAL CONSOLIDATED PORTFOLIO REFERENCE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
       <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':isOwner()?'Management reference basis · Estate/Admin Reserve + personal IRUs + linked equity':'Management reference basis · Personal IRUs + linked equity'}</span>
         <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
-      <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
+      <p class="portfolio-hero-note">${portfolioReliabilityNote()} · Includes ${fmtUsd(documentedExternal)} of recorded external USD balances (historical statement values, not verified current cash).</p>
       <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
     </section>
     ${viceReferenceCards()}
@@ -9514,7 +9514,9 @@ function viewMarkets(el){
 
 function viewPortfolio(el){
   const iru = iruUsd(), reserve=managedReserveUsd(), df = defiUsd(), mt = mt5Usd(), ex = externalUsd();
-  const total = totalAccountPortfolioUsd(); // Founder-designated reserve included in consolidated management reference
+  const verifiedReferenceTotal = totalAccountPortfolioUsd();
+  const documentedExternal = documentedExternalUsd();
+  const total = verifiedReferenceTotal + documentedExternal; // Display combined management reference + dated statement balance
   const live = liveBridgeAccounts().length > 0;
   const accts = live ? liveBridgeAccounts() : [];
   el.innerHTML = `
@@ -9528,7 +9530,7 @@ function viewPortfolio(el){
     <section class="portfolio-hero" aria-label="Total portfolio reference value">
       <div class="portfolio-hero-label">TOTAL PORTFOLIO VALUE</div>
       <div class="portfolio-hero-number" data-money-value="${total}" tabindex="0" title="Double-click for exact amount">${viceMoneyView(total)}</div>
-      <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':'Management reference basis · IRUs + eligible linked equity'}</span>
+      <div class="portfolio-hero-actions"><span>${APP_MODE==='SIM'?'Demonstration data':'IRU management references + dated recorded external balances'}</span>
         <button type="button" class="btn btn-xs btn-g" data-money-precision-toggle aria-pressed="${viceShowExactMoney}">${viceShowExactMoney?'Show compact':'Show full amount'}</button></div>
       <p class="portfolio-hero-note">${portfolioReliabilityNote()}</p>
       <details class="portfolio-valuation-terms"><summary>Valuation &amp; collateral terms</summary><p>${portfolioValuationTerms()}</p></details>
@@ -9542,8 +9544,8 @@ function viewPortfolio(el){
         <div class="rw" style="padding:12px 18px"><span class="rw-l">MT5 Accounts</span><span class="rw-v">${fmtUsd(mt)}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">External Accounts · LIVE verified</span><span class="rw-v">${fmtUsd(ex)}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">Recorded external accounts · ${(S.externalAccounts||[]).length}</span><span class="rw-v">${fmtUsd(documentedExternalUsd())} <small class="meta">historical / unverified</small></span></div>
-        <div class="rw" style="padding:12px 18px"><span class="rw-l">Illustrative combined reference including recorded external balances</span><span class="rw-v">${fmtUsd(total+documentedExternalUsd())}</span></div>
-        <p class="note warn">The illustrative combined figure adds dated, self-reported external balances to management reference values. It is NOT a verified current portfolio value, cash availability, net worth or independent valuation.</p>
+        <div class="rw" style="padding:12px 18px"><span class="rw-l">Consolidated portfolio reference (displayed above)</span><span class="rw-v">${fmtUsd(total)}</span></div>
+        <p class="note warn">The consolidated figure combines management IRU references and dated, self-reported external balances. It is not independently verified current cash, net worth, or fair market value.</p>
       </div>
     </div>
     ${live && accts.length ? `<section class="band">
