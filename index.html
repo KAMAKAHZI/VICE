@@ -9204,7 +9204,8 @@ function walletBalancesHtml(){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewCommand(el){
-  const total = totalAccountPortfolioUsd() + documentedExternalUsd();
+  const documentedExternal = documentedExternalUsd();
+  const total = totalAccountPortfolioUsd() + documentedExternal;
   const managedVice=managedReserveUnits('VICE');
   const managedV4x=managedReserveUnits('V4X');
   const hasReserve=isOwner();
@@ -13828,7 +13829,7 @@ const ViceTokenCertificates = (()=>{
     const qr=ViceQR.encode(url,{moduleSize:1,quiet:4}), side=452;
     const barcode=ViceBarcode.svg(c.cert_id,{width:1050,height:110,fill:'#07080a'});
     const issued=new Date(c.issued_at).toLocaleString('en-US',{timeZone:'UTC',dateStyle:'long',timeStyle:'short'})+' UTC';
-    const status=c.revoked?'REVOKED':'ISSUER REGISTERED';
+    const status=c.revoked?'REVOKED':'ISSUER RECORD';
     const refLabel=c.value_basis||'INTERNAL_REFERENCE';
     const caution='Certificate references exclude all external bank and brokerage accounts. IRUs are internal accounting units and do not, by themselves, establish equity, ownership, transferability, redemption rights, market price, independent appraisal or lender acceptance.';
     const snapTime=s.as_of||c.issued_at;
@@ -13869,7 +13870,7 @@ const ViceTokenCertificates = (()=>{
       <rect x="510" y="2860" width="1140" height="150" fill="white" rx="8"/>
       <svg x="535" y="2875" width="1080" height="115" viewBox="0 0 1080 115">${barcode.match(/<svg[^>]*>([\s\S]*?)<\/svg>/)?.[1]||''}</svg>
       <text x="565" y="3045" font-family="monospace" font-size="21" fill="#baa678">Code 39 ID · scan QR for verified holdings</text>
-      <text x="1275" y="3079" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#a3957b">${esc(caution)}</text>
+      <foreignObject x="420" y="3060" width="1710" height="85"><div xmlns="http://www.w3.org/1999/xhtml" style="font:20px/1.35 Arial,sans-serif;text-align:center;color:#a3957b;overflow-wrap:break-word">${esc(caution)}</div></foreignObject>
     </svg>`;
   }
   async function toPNG(c){
@@ -13911,6 +13912,7 @@ const ViceTokenCertificates = (()=>{
   async function load(){
     if(S.user?.id==='sim-user'||!S.user?.id||APP_MODE!=='LIVE')return;
     if(S.tokenCerts.loading)return;
+    S.tokenCerts.loaded=false;
     S.tokenCerts.loading=true;
     try{
       const {data,error}=await sb.from('token_certificates').select('*').order('issued_at',{ascending:false}).limit(500);
