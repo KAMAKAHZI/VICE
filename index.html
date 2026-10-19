@@ -2518,11 +2518,17 @@ async function refreshGovernance(){
   if(!vote.error)S.proposalVotes=vote.data||[];
   // Sovereign structural proposals are separate executive records. Surface them
   // read-only in Member Proposals; never treat member ballots as CEO/CFO quorum.
-  const sovereign=await sb.from('vice_sovereign_proposals')
-    .select('id,payload,status,published_at,validation_until,validation_issues')
-    .order('published_at',{ascending:false}).limit(100);
+  const sovereign=await sb.rpc('vice_sovereign_feed');
   if(epoch!==authEpoch)return;
-  S.sovereignProposals=sovereign.error?[]:(sovereign.data||[]);
+  if(sovereign.error){
+    S.sovereignProposals=[];
+    S.sovereignFeedError=sovereign.error.message;
+  }else{
+    S.sovereignFeedError=null;
+    S.sovereignProposals=(Array.isArray(sovereign.data)?sovereign.data:[]).map(p=>({
+      ...p,payload:{parameters:p.parameters}
+    }));
+  }
 }
 // Read-only, activity-derived institutional reference snapshot.
 // Official OUV is governed separately and is NEVER overwritten by this indicator.
@@ -10593,10 +10599,11 @@ function viewGovernance(el){
   const statusOf=p=>p.status==='OPEN'&&p.closesAt&&new Date(p.closesAt).getTime()<=now?'CLOSED':p.status;
   el.innerHTML = `
     <div class="ph"><div><div class="eb">Governance</div><h1><em>Member Proposals</em></h1>
-      <p>Founder-controlled DAO · CEO 75% / holder pool 25% · one weighted ballot per member · UTC closing times.</p></div>
+      <p>Institutional OUV revisions require independent CEO/CFO authorization and all execution gates. Member ballot percentages below describe votes cast, not executive quorum or the 75%/25% control split.</p></div>
       <div class="ph-acts">${isOwner()||can('create')?'<button class="btn btn-p" data-act="prop-new">+ Publish proposal</button>':''}
         <button class="btn btn-g" data-act="gov-refresh">Refresh</button></div></div>
     <section class="band"><div class="band-head"><h2>Proposals</h2><span class="meta">${props.length+sovereign.length}</span></div>
+      ${S.sovereignFeedError?`<p class="note warn">Institutional feed unavailable: ${esc(S.sovereignFeedError)}</p>`:''}
       ${sovereignCards}
       ${props.length?props.map(p=>{
         const status=statusOf(p), voted=S.proposalVotes.find(v=>v.proposal_id===p.id);
@@ -10806,7 +10813,7 @@ function viewAdmin(el){
       <p class="meta">Published to signed-in holders after database save. Historical versions remain recorded.</p>
       <div class="rw"><span class="rw-l">VICE public IRU OUV</span><span class="rw-v">${fmtUsd(S.iruClasses[0].ouv)}</span></div>
       <div class="rw"><span class="rw-l">V4X private IRU OUV</span><span class="rw-v">${fmtUsd(S.iruClasses[1].ouv)}</span></div>
-      <button class="btn btn-gd" data-act="ouv-edit">Publish reference revision</button>
+      <button class="btn btn-gd" data-act="ouv-edit">Propose OUV revision · CEO/CFO approval</button>
     </section>
     <section class="band">
       <div class="band-head"><h2>Member roles</h2></div>
