@@ -9514,9 +9514,7 @@ function viewMarkets(el){
 
 function viewPortfolio(el){
   const iru = iruUsd(), reserve=managedReserveUsd(), df = defiUsd(), mt = mt5Usd(), ex = externalUsd();
-  const verifiedReferenceTotal = totalAccountPortfolioUsd();
-  const documentedExternal = documentedExternalUsd();
-  const total = verifiedReferenceTotal + documentedExternal;
+  const total = totalAccountPortfolioUsd() + documentedExternalUsd();
   const live = liveBridgeAccounts().length > 0;
   const accts = live ? liveBridgeAccounts() : [];
   el.innerHTML = `
@@ -13832,8 +13830,9 @@ const ViceTokenCertificates = (()=>{
     const issued=new Date(c.issued_at).toLocaleString('en-US',{timeZone:'UTC',dateStyle:'long',timeStyle:'short'})+' UTC';
     const status=c.revoked?'REVOKED':'ISSUER REGISTERED';
     const refLabel=c.value_basis||'INTERNAL_REFERENCE';
-    const caution='IRUs are internal accounting units and do not, by themselves, establish equity, ownership, transferability, redemption rights, market price, independent appraisal or lender acceptance.';
+    const caution='Certificate references exclude all external bank and brokerage accounts. IRUs are internal accounting units and do not, by themselves, establish equity, ownership, transferability, redemption rights, market price, independent appraisal or lender acceptance.';
     const snapTime=s.as_of||c.issued_at;
+    // Issuance snapshots are immutable: never inject bank account balances into certificate values.
     const lines=[
       row('Certificate type',c.kind,1890),
       row('Program',c.program,1975),
