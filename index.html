@@ -2942,6 +2942,13 @@ function externalUsd(){
   const fx={USD:1,SGD:0.74,EUR:1.08,CHF:1.11,GBP:1.27};
   return S.externalAccounts.reduce((sum,a)=>sum+Number(a.balance||0)*(fx[a.currency]||1),0);
 }
+function documentedExternalUsd(){
+  // Historical, user-supplied statement figures: never present as current cash.
+  return (S.externalAccounts||[]).filter(a=>
+    a.currency==='USD' && a.status!=='REJECTED' &&
+    Number.isFinite(Number(a.balance)) && Number(a.balance)>=0
+  ).reduce((sum,a)=>sum+Number(a.balance),0);
+}
 function iruUsd(){
   const v = S.iruClasses.find(c=>c.class==='VICE')?.ouv??2;
   const x = S.iruClasses.find(c=>c.class==='V4X')?.ouv??320;
@@ -9533,7 +9540,10 @@ function viewPortfolio(el){
         <div class="rw" style="padding:12px 18px"><span class="rw-l">Combined IRU reference</span><span class="rw-v">${fmtUsd(accountIruReferenceUsd())}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">DeFi Wallet</span><span class="rw-v">${fmtUsd(df)}</span></div>
         <div class="rw" style="padding:12px 18px"><span class="rw-l">MT5 Accounts</span><span class="rw-v">${fmtUsd(mt)}</span></div>
-        <div class="rw" style="padding:12px 18px"><span class="rw-l">External Accounts</span><span class="rw-v">${fmtUsd(ex)}</span></div>
+        <div class="rw" style="padding:12px 18px"><span class="rw-l">External Accounts · LIVE verified</span><span class="rw-v">${fmtUsd(ex)}</span></div>
+        <div class="rw" style="padding:12px 18px"><span class="rw-l">Recorded external accounts · ${(S.externalAccounts||[]).length}</span><span class="rw-v">${fmtUsd(documentedExternalUsd())} <small class="meta">historical / unverified</small></span></div>
+        <div class="rw" style="padding:12px 18px"><span class="rw-l">Illustrative combined reference including recorded external balances</span><span class="rw-v">${fmtUsd(total+documentedExternalUsd())}</span></div>
+        <p class="note warn">The illustrative combined figure adds dated, self-reported external balances to management reference values. It is NOT a verified current portfolio value, cash availability, net worth or independent valuation.</p>
       </div>
     </div>
     ${live && accts.length ? `<section class="band">
@@ -11281,12 +11291,12 @@ function viewExternal(el){
     </div>
     <section class="band">
       <p class="note warn">These are manually recorded external account details, not verified bank integrations. Their balances are excluded from LIVE consolidated financial totals until independently verified.</p>
-      <div class="band-head"><h2>Recorded accounts</h2><span class="meta">${accs.length}</span></div>
+      <div class="band-head"><h2>Recorded accounts</h2><span class="meta">${accs.length} recorded</span></div>
       ${accs.length ? accs.map(a => `
         <div class="row" data-member-row style="cursor:default">
           <span class="row-l"><b>${esc(a.institution)}</b><span class="meta">${esc(a.accountNumber || '')} · ${esc(a.currency || 'USD')}</span></span>
           <span class="row-r">
-            <span class="meta">${fmtMoney(a.balance, a.currency)}</span>
+            <span class="meta">${fmtMoney(a.balance, a.currency)}${a.balanceAsOf?' · as of '+esc(a.balanceAsOf):''}</span>
             <span class="bdg ${a.status === 'ACTIVE' ? 'gr' : 'gd'}">${esc(a.status)}</span>
           </span>
         </div>
