@@ -12246,16 +12246,15 @@ async function saveOuv(){
     const submitted=await sb.rpc('vice_sovereign_submit',{p_payload:payload});
     if(submitted.error)throw submitted.error;
     if(submitted.data!==id)throw Error('Institutional service returned an unexpected proposal ID');
-    const {data:record,error}=await sb.from('vice_sovereign_proposals')
-      .select('id,status,validation_issues').eq('id',id).maybeSingle();
-    if(error)throw Error('Submission acknowledged, but record verification failed: '+error.message);
-    if(!record)throw Error('Submission acknowledged but not visible in the institutional registry. Verify permissions or publication before resubmitting. ID: '+id);
-    if(record.status==='REJECTED'||(record.validation_issues||[]).length){
-      throw Error('Proposal recorded but requires correction: '+JSON.stringify(record.validation_issues||[])+'. ID: '+id);
-    }
+    // Confirm persistence through the canonical public feed rather than a
+    // direct table SELECT, which may be restricted by row-level security.
+    const {data:feed,error:feedError}=await sb.rpc('vice_sovereign_feed');
+    if(feedError)throw Error('Submission acknowledged, but publication verification failed: '+feedError.message+' · '+id);
+    const record=(Array.isArray(feed)?feed:[]).find(p=>p.id===id);
+    if(!record)throw Error('Institutional service acknowledged the submission, but no validated REVIEW record is published. Check the institutional review log before resubmitting. ID: '+id);
     await refreshGovernance();
     closeModal();toast('Institutional proposal saved: '+id+' · CEO/CFO review required','success');
-    renderMain();
+    try{navigate('governance');}catch(_){renderMain();}
   }catch(e){toast('OUV proposal not confirmed: '+e.message,'error');}
   finally{if(button){button.disabled=false;button.textContent='Submit for CEO/CFO review';}}
 }
