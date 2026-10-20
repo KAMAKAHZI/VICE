@@ -10832,7 +10832,7 @@ function viewInvites(el){
 
 function viewSecurity(el){
   el.innerHTML = `
-    ${isOwner() ? `<section class="band"><div class="band-head"><h2>Executive Signing Key Recovery</h2></div><p class="note">Lost CEO signing key? Request independent CFO authorization. This request does not reset or replace a signing key.</p><button class="btn btn-gd" data-act="ceo-recovery-request">Request CFO Approval for CEO Key Recovery</button></section>` : ''}
+    ${isOwner() ? `<section class="band"><div class="band-head"><h2>Executive Signing Key Recovery</h2></div><p class="note">Lost CEO signing key? Request independent CFO authorization. This request does not reset or replace a signing key.</p><button class="btn btn-gd" data-act="ceo-recovery-request">Initialize Controlled Key Recovery</button></section>` : ''}
     <div class="ph"><div><div class="eb">Operations</div><h1>Security <em>Center</em></h1></div></div>
     <section class="band">
       <div class="band-head"><h2>Account</h2></div>
