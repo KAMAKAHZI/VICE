@@ -22,6 +22,17 @@ Deno.serve(async(req:Request)=>{
   const mailReady=!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('OMEGA_FROM_EMAIL')&&Deno.env.get('OMEGA_POSTAL_ADDRESS')&&Deno.env.get('OMEGA_REPLY_TO'));
   const rpc=async(name:string,args:any)=>{const r=await client.rpc(name,args);if(r.error)throw Error(r.error.message);return r.data;};
   if(body.action==='status')return json({apollo_configured:!!apollo,email_configured:mailReady,quorum_verifier_configured:false,executor_configured:false,live_trading:false});
+  if(body.action==='verify_recovery'){
+   const c=await client.from('vice_exec_challenges').select('*').eq('id',body.challenge_id).eq('user_id',u.data.user.id).maybeSingle();
+   if(c.error||!c.data||c.data.used_at||Date.parse(c.data.expires_at)<=Date.now()||!['RECOVERY_APPROVE','RECOVERY_ACTIVATE'].includes(c.data.action))return json({error:'Recovery challenge unavailable'},409);
+   const signer=await client.from('vice_exec_signers').select('*').eq('user_id',u.data.user.id).maybeSingle();
+   if(signer.error||!signer.data||signer.data.role!==c.data.role)return json({error:'Signer unavailable'},403);
+   const key=c.data.action==='RECOVERY_ACTIVATE'?c.data.public_key:signer.data.public_key;
+   if(!await core.verifySignature(key,c.data.message,body.signature))return json({error:'Invalid recovery signature'},422);
+   const admin=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
+   const done=await admin.rpc('vice_exec_recovery_finish',{p_challenge:c.data.id,p_actor:u.data.user.id,p_signature:body.signature});
+   if(done.error)throw Error(done.error.message);return json(done.data);
+  }
   if(body.action==='verify_signature'){
    const c=await client.from('vice_exec_challenges').select('*').eq('id',body.challenge_id).eq('user_id',u.data.user.id).maybeSingle();
    if(c.error||!c.data||c.data.used_at||Date.parse(c.data.expires_at)<=Date.now())return json({error:'Signature challenge expired or unavailable'},409);
