@@ -2770,7 +2770,37 @@ window.addEventListener('storage',event=>{
  }).catch(e=>console.warn('Cross-tab OUV refresh deferred:',e))
  .finally(()=>{viceCrossTabOuvRefreshBusy=false;});
 });
+// Authenticated server changefeed: wake the existing canonical reconciliation
+// path on issuer OUV or distribution activity. Payloads are never used as prices
+// or holdings. RLS must be configured server-side for each publication.
+let viceIssuerFeed=null,viceIssuerFeedDebounce=null;
+function viceConnectIssuerFeed(){
+ if(!sb||APP_MODE!=='LIVE'||!S.user||viceIssuerFeed)return;
+ const epoch=authEpoch,userId=String(S.user.id);
+ const wake=()=>{
+  if(epoch!==authEpoch||String(S.user?.id)!==userId)return;
+  clearTimeout(viceIssuerFeedDebounce);
+  viceIssuerFeedDebounce=setTimeout(()=>{void viceResumeInstitutionalSync();},350);
+ };
+ try{
+  viceIssuerFeed=sb.channel('vice-issuer-canonical-'+userId)
+   .on('postgres_changes',{event:'*',schema:'public',table:'vice_dao_config'},wake)
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'ouv_versions'},wake)
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'vice_ouv_release_model_events'},wake)
+   .subscribe(status=>{
+    if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')
+     console.warn('Issuer live changefeed unavailable; automatic polling remains active.');
+  });
+ }catch(e){viceIssuerFeed=null;console.warn('Issuer live changefeed deferred:',e);}
+}
+function viceDisconnectIssuerFeed(){
+ clearTimeout(viceIssuerFeedDebounce);
+ if(viceIssuerFeed&&sb)try{void sb.removeChannel(viceIssuerFeed);}catch(e){}
+ viceIssuerFeed=null;
+}
 function startViceSync(){
+  viceDisconnectIssuerFeed();
+  viceConnectIssuerFeed();
   if(viceSyncTimer)clearInterval(viceSyncTimer);
   // Polling is a fallback when Realtime publications are not configured.
   // It synchronizes official unit balances and BOTH reserve pools, not only
