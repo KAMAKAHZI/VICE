@@ -183,7 +183,11 @@ const ViceInstitutional=(()=>{
   const storedSigner=state.signers.find(x=>x.user_id===user);
   let enrolled=storedSigner?.public_key;
   if(!enrolled){const q=await sb.from('vice_exec_signers').select('public_key').eq('user_id',user).maybeSingle();if(q.error)throw q.error;enrolled=q.data?.public_key||null;}
-  const dbOpen=(name)=>new Promise((resolve,reject)=>{
+  const keyTimeout=(promise,label,ms=10000)=>new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>reject(Error(label+' timed out. Close other VICE OS tabs and retry.')),ms);
+   Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},err=>{clearTimeout(timer);reject(err)});
+  });
+  const dbOpen=(name)=>keyTimeout(new Promise((resolve,reject)=>{
    let settled=false;
    const fail=(reason)=>{if(settled)return;settled=true;reject(reason instanceof Error?reason:Error(String(reason)))};
    const request=indexedDB.open(name,1);
@@ -196,8 +200,8 @@ const ViceInstitutional=(()=>{
     if(settled){db.close();return}
     settled=true;resolve(db);
    };
-  });
-  const get=(db,id)=>new Promise((resolve,reject)=>{
+  }),'Executive key database open');
+  const get=(db,id)=>keyTimeout(new Promise((resolve,reject)=>{
    let tx,request;
    try{tx=db.transaction('keys','readonly');request=tx.objectStore('keys').get(id)}
    catch(err){reject(err);return}
@@ -207,8 +211,8 @@ const ViceInstitutional=(()=>{
    tx.oncomplete=()=>resolve(value);
    tx.onabort=()=>reject(tx.error||Error('Executive key lookup transaction aborted'));
    tx.onerror=()=>reject(tx.error||Error('Executive key lookup transaction failed'));
-  });
-  const put=(db,id,pair,prior)=>new Promise((resolve,reject)=>{
+  }),'Executive key lookup');
+  const put=(db,id,pair,prior)=>keyTimeout(new Promise((resolve,reject)=>{
    let tx;
    try{
     tx=db.transaction('keys','readwrite');
@@ -219,7 +223,7 @@ const ViceInstitutional=(()=>{
    tx.oncomplete=()=>resolve();
    tx.onabort=()=>reject(tx.error||Error('Executive key write transaction aborted'));
    tx.onerror=()=>reject(tx.error||Error('Executive key write transaction failed'));
-  });
+  }),'Executive key write');
   const same=async pair=>{if(!pair?.privateKey||!pair?.publicKey||!enrolled)return false;
    const key=await crypto.subtle.exportKey('jwk',pair.publicKey);
    return ['kty','crv','x','y'].every(k=>key[k]===enrolled[k])};
