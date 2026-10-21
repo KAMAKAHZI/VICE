@@ -2609,6 +2609,30 @@ async function refreshViceScarcitySnapshot(){
   if(error){S.scarcitySyncStatus='UNAVAILABLE';console.warn('Scarcity reference unavailable:',error.message);return;}
   if(!data||!data.official_ouv||!data.scarcity_reference_indicator){S.scarcitySyncStatus='INVALID';return;}
   const previousScarcity=JSON.stringify(S.scarcitySnapshot?.scarcity_reference_indicator??null);
+  // Each class has its own finite 2.5M strategic allocation. A release of
+  // VICE cannot mechanically change the V4X scarcity percentage (or vice versa).
+  // This is a bounded reference-model calculation, NOT observed volatility.
+  const finitePool=2500000;
+  const modelPercent={};
+  for(const symbol of ['VICE','V4X']){
+    const released=Number(data.distributed_units?.[symbol]);
+    const remaining=Number(data.remaining_strategic_units?.[symbol]);
+    const indicator=Number(data.scarcity_reference_indicator?.[symbol]);
+    const baseline=Number(data.official_ouv?.[symbol]);
+    if(!Number.isSafeInteger(released)||released<0||released>finitePool||
+       !Number.isSafeInteger(remaining)||remaining!==finitePool-released||
+       !Number.isFinite(indicator)||indicator<=0||
+       !Number.isFinite(baseline)||baseline<=0){
+      S.scarcitySyncStatus='INVALID';
+      console.error('Issuer scarcity snapshot failed finite-supply validation:',symbol);
+      return;
+    }
+    // At exhaustion the inverse-remaining-pool model is undefined; never
+    // claim infinite appreciation or convert it into an official OUV.
+    if(remaining===0){S.scarcitySyncStatus='EXHAUSTED';return;}
+    modelPercent[symbol]=((finitePool/remaining)-1)*100;
+  }
+  data.model_appreciation_pct=modelPercent;
   S.scarcitySnapshot=data;
   S.scarcitySyncStatus='VERIFIED';
   const distributionIndexChanged=previousScarcity!==JSON.stringify(data.scarcity_reference_indicator);
