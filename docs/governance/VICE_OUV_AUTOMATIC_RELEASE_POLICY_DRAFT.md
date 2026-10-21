@@ -90,3 +90,22 @@ The signed-in holder-specific RPC `vice_ouv_my_reference_snapshot()` discloses o
 - `tests/vice-ouv-fixed-supply-distribution.cjs`: fixed-precision, finite-supply, no-compounding, ratio, split, correction, and duplicate-cash-event test vectors. Run: `node --test tests/vice-ouv-fixed-supply-distribution.cjs`.
 
 **No IRUs, legal ownership records, existing signatures or official OUVs were changed by installation of the draft model.**
+
+## Final implementation and acceptance snapshot (October 21, 2026)
+
+**Implemented in production Supabase and committed to GitHub:**
+- Fixed 20,000,000-unit total supply in the model; 10M each class, of which 2.5M each strategic and 7.5M each estate reserve.
+- Live exact-decimal database model with 1:160 ratio. A 10K total new-unit distribution changes the mathematical *model* index by 0.05%; 10K of each changes it by 0.10%; 100K of each changes it by 1.00%.
+- One event record per committed issuance/correction/estate distribution, with no non-executed proposals, cash dividends or secondary transfers added to release counts.
+- Reconciliation RPC compares reserve, holder, and strategic-counter amounts and fails closed for stale policy baselines.
+- All holders' LIVE My IRU views show the model only as a separate non-effective reference, while official values remain from issuer policy. Aggregate official cents now round both program lines together and reconcile to the SQL sum, avoiding a 1-cent double-rounding error.
+- Founder LIVE reserve accounting now **omits an unverified reserve** rather than falling back to the static 7.5M ceiling and potentially double-counting transfers. Holder quantities and issuer reserve move in opposite directions during real transfers; no authorized unit quantity increases.
+- 45-second background polling synchronizes canonical OUV plus estate ledger and refreshes holder journal only if server unit balances change.
+- Institutional **Check execution gates** is now backed by the read-only `vice_ouv_activation_readiness` RPC with 2FA/key signature counts, review window and outstanding infrastructure requirements. Rejected/invalid proposal payloads fail safely without applying OUV.
+- Source release workflow checks `node --test tests/vice-ouv-fixed-supply-distribution.cjs`; 20 model, security and integration-source checks plus JavaScript syntax checks pass in tool-based acceptance, and an independent read-only SQL sweep verifies the exact 1:160 ratio across 101 supply increments. Live browser and Netlify acceptance remain separate.
+
+**Current signed major proposal:** `PROP-20261019-548A9057-34F`, two of two executive authorizations (CEO via fresh MFA and CFO via device signature). State: `REVIEW`, review through **2026-10-22 21:47:27 UTC (17:47:27 EDT)**. On-chain quorum timestamp `NULL`, execution timelock `NULL`; present database constraints deliberately prevent either being set until the governance implementation is upgraded. No official OUV change is authorized merely by CEO/CFO sign-off. The old OUV baseline is still **VICE $2 / V4X $320**; proposed **VICE $2.82645403 / V4X $452.23264480** remains non-effective.
+
+**Outstanding deployment requirements to call the full workflow complete:** (1) configure an independently verified on-chain quorum verifier and approved criteria; (2) adopt and enforce the separate 72-hour timelock and an audited, replay-safe atomic official price executor with server-side revision/version history, exact baseline comparison and no holder-unit changes; (3) independently substantiate any actual economic valuation claims with current verified records; (4) obtain executive adoption of this automatic model and its major threshold (the current 5% is only proposed), with any baseline rebased after the pending major proposal legitimately activates; (5) publish and smoke-test the final GitHub revision through the existing Netlify integration once, without duplicating paid builds. No execution workarounds or direct SQL price edits are permitted.
+
+**Settlement/accounting disclosure:** 20M denotes authorized internal units, not that 20M are fully issued on-chain or backed by immediately realizable funds. Distribution-based model appreciation is an issuer policy indicator, not external fair market value or automatic real profits.
