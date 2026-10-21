@@ -96,3 +96,30 @@ test('cash distributions and secondary transfers are NOT new releases',()=>{
  for(const type of ['CASH_DISTRIBUTION_PAID','HOLDER_TRANSFER','ALLOCATION_APPROVED','ALLOCATION_RESERVED'])
   assert.equal(eligible.has(type),false);
 });
+
+
+test('production SQL migration is reproducible, permission-scoped, and read-only for pricing',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const sql=fs.readFileSync(path.resolve(__dirname,'../supabase/migrations/20261021042700_vice_ouv_release_model_replay_safe.sql'),'utf8');
+ assert.match(sql,/CREATE TABLE IF NOT EXISTS public\.vice_ouv_release_policy/);
+ assert.match(sql,/status text NOT NULL DEFAULT 'MODEL_ONLY' CHECK\(status='MODEL_ONLY'\)/);
+ assert.match(sql,/ALTER TABLE public\.vice_ouv_release_model_events ENABLE ROW LEVEL SECURITY/);
+ assert.match(sql,/UNIQUE\(source_table,source_seq\)/);
+ assert.match(sql,/vice_ouv_release_on_strategic_issuance/);
+ assert.match(sql,/vice_ouv_release_on_estate_distribution/);
+ assert.match(sql,/REVOKE ALL ON FUNCTION vice_private\.ouv_release_math/);
+ assert.match(sql,/automatic_official_update_enabled',false/);
+ assert.doesNotMatch(sql,/UPDATE public\.vice_dao_config SET vice_price=/);
+});
+test('issuer app and member UI recompute official references from dynamic canonical OUV',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
+ const ui=fs.readFileSync(path.resolve(__dirname,'../vice4x-institutional.js'),'utf8');
+ assert.match(html,/function viceOuvMemberModelHtml\(/);
+ assert.match(html,/function viceOuvIssuerIndexHtml\(/);
+ assert.match(html,/S\.daoPriceSyncStatus!=='CANONICAL'/);
+ assert.match(html,/canonical_ouv_verified===true/);
+ assert.match(html,/Number\(data\?\.reference_vice\)===Number\(S\.iruClasses\[0\]\.ouv\)/);
+ assert.match(ui,/MODEL ONLY — GOVERNANCE NOT ACTIVATED/);
+ assert.match(ui,/p_pool:v\.pool/);
+});
