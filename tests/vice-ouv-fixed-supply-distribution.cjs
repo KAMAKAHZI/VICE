@@ -218,3 +218,21 @@ test('live governance model refreshes on a safe bounded cadence without signing 
  assert.match(js,/if\(APP_MODE!=='LIVE'/);
  assert.doesNotMatch(js,/setInterval\([\s\S]{0,700}signInWithPassword/);
 });
+
+test('Manual Netlify deployment does not invent a deploy ID; source SHA is mandatory',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const {identity}=require('../scripts/vice-deployment-identity.cjs');
+ const sha='a'.repeat(40);
+ const generated=identity({COMMIT_REF:sha,CONTEXT:'production'},'1.3.8.0-IRU-CERTIFICATES',new Date('2026-10-21T04:00:00Z'));
+ assert.equal(generated.commit,sha);
+ assert.equal(generated.context,'production');
+ assert.equal(generated.deployment_id,null);
+ const wf=fs.readFileSync(path.resolve(__dirname,'../.github/workflows/vice-netlify-production.yml'),'utf8');
+ assert.match(wf,/workflow_dispatch:/);
+ assert.match(wf,/COMMIT_REF: \$\{\{ github.sha \}\}/);
+ assert.match(wf,/VICE_EXPECTED_COMMIT: \$\{\{ github.sha \}\}/);
+ assert.match(wf,/VICE_MANUAL_DEPLOY: '1'/);
+ const smoke=fs.readFileSync(path.resolve(__dirname,'vice-production-smoke.mjs'),'utf8');
+ assert.match(smoke,/d.commit===expectedCommit/);
+ assert.match(smoke,/manual&&d.deployment_id===null&&d.context==='production'/);
+});
