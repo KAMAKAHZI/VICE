@@ -32,10 +32,10 @@ try{for(const width of [1440,390]){
     const req=tx.objectStore('keys').put({test:true},'abort-regression');
     // A request inside an explicitly aborted transaction normally emits AbortError.
     // The transaction's terminal event, not the request error, determines the result.
-    req.onerror=()=>{};
+    req.onerror=event=>{ event.preventDefault(); }; // Expected AbortError from explicit abort.
     tx.oncomplete=()=>resolve('COMMITTED');
     tx.onabort=()=>resolve('ABORTED');
-    tx.onerror=()=>resolve('ERROR');
+    tx.onerror=()=>{}; // Error can precede abort; wait for the terminal transaction event.
     tx.abort();
    });
   }finally{opened.close()}
