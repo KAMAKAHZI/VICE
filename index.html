@@ -2608,9 +2608,15 @@ async function refreshViceScarcitySnapshot(){
   if(epoch!==authEpoch)return;
   if(error){S.scarcitySyncStatus='UNAVAILABLE';console.warn('Scarcity reference unavailable:',error.message);return;}
   if(!data||!data.official_ouv||!data.scarcity_reference_indicator){S.scarcitySyncStatus='INVALID';return;}
+  const previousScarcity=JSON.stringify(S.scarcitySnapshot?.scarcity_reference_indicator??null);
   S.scarcitySnapshot=data;
   S.scarcitySyncStatus='VERIFIED';
-  window.dispatchEvent(new CustomEvent('vice:scarcity-reference-updated',{detail:{asOf:data.as_of}}));
+  const distributionIndexChanged=previousScarcity!==JSON.stringify(data.scarcity_reference_indicator);
+  window.dispatchEvent(new CustomEvent('vice:scarcity-reference-updated',{detail:{asOf:data.as_of,distributionIndexChanged}}));
+  // Distribution-driven reference indicators are MODEL ONLY until the issuer's
+  // authorized official OUV execution policy becomes effective. Never silently
+  // substitute the indicator for official prices or signed certificates.
+  if(distributionIndexChanged&&['command','portfolio','iru','admin','governance'].includes(S.tab))renderMain();
 }
 // Governance execution readiness is server-authoritative. Never infer execution
 // from MFA success, recorded votes, or a client-side proposal status.
