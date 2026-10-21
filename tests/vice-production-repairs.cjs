@@ -3,7 +3,14 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
 const html=fs.readFileSync(process.env.VICE_TEST_SOURCE||'index.html','utf8');
-function section(a,b){const i=html.indexOf(a);assert(i>=0,a);return html.slice(i,html.indexOf(b,i));}
+function sectionFrom(source,a,b){const i=source.indexOf(a);assert(i>=0,'Missing section start marker: '+a);const j=source.indexOf(b,i+a.length);assert(j>=0,'Missing section end marker: '+b);assert(j>i,'Section end must follow start: '+b);return source.slice(i,j);}
+function section(a,b){return sectionFrom(html,a,b);}
+test('section extraction fails closed on missing or reordered markers',()=>{
+ assert.throws(()=>sectionFrom('begin content','absent','end'),/Missing section start marker: absent/);
+ assert.throws(()=>sectionFrom('begin content','begin','absent'),/Missing section end marker: absent/);
+ assert.throws(()=>sectionFrom('end begin','begin','end'),/Missing section end marker: end/);
+ assert.equal(sectionFrom('begin content end','begin','end'),'begin content ');
+});
 function run(src,globals={}){const c=vm.createContext({console,setTimeout,clearTimeout,clearInterval,...globals});vm.runInContext(src,c);return c;}
 test('Yahoo uses same-origin proxy and discards null/invalid OHLC',async()=>{
  let url;
