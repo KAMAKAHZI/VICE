@@ -183,13 +183,43 @@ const ViceInstitutional=(()=>{
   const storedSigner=state.signers.find(x=>x.user_id===user);
   let enrolled=storedSigner?.public_key;
   if(!enrolled){const q=await sb.from('vice_exec_signers').select('public_key').eq('user_id',user).maybeSingle();if(q.error)throw q.error;enrolled=q.data?.public_key||null;}
-  const dbOpen=(name)=>new Promise((ok,no)=>{const request=indexedDB.open(name,1);
+  const dbOpen=(name)=>new Promise((resolve,reject)=>{
+   let settled=false;
+   const fail=(reason)=>{if(settled)return;settled=true;reject(reason instanceof Error?reason:Error(String(reason)))};
+   const request=indexedDB.open(name,1);
    request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('keys'))request.result.createObjectStore('keys')};
-   request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error)});
-  const get=(db,id)=>new Promise((ok,no)=>{const request=db.transaction('keys').objectStore('keys').get(id);request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error)});
-  const put=(db,id,pair,prior)=>new Promise((ok,no)=>{const tx=db.transaction('keys','readwrite'),store=tx.objectStore('keys');
-   if(prior?.privateKey)store.put(prior,'prior:'+user+':'+Date.now());
-   store.put(pair,id);tx.oncomplete=ok;tx.onerror=()=>no(tx.error)});
+   request.onblocked=()=>fail(Error('Executive key database upgrade is blocked by another tab. Close other VICE OS tabs and retry.'));
+   request.onerror=()=>fail(request.error||Error('Executive key database could not be opened'));
+   request.onsuccess=()=>{
+    const db=request.result;
+    db.onversionchange=()=>{db.close()};
+    if(settled){db.close();return}
+    settled=true;resolve(db);
+   };
+  });
+  const get=(db,id)=>new Promise((resolve,reject)=>{
+   let tx,request;
+   try{tx=db.transaction('keys','readonly');request=tx.objectStore('keys').get(id)}
+   catch(err){reject(err);return}
+   let value;
+   request.onsuccess=()=>{value=request.result};
+   request.onerror=()=>reject(request.error||Error('Executive key lookup failed'));
+   tx.oncomplete=()=>resolve(value);
+   tx.onabort=()=>reject(tx.error||Error('Executive key lookup transaction aborted'));
+   tx.onerror=()=>reject(tx.error||Error('Executive key lookup transaction failed'));
+  });
+  const put=(db,id,pair,prior)=>new Promise((resolve,reject)=>{
+   let tx;
+   try{
+    tx=db.transaction('keys','readwrite');
+    const store=tx.objectStore('keys');
+    if(prior?.privateKey)store.put(prior,'prior:'+user+':'+Date.now());
+    store.put(pair,id);
+   }catch(err){if(tx)try{tx.abort()}catch{}reject(err);return}
+   tx.oncomplete=()=>resolve();
+   tx.onabort=()=>reject(tx.error||Error('Executive key write transaction aborted'));
+   tx.onerror=()=>reject(tx.error||Error('Executive key write transaction failed'));
+  });
   const same=async pair=>{if(!pair?.privateKey||!pair?.publicKey||!enrolled)return false;
    const key=await crypto.subtle.exportKey('jwk',pair.publicKey);
    return ['kty','crv','x','y'].every(k=>key[k]===enrolled[k])};
