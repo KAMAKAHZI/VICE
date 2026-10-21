@@ -30,7 +30,9 @@ try{for(const width of [1440,390]){
    return await new Promise((resolve,reject)=>{
     const tx=opened.transaction('keys','readwrite');
     const req=tx.objectStore('keys').put({test:true},'abort-regression');
-    req.onerror=()=>reject(req.error);
+    // A request inside an explicitly aborted transaction normally emits AbortError.
+    // The transaction's terminal event, not the request error, determines the result.
+    req.onerror=()=>{};
     tx.oncomplete=()=>resolve('COMMITTED');
     tx.onabort=()=>resolve('ABORTED');
     tx.onerror=()=>resolve('ERROR');
