@@ -178,5 +178,5 @@ test('Background live sync reloads authoritative strategic and estate book after
  assert.match(code,/sb\.rpc\('get_my_holder'\)/);
  assert.match(code,/await hydrateData\(\)/);
  assert.match(code,/await refreshEstateRegistry\(\)/);
- assert.match(code,/await refreshIssuerReferences\(\)/);
+ assert.match(code,/refreshIssuerReferences\(\)/);
 });
