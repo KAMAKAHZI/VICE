@@ -2636,7 +2636,7 @@ function startViceSync(){
     if(!S.user||APP_MODE!=='LIVE'||document.hidden)return;
     try{if(!(await checkMemberAccess()))return;
       await Promise.all([refreshGovernance(),refreshIssuerReferences()]);
-      if(['governance','command','portfolio','admin'].includes(S.tab))renderMain();
+      if(['governance','command','portfolio','admin','iru'].includes(S.tab))renderMain();
       renderNav();
       if(typeof CloudMT5!=='undefined'&&(!CloudMT5.state.lastRefresh||Date.now()-CloudMT5.state.lastRefresh>240000))
         CloudMT5.refresh().catch(e=>console.warn('MT5 cloud sync:',e));
@@ -12524,9 +12524,9 @@ async function saveRole(){
   }catch(e){toast('Role update failed: '+e.message,'error');}
 }
 
-// Release gate: require server-attested canonical 2/320 allocation and issuance functions.
-// Do not permit financial writes until an atomic backend migration replaces
-// that function AND installs the verification RPC. Fail closed if unavailable.
+// Issuance gate: require server-attested canonical 1:160 OUV and fixed-pool
+// capabilities. The exact OUV may change through governed versions; never
+// permanently lock future distributions to historical $2/$320 prices.
 async function verifyStrategicBackend(){
   S.strategicBackendVerified=false;
   if(!S.user || APP_MODE!=='LIVE' || !isRegistryOperator())return false;
@@ -12537,7 +12537,12 @@ async function verifyStrategicBackend(){
   try{
     const {data,error}=await sb.rpc('vice_financial_release_capabilities');
     S.strategicBackendVerified=(!error && data?.strategic_price_rpc_v133===true
-      && Number(data?.reference_vice)===2 && Number(data?.reference_v4x)===320);
+      && data?.canonical_ouv_verified===true
+      && Number(data?.reference_vice)===Number(S.iruClasses[0].ouv)
+      && Number(data?.reference_v4x)===Number(S.iruClasses[1].ouv)
+      && Number(data?.reference_ratio)===160
+      && Number(data?.total_units_per_class)===10000000
+      && Number(data?.strategic_capacity_per_class)===2500000);
   }catch(_){S.strategicBackendVerified=false;}
   return S.strategicBackendVerified;
 }
@@ -12574,7 +12579,7 @@ async function openStrategicManager(){
     }).join('');
     openModal('Strategic-holder IRU Allocation (2.5M Pool)',`
       <p class="note warn">This workflow issues ONLY from the 2,500,000-unit strategic pool per series. It does not debit Estate Reserve units or make any on-chain transfer. Authoritative balances are enforced by the database.</p>
-      ${backendReady?'':'<p class="note warn">Financial writes disabled: the live backend has not confirmed the 1.3.3 canonical-price RPC migration. This display is READ ONLY.</p>'}
+      ${backendReady?'':'<p class="note warn">Financial writes disabled until the live backend verifies current canonical OUV, the 1:160 relationship, and fixed pool limits. This display is READ ONLY.</p>'}
       <div class="fields">
         <label class="field">Program<select id="strategicProgram"><option value="VICE">VICE</option><option value="V4X">V4X</option></select></label>
         <label class="field">Holder<select id="strategicHolder">${options||'<option value="">No eligible holder</option>'}</select></label>
