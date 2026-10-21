@@ -85,7 +85,7 @@ const ViceInstitutional=(()=>{
    const currentVice=Number(state.diagnostics?.reference?.vice_price??S.iruClasses[0].ouv);
    const currentV4x=Number(state.diagnostics?.reference?.v4x_price??S.iruClasses[1].ouv);
    const targetVice=Number(next.vice_ouv),targetV4x=Number(next.v4x_ouv);
-   const fmtReference=n=>Number.isFinite(n)?n.toFixed(8).replace(/0+$/,'').replace(/\\.$/,''):'UNVERIFIED';
+   const fmtReference=n=>Number.isFinite(n)?n.toFixed(8).replace(/0+$/,'').replace(/\.$/,''):'UNVERIFIED';
    const reviewOpen=!p.validation_until||!Number.isFinite(Date.parse(p.validation_until))||Date.now()<Date.parse(p.validation_until);
    const quorumReady=!!p.quorum_verified_at;
    const timelockReady=!!p.execute_after&&Date.now()>=Date.parse(p.execute_after);
@@ -246,7 +246,33 @@ const ViceInstitutional=(()=>{
   if(act==='proposal-save'){const payload=JSON.parse(values('inst-proposal').payload);await rpc('vice_sovereign_submit',{p_payload:payload});}
   if(act==='ouv-model-quote'){releaseQuotePreview();return;}
   if(act==='ouv-model-compute'){await releaseQuoteCompute();return;}
-  if(act==='gates'){const r=await rpc('vice_sovereign_check',{p_id:t.dataset.id});if(user!==S.user?.id)return;modal('Execution gate results','<p>No prices or quantities changed.</p><ul>'+r.reasons.map(x=>'<li>'+esc(label(x))+'</li>').join('')+'</ul>');return;}
+  if(act==='gates'){
+    const r=await rpc('vice_ouv_activation_readiness',{p_proposal_id:t.dataset.id});
+    if(user!==S.user?.id)return;
+    const reasons={
+      NOT_IN_ACTIVE_REVIEW:'Proposal is not in active review.',
+      PROPOSAL_VALIDATION_ISSUES:'Proposal validation issues must be cleared.',
+      CEO_AND_CFO_AUTHORIZATIONS_REQUIRED:'Separate CEO and CFO authorization is required.',
+      PUBLIC_REVIEW_WINDOW_OPEN:'Public review must finish before a reference revision can take effect.',
+      PROPOSAL_BASELINE_DOES_NOT_MATCH_OFFICIAL_REFERENCE:'Proposal uses an outdated official OUV baseline.',
+      PROPOSED_OUV_RATIO_OR_VALUES_INVALID:'Target OUV must be positive and keep the 1:160 ratio.',
+      ISSUER_LEDGER_RECONCILIATION_FAILED:'Issuer unit balances must reconcile to their reserve and strategic counters.',
+      INDEPENDENT_ONCHAIN_QUORUM_NOT_VERIFIED:'Independent on-chain quorum has not been verified.',
+      ONCHAIN_QUORUM_VERIFIER_NOT_CONFIGURED:'Deploy and test an on-chain quorum verifier.',
+      '72_HOUR_TIMELOCK_NOT_COMPLETED':'The 72-hour governance execution timelock is not complete.',
+      ATOMIC_GOVERNANCE_EXECUTOR_NOT_CONFIGURED:'Build and independently audit the atomic OUV execution service.'
+    };
+    const blocked=Array.isArray(r.next_unmet_gates)?r.next_unmet_gates:[];
+    modal('Official OUV activation status',
+      '<p><strong>'+esc(r.proposal_id||t.dataset.id)+'</strong> · '+esc(String(r.executive_authorizations??0))+'/2 executives authorized</p>'+
+      '<p class="note warn">NOT EFFECTIVE. Official OUVs, reserve allocations and holders’ unit quantities have not changed.</p>'+
+      '<p class="meta">Public review closes: '+esc(r.review_deadline?new Date(r.review_deadline).toLocaleString():'Not available')+'</p>'+
+      '<div class="rw"><span class="rw-l">Current official VICE / V4X</span><span class="rw-v">'+ouvMoney8(r.current_official_ouv?.VICE)+' / '+ouvMoney8(r.current_official_ouv?.V4X)+'</span></div>'+
+      '<div class="rw"><span class="rw-l">Approved for review only</span><span class="rw-v">'+ouvMoney8(r.proposed_ouv?.VICE)+' / '+ouvMoney8(r.proposed_ouv?.V4X)+'</span></div>'+
+      '<p><strong>Remaining gates</strong></p><ul>'+blocked.map(x=>'<li>'+esc(reasons[x]||label(x))+'</li>').join('')+'</ul>'+
+      '<p class="meta">Read-only server verification. Viewing status cannot authorize or apply prices.</p>');
+    return;
+  }
   if(act==='approve-proposal'){approveWith2FADialog(t.dataset.id);return;}
   if(act==='approve-2fa-confirm'){await finish2FAApproval(t.dataset.id);return;}
   if(act==='enroll')await attest('ENROLL');if(act==='approve-device')await attest('APPROVE',t.dataset.id);if(act==='halt')await attest('HALT');
