@@ -10677,7 +10677,7 @@ function viewDistributions(el){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewDocuments(el){
-  if(APP_MODE==='LIVE' && S.user?.id && S.user.id!=='sim-user' && !S.tokenCerts.loaded && !S.tokenCerts.loading){
+  if(APP_MODE==='LIVE' && S.user?.id && S.user.id!=='sim-user' && !S.tokenCerts.loaded && !S.tokenCerts.loading && !S.tokenCerts.error){
     ViceTokenCertificates.load().then(()=>{if(S.tab==='documents')renderMain();}).catch(e=>{S.tokenCerts.error=String(e?.message||e);if(S.tab==='documents')renderMain();});
   }
   const docs = S.documents || [];
