@@ -77,3 +77,9 @@ assert(roleAndHealth.includes('CREATE OR REPLACE FUNCTION public.vice_assign_mem
 assert(roleAndHealth.includes('CREATE OR REPLACE FUNCTION public.vice_set_dao_prices'), 'Canonical pricing attestation RPC missing');
 assert(roleAndHealth.includes('CREATE OR REPLACE FUNCTION public.vice_operational_health'), 'Issuer health backend RPC missing');
 assert(html.includes("sb.rpc('vice_operational_health')"), 'Live admin self diagnostics not connected to server');
+
+// Revoked issuer certificates must never appear as currently verified holdings.
+assert(html.includes('S.tokenCerts.list.filter(c=>!c.revoked&&'), 'Documents must exclude revoked certificates');
+assert(html.includes(')).filter(c=>!c.revoked);'), 'IRU registry must exclude revoked certificates');
+const comms=read('vice4x-comms.js');
+assert(comms.includes("m.kind==='file'?'File attachment'"),'Comms notification must recognize file attachments');

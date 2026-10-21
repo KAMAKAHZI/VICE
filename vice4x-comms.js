@@ -45,7 +45,7 @@ const ViceComms=(()=>{
   let s=String(text||'');
   if(/^VICE_CALL_V1:/.test(s))return 'Call update';
   if(/^ENCv\d+:/.test(s))return 'Encrypted message · open the conversation to retry';
-  if(s.startsWith('VICE_MEDIA_V1:')){try{const m=JSON.parse(s.slice(14));return m.kind==='audio'?'Voice message':'Image attachment';}catch{return 'Attachment';}}
+  if(s.startsWith('VICE_MEDIA_V1:')){try{const m=JSON.parse(s.slice(14));return m.kind==='audio'?'Voice message':m.kind==='image'?'Image attachment':m.kind==='file'?'File attachment':'Attachment';}catch{return 'Attachment';}}
   return s.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g,'').slice(0,500)||'New message';
  }
  function shown(item,device=false){const p=prefs();return p.privacy==='hidden'?{title:'VICE4X',body:item.kind==='missed'?'Missed call':'New notification'}:{title:item.title,body:p.privacy==='full'&&(!device||p.devicePreview)?preview(item.body):item.kind==='missed'?'Missed call':'New message'};}

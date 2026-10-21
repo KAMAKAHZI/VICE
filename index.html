@@ -10691,9 +10691,9 @@ function viewDocuments(el){
       </div>
     </div>
     <section class="band">
-      <div class="band-head"><h2>Token Certificates · Issuer Registry</h2><span class="meta">${S.tokenCerts.loading?'Loading…':S.tokenCerts.list.length}</span><button class="btn btn-xs btn-gd" data-act="iru-cert-refresh">Refresh</button></div>
+      <div class="band-head"><h2>Token Certificates · Issuer Registry</h2><span class="meta">${S.tokenCerts.loading?'Loading…':S.tokenCerts.list.filter(c=>!c.revoked&&(isOwner()||c.profile_id===S.user?.id||c.holder_client_id===S.profile?.clientId)).length}</span><button class="btn btn-xs btn-gd" data-act="iru-cert-refresh">Refresh</button></div>
       ${S.tokenCerts.error?'<p class="muted" role="alert">Certificate registry unavailable: '+esc(S.tokenCerts.error)+'</p>':''}
-      ${S.tokenCerts.list.filter(c=>isOwner()||c.profile_id===S.user?.id||c.holder_client_id===S.profile?.clientId)
+      ${S.tokenCerts.list.filter(c=>!c.revoked&&(isOwner()||c.profile_id===S.user?.id||c.holder_client_id===S.profile?.clientId))
         .map(c=>`<div class="row"><span class="row-l"><b>${esc(c.cert_id)}</b><span class="meta">${esc(c.kind)} · ${esc(c.program)} · ${esc(fmtD(c.issued_at))}</span></span>
           <span class="row-r"><button class="btn btn-xs btn-gd" data-act="iru-cert-preview" data-id="${esc(c.cert_id)}">Preview</button>
           <button class="btn btn-xs btn-g" data-act="iru-cert-download" data-id="${esc(c.cert_id)}">Download</button></span></div>`).join('')||(S.tokenCerts.loading?'<p class="muted">Loading issuer certificates…</p>':S.tokenCerts.error?'<p class="muted">Certificate registry could not be loaded. Use Refresh to retry.</p>':'<p class="muted">No certificates found for this account.</p>')}
@@ -14200,7 +14200,7 @@ const ViceTokenCertificates = (()=>{
   function htmlSection(){
     const st=S.tokenCerts;
     const me=S.profile?.clientId;
-    const list=isOwner()?st.list:st.list.filter(c=>c.profile_id===S.user?.id||c.holder_client_id===me);
+    const list=(isOwner()?st.list:st.list.filter(c=>c.profile_id===S.user?.id||c.holder_client_id===me)).filter(c=>!c.revoked);
     const filtered=list.filter(c=>(st.kind==='ALL'||c.kind===st.kind)&&(st.program==='ALL'||c.program===st.program));
     return `<section class="band"><div class="band-head"><h2>My Verified IRU Certificates</h2><span class="meta">${list.length} issuer records</span></div>
       <div class="actions" style="margin:10px 0 16px"><button class="btn btn-g" data-act="iru-cert-refresh">Refresh registry</button>
