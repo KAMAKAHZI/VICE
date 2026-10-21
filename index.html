@@ -1113,7 +1113,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 .bnr .bnr-x{position:relative;z-index:2}
 @media(max-width:520px){#bnrText{font-size:.61rem;letter-spacing:.045em}}
 </style>
-</head>
+<style id="vice-holder-action-layout">.holder-action-section{margin:18px 0;padding:15px;border:1px solid rgba(192,153,74,.22);border-radius:14px;background:rgba(192,153,74,.035)}.holder-action-heading{font-size:10px;letter-spacing:.14em;font-weight:700;color:#c9ad71;margin:0 0 12px}.holder-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.holder-action-grid .btn{width:100%;min-width:0;min-height:44px;white-space:normal;line-height:1.35;text-align:center;padding:10px 9px}.holder-action-grid [data-act="holder-issue"]{grid-column:1/-1;border-color:rgba(211,172,90,.55)}.holder-action-section .note{margin:12px 0 0}@media(max-width:420px){.holder-action-section{padding:12px}.holder-action-grid{gap:8px}.holder-action-grid .btn{font-size:12px}}</style></head>
 <body>
 <svg class="svg-defs" aria-hidden="true" focusable="false"><defs>
   <linearGradient id="vice-gold" x1="0" y1="0" x2="1" y2="1">
@@ -13103,18 +13103,18 @@ function openHolderViewModal(holderId){
     <div class="rw"><span class="rw-l">V4X units</span><span class="rw-v mn">${fmtNum(Number(v.V4X.held))}</span></div>
     ${v.classification.tier ? `<div class="rw"><span class="rw-l">Tier</span><span class="rw-v">${esc(v.classification.tier.tier)} · ${esc(v.classification.tier.name)}</span></div>` : ''}
     ${v.classification.legacy ? `<div class="rw"><span class="rw-l">Legacy</span><span class="rw-v">${esc(v.classification.legacy.order)} · ${esc(v.classification.legacy.name)}</span></div>` : ''}
-    ${canManage ? `<div class="mact">
+    ${canManage ? `<div class="holder-action-section"><div class="holder-action-heading">ALLOCATION &amp; CLASSIFICATION</div><div class="holder-action-grid">
       <button class="btn btn-g" data-act="holder-issue" data-id="${esc(holderId)}">Issue from holder pool</button>
       <button class="btn btn-g" data-act="holder-tier" data-id="${esc(holderId)}">Assign tier</button>
       <button class="btn btn-g" data-act="holder-legacy" data-id="${esc(holderId)}">Record legacy</button>
       <button class="btn btn-g" data-act="holder-entry" data-id="${esc(holderId)}">Entry class</button>
-    </div>` : ''}
-    ${canControl?`<div class="mact" style="flex-wrap:wrap">
+    </div></div>` : ''}
+    ${canControl?`<div class="holder-action-section"><div class="holder-action-heading">ACCOUNT SAFEGUARDS</div><div class="holder-action-grid">
       <button class="btn btn-g" data-act="holder-control" data-id="${esc(holderId)}" data-control="${h.holdingsLocked?'UNLOCK':'LOCK'}">${h.holdingsLocked?'Unfreeze':'Freeze'} holdings</button>
       ${!h.accountRevoked?`<button class="btn btn-g" data-act="holder-control" data-id="${esc(holderId)}" data-control="${h.accountSuspended?'RESUME':'SUSPEND'}">${h.accountSuspended?'Restore access':'Suspend account'}</button>`:''}
       ${isOwner()?`<button class="btn btn-g" data-act="holder-control" data-id="${esc(holderId)}" data-control="${h.accountRevoked?'RESTORE':'REVOKE'}">${h.accountRevoked?'Restore membership':'Revoke membership'}</button>`:''}
       ${!isOwner()&&h.status==='ACTIVE'&&!h.holdingsLocked?`<button class="btn btn-p" data-act="holder-transfer" data-id="${esc(holderId)}">Distribute from my holdings</button>`:''}
-    </div><p class="note">Controls preserve holdings and transaction history. Reserve accounts and their administrator are protected.</p>`:''}
+    </div><p class="note">Controls preserve holdings and transaction history. Reserve accounts and their administrator are protected.</p></div>`:''}
     <div class="mact"><button class="btn btn-g" data-act="modal-close">Close</button></div>
   `);
 }
