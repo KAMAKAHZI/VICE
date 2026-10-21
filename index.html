@@ -2442,7 +2442,7 @@ async function viceCompleteSecondFactor(){
  const pending=viceMfaPending;
  if(!pending)return;
  const code=String($('viceSignInTotp')?.value||'').trim();
- if(!/^\\d{6}$/.test(code)){toast('Enter a 6-digit authenticator code','warn');return;}
+ if(!/^[0-9]{6}$/.test(code)){toast('Enter a 6-digit authenticator code','warn');return;}
  const btn=document.querySelector('[data-act="vice-signin-mfa-confirm"]');
  if(btn)btn.disabled=true;
  try{
