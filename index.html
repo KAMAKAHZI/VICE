@@ -10124,7 +10124,7 @@ function viceCommsBubble(value){
   try{
    const item=JSON.parse(msg.slice(VICE_MEDIA_PREFIX.length));
    const path=String(item.path||'');
-   const re=/^(?:ch\/(?:general|trading|reserve|treasury)\/[a-f0-9-]{36}|dm\/[a-f0-9-]{36}\/[a-f0-9-]{36}\/[a-f0-9-]{36})\/[a-f0-9-]{36}\.(?:jpg|png|webp|webm|m4a|ogg|mp3)$/i;
+   const re=/^(?:ch\/(?:general|trading|reserve|treasury)\/[a-f0-9-]{36}|dm\/[a-f0-9-]{36}\/[a-f0-9-]{36}\/[a-f0-9-]{36})\/[a-f0-9-]{36}\.(?:jpg|png|webp|heic|heif|webm|m4a|aac|ogg|mp3|wav)$/i;
    if(!re.test(path))throw Error('Unsafe media path');
    const filename=esc(String(item.name||'Attachment').slice(0,120));
    if(item.kind==='image')return '<div class="vice-comms-media"><img data-vice-chat-media="'+esc(path)+'" loading="lazy" alt="'+filename+'" style="max-width:min(100%,320px);max-height:320px;object-fit:contain;border-radius:8px"><small class="meta">'+filename+'</small></div>';
@@ -10159,7 +10159,7 @@ async function viceSendMedia(file,kind,context){
  const ctx=context||viceMediaContext();
  if(!file||file.size<1||file.size>8388608)throw Error('Maximum media size 8 MB');
  const mime=String(file.type||'').split(';')[0].toLowerCase();
- const allowed={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','audio/webm':'webm','audio/mp4':'m4a','audio/ogg':'ogg','audio/mpeg':'mp3'};
+ const allowed={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/heic':'heic','image/heif':'heif','audio/webm':'webm','audio/mp4':'m4a','audio/x-m4a':'m4a','audio/aac':'aac','audio/ogg':'ogg','audio/mpeg':'mp3','audio/mp3':'mp3','audio/wav':'wav','audio/x-wav':'wav'};
  if(!allowed[mime]||((kind==='image')!==mime.startsWith('image/')))throw Error('Unsupported attachment type');
  const key=ctx.root+'/'+(crypto.randomUUID?.()||uuid())+'.'+allowed[mime];
  const storage=sb.storage.from('vice-chat-media');
