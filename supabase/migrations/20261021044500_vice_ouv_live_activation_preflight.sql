@@ -92,8 +92,8 @@ BEGIN
     'computed_at',now(),
     'explanation','Executive sign-off does not activate OUV. On-chain quorum verification, 72-hour timelock and a separately audited structural executor are not yet configured. No official prices were changed.'
   );
-END $function$
-;
+END;
+$function$;
 REVOKE ALL ON FUNCTION public.vice_ouv_activation_readiness(text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.vice_ouv_activation_readiness(text) TO authenticated;
 COMMIT;
