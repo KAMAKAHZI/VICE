@@ -10677,17 +10677,21 @@ function viewDistributions(el){
    ═══════════════════════════════════════════════════════════════════ */
 
 function viewDocuments(el){
+  if(APP_MODE==='LIVE' && S.user?.id && S.user.id!=='sim-user' && !S.tokenCerts.loaded && !S.tokenCerts.loading){
+    ViceTokenCertificates.load().then(()=>{if(S.tab==='documents')renderMain();}).catch(e=>{S.tokenCerts.error=String(e?.message||e);if(S.tab==='documents')renderMain();});
+  }
   const docs = S.documents || [];
   el.innerHTML = `
     <div class="ph">
-      <div><div class="eb">My Record</div><h1>My <em>Documents</em></h1>
+      <div><div class="eb">${isOwner()?'Institutional Registry':'My Record'}</div><h1>${isOwner()?'All':'My'} <em>Documents</em></h1>
         <p>Contracts, statements, and notices. Signed originals are preserved.</p></div>
       <div class="ph-acts">
         ${can('create') || isOwner() ? '<button class="btn btn-g" data-act="doc-upload">Upload</button>' : ''}
       </div>
     </div>
     <section class="band">
-      <div class="band-head"><h2>Token Certificates · Issuer Registry</h2></div>
+      <div class="band-head"><h2>Token Certificates · Issuer Registry</h2><span class="meta">${S.tokenCerts.loading?'Loading…':S.tokenCerts.list.length}</span></div>
+      ${S.tokenCerts.error?'<p class="muted" role="alert">Certificate registry unavailable: '+esc(S.tokenCerts.error)+'</p>':''}
       ${S.tokenCerts.list.filter(c=>isOwner()||c.profile_id===S.user?.id||c.holder_client_id===S.profile?.clientId)
         .map(c=>`<div class="row"><span class="row-l"><b>${esc(c.cert_id)}</b><span class="meta">${esc(c.kind)} · ${esc(c.program)} · ${esc(fmtD(c.issued_at))}</span></span>
           <span class="row-r"><button class="btn btn-xs btn-gd" data-act="iru-cert-preview" data-id="${esc(c.cert_id)}">Preview</button>
