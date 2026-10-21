@@ -25,6 +25,7 @@ jobs:
           node tests/vice-1378-audit-turn.cjs
           node tests/vice-1379-membership-signature.cjs
           node tests/vice-token-certificates.cjs
+          node --test tests/vice-ouv-fixed-supply-distribution.cjs
           node --check tests/vice-production-smoke.mjs
       - name: Prepare strict public web root
         run: |
