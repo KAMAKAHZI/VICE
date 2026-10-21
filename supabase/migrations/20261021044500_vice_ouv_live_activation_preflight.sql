@@ -52,9 +52,11 @@ BEGIN
   evidence:=vice_private.ouv_release_reconciliation();
   review_over:=p.validation_until IS NOT NULL AND now()>=p.validation_until;
   IF p.status<>'REVIEW' THEN gate:=gate||'"NOT_IN_ACTIVE_REVIEW"'::jsonb; END IF;
-  IF jsonb_typeof(p.validation_issues) IS DISTINCT FROM 'array'
-      OR jsonb_array_length(COALESCE(p.validation_issues,'[]'::jsonb))>0
-  THEN gate:=gate||'"PROPOSAL_VALIDATION_ISSUES"'::jsonb; END IF;
+  IF jsonb_typeof(p.validation_issues) IS DISTINCT FROM 'array' THEN
+    gate:=gate||'"PROPOSAL_VALIDATION_ISSUES"'::jsonb;
+  ELSIF jsonb_array_length(p.validation_issues)>0 THEN
+    gate:=gate||'"PROPOSAL_VALIDATION_ISSUES"'::jsonb;
+  END IF;
   IF auth_count<>2 THEN gate:=gate||'"CEO_AND_CFO_AUTHORIZATIONS_REQUIRED"'::jsonb; END IF;
   IF NOT review_over THEN gate:=gate||'"PUBLIC_REVIEW_WINDOW_OPEN"'::jsonb; END IF;
   IF official_v IS NULL OR official_x IS NULL OR
