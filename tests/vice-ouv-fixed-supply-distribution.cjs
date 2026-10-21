@@ -180,3 +180,30 @@ test('Background live sync reloads authoritative strategic and estate book after
  assert.match(code,/await refreshEstateRegistry\(\)/);
  assert.match(code,/refreshIssuerReferences\(\)/);
 });
+
+test('release audit SQL reconciles holder totals against append-only issues, corrections and estate events',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const sql=fs.readFileSync(path.resolve(__dirname,'../supabase/migrations/20261021080900_vice_ouv_append_only_ledger_reconciliation.sql'),'utf8');
+ assert.match(sql,/CREATE OR REPLACE FUNCTION vice_private\.ouv_release_reconciliation/);
+ assert.match(sql,/UNITS_ISSUANCE_REVERSED/);
+ assert.match(sql,/UNITS_RETIRED/);
+ assert.match(sql,/UNITS_ISSUED/);
+ assert.match(sql,/estate_audited_events/);
+ assert.match(sql,/strategic_audited_events/);
+ assert.match(sql,/invalid_events=0/);
+ assert.match(sql,/audit_v=cv AND audit_x=cx/);
+ assert.match(sql,/estate_audit_v=ev AND estate_audit_x=ex/);
+ assert.match(sql,/health:=vice_private\.ouv_release_reconciliation\(\)/);
+ assert.match(sql,/IF NOT coalesce\(\(health->>'ledger_reconciled'\)::boolean,false\) THEN/);
+ assert.doesNotMatch(sql,/UPDATE public\.vice_dao_config SET/);
+});
+test('audited issuance less correction equals the current strategic supply counters',()=>{
+ // Independently observed aggregate issuance events and reversals from the
+ // issuer append-only event log, never any personal holder information.
+ const gross=Object.freeze({vice:787624n,v4x:785124n});
+ const reversed=Object.freeze({vice:54125n,v4x:54125n});
+ const active={vice:gross.vice-reversed.vice,v4x:gross.v4x-reversed.v4x};
+ assert.equal(active.vice,733499n);
+ assert.equal(active.v4x,730999n);
+ assert.equal(active.vice+active.v4x,1464498n);
+});
