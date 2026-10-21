@@ -23,6 +23,23 @@ test('100k new VICE + 100k new V4X = +1.00% model, never new supply',()=>{
  assert.equal(usd8(r.vice),'2.02000000');
  assert.equal(usd8(r.v4x),'323.20000000');
 });
+test('10,000 units total produces +0.05% and exact 1:160 references',()=>{
+ const p=modeled(10000n,0n,0n,0n);
+ assert.equal(p.newUnits,10000n);
+ assert.equal(usd8(p.vice),'2.00100000');
+ assert.equal(usd8(p.v4x),'320.16000000');
+});
+test('10,000 of each produces +0.10%, not +1% or compounding',()=>{
+ const p=modeled(10000n,10000n,0n,0n);
+ assert.equal(p.newUnits,20000n);
+ assert.equal(usd8(p.vice),'2.00200000');
+ assert.equal(usd8(p.v4x),'320.32000000');
+});
+test('a single VICE IRU makes the smallest 8-decimal fixed-supply adjustment',()=>{
+ const p=modeled(1n,0n,0n,0n);
+ assert.equal(usd8(p.vice),'2.00000010');
+ assert.equal(usd8(p.v4x),'320.00001600');
+});
 test('100k combined = +0.50%, independent of program split',()=>{
  for(const x of [0n,1n,50000n,99999n,100000n]){
   const r=modeled(x,100000n-x,0n,0n);
