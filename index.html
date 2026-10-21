@@ -10647,6 +10647,7 @@ function viewHolders(el){
 function viewGovernance(el){
   const props = S.proposals || [];
   const sovereign = (S.sovereignProposals || []).filter(p=>p.status==='REVIEW' && Array.isArray(p.validation_issues) && p.validation_issues.length===0);
+  const execRole=isOwner()?'CEO':S.profile?.role==='FINANCE_OFFICER'?'CFO':null;
   const sovereignCards = sovereign.map(p=>{
     const refs=p.payload?.parameters?.target_scaled_tier||{};
     const baseline=p.payload?.parameters?.previous_baseline||{};
@@ -10654,8 +10655,8 @@ function viewGovernance(el){
       <div class="row-l"><b>${esc(p.id)}</b>
       <span class="meta">Institutional structural proposal · Executive review only · Member voting not authorized</span>
       <span class="meta">Current: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')} · Requested: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
-      <span class="meta">Published ${fmtD(p.published_at)} · Review until ${fmtD(p.validation_until)}</span><span class="meta">Executive quorum: ${Number(p.verified_executive_signatures||0)}/2 verified · CEO: ${p.ceo_signed?'SIGNED & VERIFIED':'AWAITING'} · CFO: ${p.cfo_signed?'SIGNED & VERIFIED':'AWAITING'}</span></div>
-      <div class="row-r"><span class="bdg ${p.status==='REJECTED'?'rd':'gd'}">${esc(p.status)}</span></div>
+      <span class="meta">Published ${fmtD(p.published_at)} · Review until ${fmtD(p.validation_until)}</span><span class="meta">Executive quorum: ${Number(p.verified_executive_authorizations??p.verified_executive_signatures??0)}/2 authorized · CEO: ${p.ceo_signed?('AUTHORIZED ('+esc(p.ceo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'} · CFO: ${p.cfo_signed?('AUTHORIZED ('+esc(p.cfo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'}</span></div>
+      <div class="row-r"><span class="bdg ${p.status==='REJECTED'?'rd':'gd'}">${esc(p.status)}</span>${execRole && !(execRole==='CEO'?p.ceo_signed:p.cfo_signed) ? `<button class="btn btn-gd" data-act="exec-mfa-open" data-authorization-action="APPROVE" data-id="${esc(p.id)}">Authorize via 2FA</button>` : ''}</div>
     </div>`;
   }).join('');
   const live=APP_MODE==='LIVE';
@@ -10833,12 +10834,80 @@ function viewInvites(el){
 async function viceExecKey(getOnly=false){const db=await new Promise((ok,no)=>{const q=indexedDB.open('vice-executive-signing',1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('keys'))q.result.createObjectStore('keys')};q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});try{const identity=S.user?.id;if(!identity)throw Error('Executive session required');const get=id=>new Promise((ok,no)=>{const q=db.transaction('keys').objectStore('keys').get(id);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});const scoped=await get('executive:'+identity);const legacy=await get('executive');if(getOnly)return scoped||legacy||null;if(scoped)return scoped;if(legacy)throw Error('Legacy key requires verification before migration');const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},false,['sign','verify']);await new Promise((ok,no)=>{const tx=db.transaction('keys','readwrite');tx.objectStore('keys').put(pair,'executive:'+identity);tx.oncomplete=ok;tx.onerror=()=>no(tx.error)});return pair;}finally{db.close()}}
 async function viceExecVerifiedKey(){if(!S.user?.id)throw Error('Executive sign-in required');const {data:signer,error}=await sb.from('vice_exec_signers').select('role,public_key').eq('user_id',S.user.id).maybeSingle();if(error)throw error;if(!signer?.public_key)throw Error('No registered executive signing key');const db=await new Promise((ok,no)=>{const q=indexedDB.open('vice-executive-signing',1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('keys'))q.result.createObjectStore('keys')};q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});try{const get=id=>new Promise((ok,no)=>{const q=db.transaction('keys').objectStore('keys').get(id);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});for(const id of ['executive:'+S.user.id,'executive']){const pair=await get(id);if(!pair?.privateKey||!pair?.publicKey)continue;const key=await crypto.subtle.exportKey('jwk',pair.publicKey);if(['kty','crv','x','y'].every(k=>key[k]===signer.public_key[k])){if(id==='executive'){await new Promise((ok,no)=>{const tx=db.transaction('keys','readwrite');tx.objectStore('keys').put(pair,'executive:'+S.user.id);tx.oncomplete=ok;tx.onerror=()=>no(tx.error)})}return pair}}throw Error('No local signing key matches the registered '+signer.role+' key. Recovery authorization cannot be bypassed.');}finally{db.close()}}
 async function viceExecReplacementKey(){if(!S.user?.id||!isOwner())throw Error('CEO authentication required');const db=await new Promise((ok,no)=>{const q=indexedDB.open('vice-executive-signing',1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('keys'))q.result.createObjectStore('keys')};q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});try{const id='recovery-replacement:'+S.user.id;const existing=await new Promise((ok,no)=>{const q=db.transaction('keys').objectStore('keys').get(id);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});if(existing?.privateKey&&existing?.publicKey)return existing;const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},false,['sign','verify']);await new Promise((ok,no)=>{const tx=db.transaction('keys','readwrite');tx.objectStore('keys').put(pair,id);tx.oncomplete=ok;tx.onerror=()=>no(tx.error)});return pair;}finally{db.close()}}
-async function viceExecKeyDiagnostic(){const box=document.getElementById('execKeyDiagnostic');if(!box)return;box.textContent='Checking executive key custody…';try{const pair=await viceExecVerifiedKey();if(!pair?.privateKey)throw Error('Missing private key');box.textContent='Verified: this browser has the registered executive signing key.';}catch(e){box.textContent='Key verification: '+e.message;}}
+async function viceExecKeyDiagnostic(){const box=document.getElementById('execKeyDiagnostic');if(!box)return;box.textContent='Checking executive key custody…';try{const pair=await viceExecVerifiedKey();if(!pair?.privateKey)throw Error('Missing private key');box.textContent='Verified: this browser has the registered executive signing key.';}catch(e){box.textContent='Key verification: '+e.message+' · Verified 2FA authorization is available independently of browser signing keys.';}}
 async function viceExecRecoverySign(id,action){const pair=action==='RECOVERY_ACTIVATE'?await viceExecReplacementKey():await viceExecVerifiedKey();const ch=await sb.rpc('vice_exec_recovery_challenge',{p_request:id,p_action:action});if(ch.error)throw ch.error;const bytes=await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},pair.privateKey,new TextEncoder().encode(ch.data.message));const session=(await sb.auth.getSession()).data.session;if(!session)throw Error('Session expired');const response=await fetch(SUPABASE_URL+'/functions/v1/vice-institutional',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify({action:'verify_recovery',challenge_id:ch.data.id,signature:btoa(String.fromCharCode(...new Uint8Array(bytes)))})});const data=await response.json();if(!response.ok||data.error)throw Error(data.error||'Signature rejected');return data;}
+
+async function viceExecPromoteRecoveredKey(){
+ const pair=await viceExecReplacementKey();
+ const {data:signer,error}=await sb.from('vice_exec_signers').select('public_key').eq('user_id',S.user.id).maybeSingle();
+ if(error)throw error;
+ const local=await crypto.subtle.exportKey('jwk',pair.publicKey);
+ if(!signer?.public_key||!['kty','crv','x','y'].every(k=>local[k]===signer.public_key[k]))
+  throw Error('Activated replacement key has not been registered; local signing key was not modified');
+ const db=await new Promise((ok,no)=>{const q=indexedDB.open('vice-executive-signing',1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('keys'))q.result.createObjectStore('keys')};q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});
+ try{
+  const id='executive:'+S.user.id;
+  const existing=await new Promise((ok,no)=>{const q=db.transaction('keys').objectStore('keys').get(id);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});
+  await new Promise((ok,no)=>{
+   const tx=db.transaction('keys','readwrite');
+   if(existing?.privateKey)tx.objectStore('keys').put(existing,'executive-prior:'+S.user.id+':'+Date.now());
+   tx.objectStore('keys').put(pair,id);
+   tx.oncomplete=ok;tx.onerror=()=>no(tx.error);
+  });
+ }finally{db.close()}
+}
+function viceExecMfaOpen(kind,id){
+ if(APP_MODE!=='LIVE'||!S.user?.id)throw Error('Live executive sign-in required');
+ if(!['APPROVE','RECOVERY_APPROVE','RECOVERY_ACTIVATE'].includes(kind))throw Error('Unsupported authorization action');
+ const p=kind==='APPROVE'?(S.sovereignProposals||[]).find(x=>x.id===id):null;
+ if(kind==='APPROVE'&&!p)throw Error('Refresh governance and select an active proposal');
+ const subject=kind==='APPROVE'?'Proposal '+id:kind==='RECOVERY_APPROVE'?'CFO approval of CEO key recovery '+id:'CEO activation of replacement key '+id;
+ const hash=kind==='APPROVE'?String(p.payload_hash||''):'';
+ openModal('Executive 2FA Authorization','<p class="note">This method has equal internal governance authorization authority under VICE policy. It is recorded distinctly from a cryptographic signature.</p>'+
+ '<p><strong>'+esc(subject)+'</strong></p>'+
+ (hash?'<p class="meta">Verified proposal payload SHA-256: <code style="overflow-wrap:anywhere">'+esc(hash)+'</code></p>':'')+
+ '<p class="meta">Enter a fresh six-digit authenticator code to explicitly approve this exact action. CEO and CFO authorizations remain independent.</p>'+
+ '<div class="ff"><label>Authenticator code</label><input id="execMfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000" /></div>'+
+ '<div class="mact"><button class="btn btn-g" data-act="modal-close">Cancel</button><button class="btn btn-p" data-act="exec-mfa-confirm" data-authorization-action="'+esc(kind)+'" data-id="'+esc(id)+'">Verify & Authorize</button></div>');
+}
+async function viceExecMfaSubmit(kind,id,button){
+ const code=String(document.getElementById('execMfaCode')?.value||'').trim();
+ if(!/^[0-9]{6}$/.test(code))throw Error('Enter the six-digit authenticator code');
+ const proposal=kind==='APPROVE'?id:null,recovery=kind==='APPROVE'?null:id;
+ if(button){button.disabled=true;button.textContent='Verifying authenticator…';}
+ try{
+  const request=await sb.rpc('vice_exec_mfa_begin',{p_action:kind,p_proposal:proposal,p_recovery:recovery});
+  if(request.error)throw request.error;
+  let proof=null;
+  if(kind==='RECOVERY_ACTIVATE'){
+   const pair=await viceExecReplacementKey();
+   const bytes=await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},pair.privateKey,new TextEncoder().encode(request.data.message));
+   proof=btoa(String.fromCharCode(...new Uint8Array(bytes)));
+  }
+  const result=await sb.auth.getSession(),session=result.data?.session;
+  if(!session)throw Error('Executive session expired, sign in again');
+  const response=await fetch(SUPABASE_URL+'/functions/v1/vice-institutional',{
+   method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+session.access_token},
+   body:JSON.stringify({action:'mfa_authorize',authorization_action:kind,request_id:request.data.id,
+    proposal_id:proposal,recovery_request_id:recovery,code,key_proof:proof})
+  });
+  const data=await response.json();
+  if(!response.ok||data.error||!data.verified)throw Error(data.error||'Executive authorization was not verified');
+  let promoted=true;
+  if(kind==='RECOVERY_ACTIVATE'){try{await viceExecPromoteRecoveredKey();}catch(e){promoted=false;console.error('Local recovered key promotion requires attention',e);}}
+  closeModal();
+  toast('Executive '+kind.replaceAll('_',' ').toLowerCase()+' verified with 2FA. '+(promoted?'':'Refresh before using the replacement signing key.'),promoted?'success':'warn');
+  try{await refreshGovernance();}catch(e){console.warn('Governance refresh after MFA',e)}
+  renderMain();
+  const refresh=document.querySelector('[data-act="exec-recovery-refresh"]');
+  if(refresh&&kind!=='APPROVE')refresh.click();
+  return data;
+ }finally{if(button?.isConnected){button.disabled=false;button.textContent='Verify & Authorize';}}
+}
 if(!document.getElementById('vice-exec-recovery-mobile-css'))document.head.insertAdjacentHTML('beforeend',"<style id=\"vice-exec-recovery-mobile-css\">.exec-recovery-list{width:100%;min-width:0;max-width:100%;overflow:hidden;display:grid;gap:12px;margin-top:12px}.exec-recovery-card{box-sizing:border-box;min-width:0;max-width:100%;padding:14px;border:1px solid var(--bd);border-radius:12px;background:rgba(255,255,255,.025)}.exec-recovery-card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.exec-recovery-field{display:grid;grid-template-columns:minmax(0,90px) minmax(0,1fr);gap:10px;margin:9px 0;align-items:start;font-size:12px}.exec-recovery-field>span:first-child{color:var(--muted,#aaa)}.exec-recovery-field code{font-family:ui-monospace,monospace;font-size:11px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;min-width:0}.exec-recovery-field>span:last-child{min-width:0;overflow-wrap:anywhere}.exec-recovery-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.exec-recovery-actions .btn{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:center}@media(max-width:480px){.exec-recovery-card{padding:12px}.exec-recovery-field{grid-template-columns:1fr;gap:3px}.exec-recovery-card-head{align-items:flex-start}}</style>");
 function viewSecurity(el){
   el.innerHTML = `
-    ${isOwner() ? `<section class="band"><div class="band-head"><h2>Executive Signing Key Recovery</h2></div><p class="note">Initialize a controlled CEO recovery request. CFO cryptographic approval is required before any key change.</p><button class="btn btn-gd" data-act="ceo-recovery-request">Initialize Controlled Key Recovery</button><button class="btn btn-g" data-act="exec-recovery-refresh">View Recovery Status</button><div id="execRecoveryStatus" class="meta">Select View Recovery Status to load current requests.</div><button class="btn btn-g" data-act="exec-key-diagnostic">Check Signing Key</button><div id="execKeyDiagnostic" class="meta"></div></section>` : S.profile?.role==='FINANCE_OFFICER' ? `<section class="band"><div class="band-head"><h2>Executive Recovery Authorization</h2></div><p class="note">Review pending CEO recovery requests. Signing authorization must be performed using your enrolled executive key.</p><button class="btn btn-g" data-act="exec-recovery-refresh">View CEO Recovery Requests</button><div id="execRecoveryStatus" class="meta">Select View CEO Recovery Requests.</div><button class="btn btn-g" data-act="exec-key-diagnostic">Check Signing Key</button><div id="execKeyDiagnostic" class="meta"></div></section>` : ''}
+    ${isOwner() ? `<section class="band"><div class="band-head"><h2>Executive Signing Key Recovery</h2></div><p class="note">Initialize controlled CEO recovery. Independent CFO authorization is required using a verified signing key or fresh 2FA.</p><button class="btn btn-gd" data-act="ceo-recovery-request">Initialize Controlled Key Recovery</button><button class="btn btn-g" data-act="exec-recovery-refresh">View Recovery Status</button><div id="execRecoveryStatus" class="meta">Select View Recovery Status to load current requests.</div><button class="btn btn-g" data-act="exec-key-diagnostic">Check Signing Key</button><div id="execKeyDiagnostic" class="meta"></div></section>` : S.profile?.role==='FINANCE_OFFICER' ? `<section class="band"><div class="band-head"><h2>Executive Recovery Authorization</h2></div><p class="note">Review CEO recovery requests. Authorize with a registered signing key or fresh authenticator 2FA without depending on this browser key.</p><button class="btn btn-g" data-act="exec-recovery-refresh">View CEO Recovery Requests</button><div id="execRecoveryStatus" class="meta">Select View CEO Recovery Requests.</div><button class="btn btn-g" data-act="exec-key-diagnostic">Check Signing Key</button><div id="execKeyDiagnostic" class="meta"></div></section>` : ''}
     <div class="ph"><div><div class="eb">Operations</div><h1>Security <em>Center</em></h1></div></div>
     <section class="band">
       <div class="band-head"><h2>Account</h2></div>
@@ -12125,10 +12194,12 @@ function paintOI(){
           }catch(e){toast('Vote failed: '+e.message,'error');}
         })();return;
       }
+      case 'exec-mfa-open': {try{viceExecMfaOpen(t.dataset.authorizationAction,t.dataset.id);}catch(e){toast('2FA: '+e.message,'error')}return;}
+      case 'exec-mfa-confirm': {(async()=>{try{await viceExecMfaSubmit(t.dataset.authorizationAction,t.dataset.id,t);}catch(e){toast('2FA authorization: '+e.message,'error')}})();return;}
       case 'exec-key-diagnostic': {viceExecKeyDiagnostic();return;}
       case 'exec-recovery-sign': {(async()=>{try{const data=await viceExecRecoverySign(t.dataset.id,t.dataset.recoveryAction);toast('Recovery '+data.status,'success');document.querySelector('[data-act="exec-recovery-refresh"]')?.click();}catch(e){toast('Recovery authorization: '+e.message,'error')}})();return;}
-      case 'exec-recovery-refresh': { (async()=>{const box=$('execRecoveryStatus');try{const {data,error}=await sb.rpc('vice_exec_recovery_pending');if(error)throw error;if(box){box.classList.add('exec-recovery-list');box.innerHTML=(Array.isArray(data)&&data.length?data.map(r=>{const status=String(r.status||'UNKNOWN');const approval=S.profile.role==='FINANCE_OFFICER'&&status==='PENDING_CFO'&&r.replacement_public_key;const activation=isOwner()&&status==='APPROVED';const action=approval?'<button class="btn btn-g" data-act="exec-recovery-sign" data-id="'+esc(r.id)+'" data-recovery-action="RECOVERY_APPROVE">Authorize CEO Recovery</button>':activation?'<button class="btn btn-gd" data-act="exec-recovery-sign" data-id="'+esc(r.id)+'" data-recovery-action="RECOVERY_ACTIVATE">Activate CEO Key After Cooldown</button>':'';return '<article class="exec-recovery-card"><div class="exec-recovery-card-head"><strong>CEO Key Recovery</strong><span class="bdg gd">'+esc(status.replaceAll('_',' '))+'</span></div><div class="exec-recovery-field"><span>Request ID</span><code>'+esc(r.id)+'</code></div><div class="exec-recovery-field"><span>Submitted</span><span>'+fmtD(r.requested_at)+'</span></div><div class="exec-recovery-field"><span>Expires</span><span>'+fmtD(r.expires_at)+'</span></div>'+(r.approved_at?'<div class="exec-recovery-field"><span>Approved</span><span>'+fmtD(r.approved_at)+'</span></div>':'')+(r.ready_at&&status==='APPROVED'?'<div class="exec-recovery-field"><span>Activation available</span><span>'+fmtD(r.ready_at)+'</span></div>':'')+(r.replacement_public_key?'<p class="meta">Replacement public key bound to this request.</p>':'<p class="note warn">Replacement key not bound. Approval unavailable.</p>')+(action?'<div class="exec-recovery-actions">'+action+'</div>':'')+'</article>'}).join(''):'<p class="meta">No active recovery requests.</p>');}}catch(e){if(box)box.textContent='Unable to load recovery requests: '+e.message;}})();return;}
-      case 'ceo-recovery-request': { (async()=>{try{if(!isOwner()||!S.user?.id)throw Error('CEO sign-in required');const pair=await viceExecReplacementKey();const key=await crypto.subtle.exportKey('jwk',pair.publicKey);const {data,error}=await sb.rpc('vice_exec_request_recovery');if(error)throw error;const bound=await sb.rpc('vice_exec_recovery_bind',{p_request:data.id,p_key:key});if(bound.error)throw bound.error;toast('CEO replacement key bound to request '+data.id+'. Await CFO signature.','success');}catch(e){toast('Recovery request failed: '+e.message,'error');}})();return;}
+      case 'exec-recovery-refresh': { (async()=>{const box=$('execRecoveryStatus');try{const {data,error}=await sb.rpc('vice_exec_recovery_pending');if(error)throw error;if(box){box.classList.add('exec-recovery-list');box.innerHTML=(Array.isArray(data)&&data.length?data.map(r=>{const status=String(r.status||'UNKNOWN');const approval=S.profile.role==='FINANCE_OFFICER'&&status==='PENDING_CFO'&&r.replacement_public_key;const activation=isOwner()&&status==='APPROVED';const action=approval?'<button class="btn btn-gd" data-act="exec-mfa-open" data-authorization-action="RECOVERY_APPROVE" data-id="'+esc(r.id)+'">Authorize Recovery with 2FA</button><button class="btn btn-g" data-act="exec-recovery-sign" data-id="'+esc(r.id)+'" data-recovery-action="RECOVERY_APPROVE">Use Signing Key</button>':activation?'<button class="btn btn-gd" data-act="exec-mfa-open" data-authorization-action="RECOVERY_ACTIVATE" data-id="'+esc(r.id)+'">Activate with 2FA</button><button class="btn btn-g" data-act="exec-recovery-sign" data-id="'+esc(r.id)+'" data-recovery-action="RECOVERY_ACTIVATE">Use Signing Key</button>':'';return '<article class="exec-recovery-card"><div class="exec-recovery-card-head"><strong>CEO Key Recovery</strong><span class="bdg gd">'+esc(status.replaceAll('_',' '))+'</span></div><div class="exec-recovery-field"><span>Request ID</span><code>'+esc(r.id)+'</code></div><div class="exec-recovery-field"><span>Submitted</span><span>'+fmtD(r.requested_at)+'</span></div><div class="exec-recovery-field"><span>Expires</span><span>'+fmtD(r.expires_at)+'</span></div>'+(r.approved_at?'<div class="exec-recovery-field"><span>Approved</span><span>'+fmtD(r.approved_at)+'</span></div>':'')+(r.ready_at&&status==='APPROVED'?'<div class="exec-recovery-field"><span>Activation available</span><span>'+fmtD(r.ready_at)+'</span></div>':'')+(r.replacement_public_key?'<p class="meta">Replacement public key bound to this request.</p>':'<p class="note warn">Replacement key not bound. Approval unavailable.</p>')+(action?'<div class="exec-recovery-actions">'+action+'</div>':'')+'</article>'}).join(''):'<p class="meta">No active recovery requests.</p>');}}catch(e){if(box)box.textContent='Unable to load recovery requests: '+e.message;}})();return;}
+      case 'ceo-recovery-request': { (async()=>{try{if(!isOwner()||!S.user?.id)throw Error('CEO sign-in required');const pair=await viceExecReplacementKey();const key=await crypto.subtle.exportKey('jwk',pair.publicKey);const {data,error}=await sb.rpc('vice_exec_request_recovery');if(error)throw error;const bound=await sb.rpc('vice_exec_recovery_bind',{p_request:data.id,p_key:key});if(bound.error)throw bound.error;toast('CEO replacement key bound to request '+data.id+'. Await CFO approval by signing key or verified 2FA.','success');document.querySelector('[data-act="exec-recovery-refresh"]')?.click();}catch(e){toast('Recovery request failed: '+e.message,'error');}})();return;}
       case 'gov-refresh': { refreshGovernance().then(()=>renderMain()).catch(e=>toast('Refresh: '+e.message,'error'));return; }
 
       /* ─── INVITES ─── */
