@@ -11233,6 +11233,18 @@ async function viceExecMfaSubmit(kind,id,button){
  }finally{if(button?.isConnected){button.disabled=false;button.textContent='Verify & Authorize';}}
 }
 if(!document.getElementById('vice-exec-recovery-mobile-css'))document.head.insertAdjacentHTML('beforeend',"<style id=\"vice-exec-recovery-mobile-css\">.exec-recovery-list{width:100%;min-width:0;max-width:100%;overflow:hidden;display:grid;gap:12px;margin-top:12px}.exec-recovery-card{box-sizing:border-box;min-width:0;max-width:100%;padding:14px;border:1px solid var(--bd);border-radius:12px;background:rgba(255,255,255,.025)}.exec-recovery-card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.exec-recovery-field{display:grid;grid-template-columns:minmax(0,90px) minmax(0,1fr);gap:10px;margin:9px 0;align-items:start;font-size:12px}.exec-recovery-field>span:first-child{color:var(--muted,#aaa)}.exec-recovery-field code{font-family:ui-monospace,monospace;font-size:11px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;min-width:0}.exec-recovery-field>span:last-child{min-width:0;overflow-wrap:anywhere}.exec-recovery-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.exec-recovery-actions .btn{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:center}@media(max-width:480px){.exec-recovery-card{padding:12px}.exec-recovery-field{grid-template-columns:1fr;gap:3px}.exec-recovery-card-head{align-items:flex-start}}</style>");
+async function viceCheckPasskeyAvailability(){
+ const el=document.getElementById('vicePasskeyStatus');
+ if(el)el.textContent='Checking…';
+ try{
+  const {data,error}=await sb.functions.invoke('vice-passkey',{body:{operation:'capabilities'}});
+  if(error)throw error;
+  const available=Boolean(data?.passkeyRegistration&&data?.passkeyAuthentication);
+  if(el)el.textContent=available?'Service ready · registration UI pending':'Not yet available · authenticator 2FA required';
+  toast(available?'Passkey service available; registration is not yet enabled in this build.':'Passkey enrollment is not yet enabled. Continue using authenticator 2FA.',available?'info':'warn');
+ }catch(e){if(el)el.textContent='Service unavailable · authenticator 2FA required';toast('Passkey service could not be verified. Authenticator 2FA remains required.','warn');}
+}
+document.addEventListener('click',e=>{if(e.target.closest('[data-act="vice-passkey-status"]')){e.preventDefault();void viceCheckPasskeyAvailability();}},true);
 function viewSecurity(el){
   el.innerHTML = `
     ${isOwner() ? `<section class="band"><div class="band-head"><h2>Executive Signing Key Recovery</h2></div><p class="note">Initialize controlled CEO recovery. Independent CFO authorization is required using a verified signing key or fresh 2FA.</p><button class="btn btn-gd" data-act="ceo-recovery-request">Initialize Controlled Key Recovery</button><button class="btn btn-g" data-act="exec-recovery-refresh">View Recovery Status</button><div id="execRecoveryStatus" class="meta">Select View Recovery Status to load current requests.</div><button class="btn btn-g" data-act="exec-key-diagnostic">Check Signing Key</button><div id="execKeyDiagnostic" class="meta"></div></section>` : S.profile?.role==='FINANCE_OFFICER' ? `<section class="band"><div class="band-head"><h2>Executive Recovery Authorization</h2></div><p class="note">Review CEO recovery requests. Authorize with a registered signing key or fresh authenticator 2FA without depending on this browser key.</p><button class="btn btn-g" data-act="exec-recovery-refresh">View CEO Recovery Requests</button><div id="execRecoveryStatus" class="meta">Select View CEO Recovery Requests.</div><button class="btn btn-g" data-act="exec-key-diagnostic">Check Signing Key</button><div id="execKeyDiagnostic" class="meta"></div></section>` : ''}
@@ -11247,6 +11259,12 @@ function viewSecurity(el){
         <button class="btn btn-g" data-act="profile-2fa">Manage authenticator MFA</button><button class="btn btn-gd" data-act="security-recovery">Account recovery</button>
         <button class="btn btn-r" data-act="sign-out">Sign out</button>
       </div>
+    </section>
+    <section class="band" id="vice-passkey-security"><div class="band-head"><h2>Passkeys & Face ID</h2></div>
+      <p class="note">Passkey enrollment and Face ID sign-in are being prepared. The verification service currently does not accept registrations. Existing authenticator 2FA remains required; no passkey can bypass issuer or governance approvals.</p>
+      <div class="rw"><span class="rw-l">Passkey registration</span><span class="rw-v" id="vicePasskeyStatus">Checking service…</span></div>
+      <div class="rw"><span class="rw-l">Trusted-device policy</span><span class="rw-v">24-hour maximum · not active until server verification is enabled</span></div>
+      <div class="actions"><button class="btn btn-g" type="button" data-act="vice-passkey-status">Check passkey availability</button><button class="btn btn-gd" type="button" disabled title="Requires verified WebAuthn registration backend">Register Face ID / passkey — Coming soon</button></div>
     </section>
     <section class="band"><div class="band-head"><h2>Account recovery & key custody</h2></div>
       <p class="meta">Account password recovery is email-based. Wallet private keys and recovery phrases are never retrievable by VICE OS; restore them only through your original wallet's secure recovery process.</p>
