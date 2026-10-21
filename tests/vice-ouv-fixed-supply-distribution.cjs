@@ -136,3 +136,30 @@ test('issuer app and member UI recompute official references from dynamic canoni
  assert.match(ui,/MODEL ONLY — GOVERNANCE NOT ACTIVATED/);
  assert.match(ui,/p_pool:v\.pool/);
 });
+
+test('Sovereign OUV readiness cannot execute anything or skip approvals and timelock',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const sql=fs.readFileSync(path.resolve(__dirname,'../supabase/migrations/20261021044500_vice_ouv_live_activation_preflight.sql'),'utf8');
+ const ui=fs.readFileSync(path.resolve(__dirname,'../vice4x-institutional.js'),'utf8');
+ assert.match(sql,/CREATE OR REPLACE FUNCTION public\.vice_ouv_activation_readiness/);
+ assert.match(sql,/public\.vice_institutional_access\(\)/);
+ assert.match(sql,/vice_exec_mfa_authorizations/);
+ assert.match(sql,/UNION/);
+ assert.match(sql,/PUBLIC_REVIEW_WINDOW_OPEN/);
+ assert.match(sql,/ONCHAIN_QUORUM_VERIFIER_NOT_CONFIGURED/);
+ assert.match(sql,/ATOMIC_GOVERNANCE_EXECUTOR_NOT_CONFIGURED/);
+ assert.match(sql,/'can_apply',false/);
+ assert.match(sql,/REVOKE ALL ON FUNCTION public\.vice_ouv_activation_readiness\(text\) FROM PUBLIC,anon/);
+ assert.doesNotMatch(sql,/UPDATE public\.vice_dao_config SET/);
+ assert.match(ui,/rpc\('vice_ouv_activation_readiness'/);
+ assert.match(ui,/NOT EFFECTIVE/);
+});
+test('Each holder official IRU total rounds both 8-decimal references only once',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
+ assert.match(html,/const combinedLiveRef=canShowOfficial/);
+ assert.match(html,/roundedCents\(BigInt\(mine\.VICE\.held\)\*officialScaled\[0\]/);
+ assert.match(html,/BigInt\(mine\.V4X\.held\)\*officialScaled\[1\]/);
+ assert.match(html,/const v4xLiveRef=canShowOfficial\?combinedLiveRef-viceLiveRef:null/);
+ assert.match(html,/combinedShownRef=APP_MODE==='LIVE'\?combinedLiveRef/);
+});
