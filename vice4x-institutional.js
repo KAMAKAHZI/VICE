@@ -51,9 +51,28 @@ const ViceInstitutional=(()=>{
    const canApprove=valid&&(role==='CEO'||role==='CFO')&&!signed;
    const params=p.payload?.parameters||{},old=params.previous_baseline||{},next=params.target_scaled_tier||{};
    const issueText=Array.isArray(p.validation_issues)&&p.validation_issues.length?p.validation_issues.map(label).join(' · '):'Baseline and ratio valid';
+   const currentVice=Number(state.diagnostics?.reference?.vice_price??S.iruClasses[0].ouv);
+   const currentV4x=Number(state.diagnostics?.reference?.v4x_price??S.iruClasses[1].ouv);
+   const targetVice=Number(next.vice_ouv),targetV4x=Number(next.v4x_ouv);
+   const fmtReference=n=>Number.isFinite(n)?n.toFixed(8).replace(/0+$/,'').replace(/\\.$/,''):'UNVERIFIED';
+   const reviewOpen=!p.validation_until||!Number.isFinite(Date.parse(p.validation_until))||Date.now()<Date.parse(p.validation_until);
+   const quorumReady=!!p.quorum_verified_at;
+   const timelockReady=!!p.execute_after&&Date.now()>=Date.parse(p.execute_after);
+   const executorReady=state.diagnostics?.atomic_executor==='CONFIGURED' && state.diagnostics?.structural_writes_locked===false;
+   const proposalApplied=(p.status==='EXECUTED'||p.status==='APPLIED')&&Math.abs(targetVice-currentVice)<1e-8&&Math.abs(targetV4x-currentV4x)<1e-8;
+   const blockers=[];
+   if(signedCount!==2)blockers.push('Executive approvals '+signedCount+'/2');
+   if(reviewOpen)blockers.push('Public review still open');
+   if(!quorumReady)blockers.push('Independent on-chain quorum not verified');
+   if(!timelockReady)blockers.push('Execution timelock not completed');
+   if(!executorReady)blockers.push('Atomic governance executor unavailable');
+   const stageLabel=proposalApplied?'EFFECTIVE':signedCount===2?'EXECUTIVE APPROVED — NOT EFFECTIVE':'PENDING EXECUTIVE APPROVAL';
    return `<section class="band"><div class="band-head"><h2>${esc(p.id)}</h2><span class="bdg gd">${esc(p.status)}</span></div>
-    <p>${money(old.vice_ouv)} / ${money(old.v4x_ouv)} → ${money(next.vice_ouv)} / ${money(next.v4x_ouv)}</p>
+    <p><strong>${esc(stageLabel)}</strong></p>
+    <p class="meta">Active management references: VICE ${esc(fmtReference(currentVice))} · V4X ${esc(fmtReference(currentV4x))} / unit.</p>
+    <p>Proposed, NOT effective: VICE ${esc(fmtReference(targetVice))} · V4X ${esc(fmtReference(targetV4x))} / unit.</p>
     <p class="meta">${esc(issueText)} · Public review through ${p.validation_until?esc(new Date(p.validation_until).toLocaleString()):'—'}.</p>
+    ${!proposalApplied?'<p class="note warn">Holder holdings and official reference values have NOT been repriced. Remaining gates: '+esc(blockers.join(' · '))+'. Existing IRU unit balances must not be multiplied or replaced.</p>':'<p class="note">Reference revision is recorded as effective; IRU unit balances remain unchanged.</p>'}
     <p class="meta">Executive authorizations: ${signedCount}/2 · CEO: ${esc(execAuthorizerLabel(a,'CEO'))} · CFO: ${esc(execAuthorizerLabel(a,'CFO'))}.</p>
     <p class="meta">On-chain quorum: ${p.quorum_verified_at?'verified':'awaiting configured verifier'} · Execution timelock: ${p.execute_after?esc(p.execute_after):'not started'}.</p>
     <p class="inst-hash">Payload SHA-256: ${esc(p.payload_hash)}</p>
