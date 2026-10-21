@@ -6,6 +6,9 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: vice-repair-acceptance-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   acceptance:
     runs-on: ubuntu-latest
