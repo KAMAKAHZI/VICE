@@ -2667,6 +2667,13 @@ async function refreshDaoConfig(){
     if(['command','portfolio','iru','documents','governance','admin'].includes(S.tab))renderMain();
     renderNav();
   }
+  // Publish canonical reference changes to other signed-in tabs on this device.
+  // This is a notification only: receiving tabs MUST re-read Supabase rather
+  // than trust the message as a price, valuation, approval, or signed certificate.
+  if(viceOuvChanged){
+    try{localStorage.setItem('vice-ouv-sync-notice',JSON.stringify({at:Date.now(),source:'canonical-db-refresh'}));}
+    catch(e){console.warn('Cross-tab OUV notice unavailable:',e);}
+  }
   // Banner is driven by effective, server-recorded OUV versions only.
   // Never label a submitted proposal or unverified percentage as appreciation.
   window.viceOuvBannerText='VICE ◆ V4X ◆ OUV RECORD ACTIVE';
@@ -2737,6 +2744,18 @@ async function viceResumeInstitutionalSync(){
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void viceResumeInstitutionalSync();});
 window.addEventListener('focus',()=>{void viceResumeInstitutionalSync();});
+// Cross-tab notifications cannot change OUV locally; only authenticated
+// server reads may update dashboard, certificate previews, and portfolio values.
+let viceCrossTabOuvRefreshBusy=false;
+window.addEventListener('storage',event=>{
+ if(event.key!=='vice-ouv-sync-notice'||!event.newValue||APP_MODE!=='LIVE'||!S.user)return;
+ if(viceCrossTabOuvRefreshBusy)return;
+ viceCrossTabOuvRefreshBusy=true;
+ Promise.resolve().then(()=>refreshIssuerReferences()).then(()=>{
+  if(['command','portfolio','iru','documents','governance','admin'].includes(S.tab))renderMain();
+ }).catch(e=>console.warn('Cross-tab OUV refresh deferred:',e))
+ .finally(()=>{viceCrossTabOuvRefreshBusy=false;});
+});
 function startViceSync(){
   if(viceSyncTimer)clearInterval(viceSyncTimer);
   // Polling is a fallback when Realtime publications are not configured.
