@@ -2524,6 +2524,14 @@ async function completeAuthenticatedSetup(user,epoch=authEpoch){
       toast('Some records could not load. Check browser Console.','warn');
     }
     if(!current())return;
+    // Do not display a signed-in portfolio using stale or fallback OUV references.
+    // Official prices must be fetched from the issuer before the first dashboard paint.
+    try{await refreshIssuerReferences();}catch(e){
+      console.error('Initial canonical OUV synchronization failed:',e);
+      S.daoPriceSyncStatus='UNVERIFIED';
+      toast('Official OUV could not be verified; portfolio reference totals may be unavailable.','warn');
+    }
+    if(!current())return;
     showApp();
     // Refresh current view with hydrated records while preserving navigation.
     try { renderMain(); paintUserBadges(); } catch(e) { console.warn('Refresh after hydrate:',e); }
