@@ -2614,7 +2614,7 @@ async function refreshDaoConfig(){
     console.warn('SERVER POLICY CONFLICT: requested latest founder policy 2/320, received',vice,v4x);
   }
 }
-let viceSyncTimer=null;
+let viceSyncTimer=null,viceSyncInFlight=false;
 async function checkMemberAccess(epoch=authEpoch){
   if(APP_MODE!=='LIVE')return true;
   const {data,error}=await sb.rpc('vice_member_access_status');
@@ -2632,15 +2632,39 @@ async function checkMemberAccess(epoch=authEpoch){
 function startViceSync(){
   if(viceSyncTimer)clearInterval(viceSyncTimer);
   // Polling is a fallback when Realtime publications are not configured.
+  // It synchronizes official unit balances and BOTH reserve pools, not only
+  // OUV price references, so transfers cannot remain stale in portfolio totals.
   viceSyncTimer=setInterval(async()=>{
-    if(!S.user||APP_MODE!=='LIVE'||document.hidden)return;
-    try{if(!(await checkMemberAccess()))return;
+    if(!S.user||APP_MODE!=='LIVE'||document.hidden||viceSyncInFlight)return;
+    viceSyncInFlight=true;
+    const epoch=authEpoch,userId=String(S.user.id);
+    try{
+      if(!(await checkMemberAccess(epoch)))return;
       await Promise.all([refreshGovernance(),refreshIssuerReferences()]);
+      if(epoch!==authEpoch||String(S.user?.id)!==userId)return;
+      let ledgerChanged=false;
+      const {data:myHolder,error:holderError}=await sb.rpc('get_my_holder');
+      if(epoch!==authEpoch||String(S.user?.id)!==userId)return;
+      if(!holderError){
+        const holder=Array.isArray(myHolder)?myHolder[0]:null;
+        const latest=holder?{
+          viceUnits:Number(holder.vice_units||0),v4xUnits:Number(holder.v4x_units||0)
+        }:{viceUnits:0,v4xUnits:0};
+        if(Number.isSafeInteger(latest.viceUnits)&&Number.isSafeInteger(latest.v4xUnits)&&
+            (latest.viceUnits!==Number(S.personalHoldings.viceUnits||0)||
+             latest.v4xUnits!==Number(S.personalHoldings.v4xUnits||0))){
+          ledgerChanged=true;
+          await hydrateData(); // replays canonical event ledger only when holdings actually change
+        }
+      }else console.warn('Holder count refresh deferred:',holderError.message);
+      if(!ledgerChanged)await refreshEstateRegistry();
+      if(epoch!==authEpoch||String(S.user?.id)!==userId)return;
       if(['governance','command','portfolio','admin','iru'].includes(S.tab))renderMain();
       renderNav();
       if(typeof CloudMT5!=='undefined'&&(!CloudMT5.state.lastRefresh||Date.now()-CloudMT5.state.lastRefresh>240000))
         CloudMT5.refresh().catch(e=>console.warn('MT5 cloud sync:',e));
     }catch(e){console.warn('VICE shared-record synchronization:',e);}
+    finally{viceSyncInFlight=false;}
   },45000);
 }
 async function hydrateData(){
@@ -3005,13 +3029,18 @@ function totalPersonalUsd(){
 function managedReserveUnits(program){
   if(!isOwner()) return 0;
   const p=program==='V4X'?'V4X':'VICE';
-  const fallback=Number(IruEngine.ECON.reserve); // Designated ceiling, not custody proof.
-  // If the SQL internal reserve book is installed, this is the currently
-  // unassigned reserve. Otherwise show only the founder-designated ceiling.
+  // In LIVE, the founder portfolio may include ONLY the server-confirmed
+  // unassigned reserve. Using a static 7.5M ceiling after a distribution
+  // would double-count transferred units in holder + issuer totals.
   const ledgerValue=S.estateAdminLedger?.programs?.[p]?.unassigned_units;
-  if(ledgerValue===undefined || ledgerValue===null) return fallback;
+  if(APP_MODE==='LIVE'){
+    if(ledgerValue===undefined||ledgerValue===null)return 0;
+    const n=Number(ledgerValue);
+    return Number.isFinite(n)&&Number.isSafeInteger(n)&&n>=0&&n<=7500000?n:0;
+  }
+  if(ledgerValue===undefined||ledgerValue===null)return Number(IruEngine.ECON.reserve);
   const n=Number(ledgerValue);
-  return Number.isFinite(n)&&n>=0?n:fallback;
+  return Number.isFinite(n)&&n>=0?n:Number(IruEngine.ECON.reserve);
 }
 function managedReserveUsd(){
   if(!isOwner()) return 0;
@@ -10496,11 +10525,11 @@ function viewIRU(el){
       <section class="band"><div class="band-head"><h2>Issuer reserve · VC-000001</h2><span class="bdg gd">INSTITUTIONAL</span></div>
         <div class="rw"><span class="rw-l">Legal entity</span><span class="rw-v">VICE Capital Inc.</span></div>
         <div class="rw"><span class="rw-l">Authorized controller</span><span class="rw-v">Founder &amp; CEO</span></div>
-        <div class="rw"><span class="rw-l">VICE unassigned reserve units</span><span class="rw-v">${fmtNum(viceReserve)}</span></div>
-        <div class="rw"><span class="rw-l">V4X unassigned reserve units</span><span class="rw-v">${fmtNum(v4xReserve)}</span></div>
+        <div class="rw"><span class="rw-l">VICE unassigned reserve units</span><span class="rw-v">${S.estateAdminLedger?fmtNum(viceReserve):'Awaiting verified reserve ledger'}</span></div>
+        <div class="rw"><span class="rw-l">V4X unassigned reserve units</span><span class="rw-v">${S.estateAdminLedger?fmtNum(v4xReserve):'Awaiting verified reserve ledger'}</span></div>
         <div class="rw"><span class="rw-l">Current VICE management OUV</span><span class="rw-v">${fmt(vice)}</span></div>
         <div class="rw"><span class="rw-l">Current V4X management OUV</span><span class="rw-v">${fmt(v4x)}</span></div>
-        <div class="rw"><span class="rw-l">Combined reserve management reference</span><span class="rw-v">${fmt(viceReserve*vice+v4xReserve*v4x)}</span></div>
+        <div class="rw"><span class="rw-l">Combined reserve management reference</span><span class="rw-v">${S.estateAdminLedger?fmt(viceReserve*vice+v4xReserve*v4x):'Pending ledger verification — excluded from verified total'}</span></div>
         <p class="note">Reference calculations use the current displayed issuer OUV and stated reserve allocation, not an independently appraised fair market value. Reserve control does not constitute personal ownership. Historical certificates and signed balances are not modified by this display.</p>
         <div class="actions"><button class="btn btn-gd" data-go="governance">Governance</button><button class="btn btn-gd" data-go="admin">Propose OUV revision</button></div>
       </section>
