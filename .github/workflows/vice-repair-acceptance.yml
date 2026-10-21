@@ -1,7 +1,7 @@
 name: VICE repair behavioral and browser acceptance
 on:
   push:
-    branches: ['repair/production-acceptance-20261015', 'repair/registry-cfo-20261017']
+    branches: ['repair/production-acceptance-20261015', 'repair/registry-cfo-20261017', 'fix/phase0-hardening']
   pull_request:
     branches: [main]
 permissions:
