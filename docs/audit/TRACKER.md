@@ -11,7 +11,7 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 | FIX-3 | Browser diagnostics and readiness | Phase 0 | P0 | OPEN | FIX-1 | agent | tests/vice-institutional-browser.mjs | testing/evidence |
 | FIX-4 | IndexedDB and enrollment | Phase 0 | P0 | OPEN | FIX-3 | agent | vice4x-institutional.js | auth/session |
 | FIX-5 | Accessible persistent error toasts | Phase 0 | P1 | OPEN | FIX-3 | agent | index.html | frontend |
-| FIX-6 | Strict test section markers | Phase 0 | P1 | OPEN | FIX-1 | agent | tests/vice-production-repairs.cjs | testing/evidence |
+| FIX-6 | Strict test section markers | Phase 0 | P1 | IN-PROGRESS | FIX-1 | agent | 7152dad: explicit missing/reordered-marker regression tests; CI pending | testing/evidence |
 | FIX-7 | CI and supply chain | Phase 0 | P0 | OPEN | FIX-6 | agent | .github/workflows | testing/evidence |
 | FIX-8 | Evidence registers and score | Phase 0 | P0 | OPEN | FIX-7 | agent | docs/audit/ | testing/evidence |
 | FIX-9 | Phase 0 review and handoff | Phase 0 | P0 | OPEN | FIX-0 through FIX-8 | agent/Caasi | Pending | deployment |
