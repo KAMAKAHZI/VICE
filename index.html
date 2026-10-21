@@ -10496,6 +10496,22 @@ function viewIRU(el){
     return;
   }
 
+  // Official issuer references come from vice_dao_config; replayed IRU journal
+  // snapshots are historical and must never override the current policy.
+  const officialCentsFor=(held,programIndex)=>{
+    if(APP_MODE!=='LIVE')return null;
+    if(S.daoPriceSyncStatus!=='CANONICAL')return null;
+    const price=Number(S.iruClasses[programIndex]?.ouv);
+    if(!Number.isFinite(price)||price<0)return null;
+    const scaled=BigInt(Math.round(price*100000000)); // authoritative 8dp server reference
+    return (BigInt(held)*scaled+500000n)/1000000n; // rounded USD cents
+  };
+  const viceLiveRef=officialCentsFor(mine.VICE.held,0);
+  const v4xLiveRef=officialCentsFor(mine.V4X.held,1);
+  const viceShownRef=APP_MODE==='LIVE'?viceLiveRef:mine.VICE.refCents;
+  const v4xShownRef=APP_MODE==='LIVE'?v4xLiveRef:mine.V4X.refCents;
+  const combinedShownRef=viceShownRef!==null&&v4xShownRef!==null
+    ?viceShownRef+v4xShownRef:null;
   el.innerHTML = `
     <div class="ph">
       <div><div class="eb">My Record</div><h1>My <em>IRU &amp; Units</em></h1>
@@ -10506,9 +10522,9 @@ function viewIRU(el){
       </div>
     </div>
     <div class="stats">
-      <div class="st"><span class="l">VICE units</span><div class="v gd">${fmtNum(Number(mine.VICE.held))}</div><div class="n">${mine.VICE.refCents ? Money.fmt(mine.VICE.refCents) + ' ref' : 'no allocated reference value'}</div></div>
-      <div class="st"><span class="l">V4X units</span><div class="v">${fmtNum(Number(mine.V4X.held))}</div><div class="n">${mine.V4X.refCents ? Money.fmt(mine.V4X.refCents) + ' ref' : 'no allocated reference value'}</div></div>
-      <div class="st"><span class="l">Total ref value</span><div class="v gr">${(mine.VICE.refCents || mine.V4X.refCents) ? Money.fmt((mine.VICE.refCents || 0n) + (mine.V4X.refCents || 0n)) : '—'}</div></div>
+      <div class="st"><span class="l">VICE units</span><div class="v gd">${fmtNum(Number(mine.VICE.held))}</div><div class="n">${viceShownRef!==null ? Money.fmt(viceShownRef) + ' official ref' : 'awaiting verified issuer OUV'}</div></div>
+      <div class="st"><span class="l">V4X units</span><div class="v">${fmtNum(Number(mine.V4X.held))}</div><div class="n">${v4xShownRef!==null ? Money.fmt(v4xShownRef) + ' official ref' : 'awaiting verified issuer OUV'}</div></div>
+      <div class="st"><span class="l">Total ref value</span><div class="v gr">${combinedShownRef!==null ? Money.fmt(combinedShownRef) : '—'}</div></div>
       <div class="st"><span class="l">Allocations</span><div class="v">${mine.allocations.length}</div></div>
     </div>
     ${viceOuvMemberModelHtml()}
