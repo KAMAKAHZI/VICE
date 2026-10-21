@@ -10412,6 +10412,50 @@ function viewVip(el){
    VIEW: MY IRU
    ═══════════════════════════════════════════════════════════════════ */
 
+
+/* Read-only per-member issuance-index display; never changes official OUV or IRU units. */
+function viceOuvMemberModelHtml(){
+  if(APP_MODE!=='LIVE'||!S.user?.id||S.user.id==='sim-user')return '';
+  const id=String(S.user.id);
+  let c=window.__viceOuvMemberModel;
+  if(!c||c.id!==id){c={id,at:0,loading:false,data:null,error:''};window.__viceOuvMemberModel=c;}
+  if(!c.loading&&(!c.at||Date.now()-c.at>60000)){
+    const epoch=authEpoch;c.loading=true;
+    sb.rpc('vice_ouv_my_reference_snapshot')
+      .then(({data,error})=>{
+        if(authEpoch!==epoch||String(S.user?.id)!==id)return;
+        c.data=!error&&data?.policy_status==='MODEL_ONLY'?data:null;
+        c.error=error?.message||(!data?'No response':'');
+        c.at=Date.now();
+      })
+      .catch(e=>{if(authEpoch===epoch){c.error=String(e.message||e);c.at=Date.now();}})
+      .finally(()=>{c.loading=false;if(authEpoch===epoch&&S.tab==='iru'&&String(S.user?.id)===id)renderMain();});
+  }
+  if(!window.__viceOuvMemberTimer){
+    window.__viceOuvMemberTimer=window.setInterval(()=>{
+      if(document.visibilityState==='visible'&&S.tab==='iru'&&APP_MODE==='LIVE'&&!isOwner()){
+        const q=window.__viceOuvMemberModel;
+        if(q?.id===String(S.user?.id)&&!q.loading&&Date.now()-q.at>=60000){q.at=0;renderMain();}
+      }
+    },60000);
+  }
+  const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0)/100);
+  const price=n=>Number.isFinite(Number(n))?'$'+Number(n).toFixed(8):'—';
+  const heading='<section class="band"><div class="band-head"><h2>Distribution Supply Index</h2><span class="bdg gd">MODEL ONLY</span></div>';
+  const note='<p class="note">This supply-distribution indicator does not create assets or prove market appreciation. Official OUV, your actual units, certificate history, and portfolio totals are unchanged until a separately authorized valuation policy takes effect.</p>';
+  if(!c.data)return heading+'<p class="meta">'+(c.loading?'Reading your server-verified unit balances…':'Model not available; official records are unchanged.')+'</p>'+note+'</section>';
+  const d=c.data;
+  if(!d.reconciled||d.stale_baseline||!d.user_has_holder_record)
+    return heading+'<p class="note warn">Preview unavailable until the ledger, model baseline, and account linkage reconcile.</p>'+note+'</section>';
+  return heading+
+    '<div class="rw"><span class="rw-l">Your VICE / V4X units (unchanged)</span><span class="rw-v">'+esc(fmtNum(Number(d.units?.VICE||0)))+' / '+esc(fmtNum(Number(d.units?.V4X||0)))+'</span></div>'+
+    '<div class="rw"><span class="rw-l">Current official OUV (VICE / V4X)</span><span class="rw-v">'+esc(price(d.official_ouv?.VICE))+' / '+esc(price(d.official_ouv?.V4X))+'</span></div>'+
+    '<div class="rw"><span class="rw-l">Modeled OUV (not effective)</span><span class="rw-v">'+esc(price(d.model_ouv?.VICE))+' / '+esc(price(d.model_ouv?.V4X))+'</span></div>'+
+    '<div class="rw"><span class="rw-l">Official holder IRU reference</span><span class="rw-v">'+esc(money(d.official_reference_cents))+'</span></div>'+
+    '<div class="rw"><span class="rw-l">Modeled holder reference (not official)</span><span class="rw-v">'+esc(money(d.modeled_reference_cents))+'</span></div>'+
+    '<div class="rw"><span class="rw-l">Net new distribution since model baseline</span><span class="rw-v">'+esc(fmtNum(Number(d.incremental_distributed_units||0)))+' units · '+esc(String(d.distribution_model_change_percent||0))+'% modeled</span></div>'+
+    note+'</section>';
+}
 function viewIRU(el){
   // Founder executive identity controls the issuer reserve; it is not
   // implicitly an individually issued VIP/holder allocation.
@@ -10447,6 +10491,7 @@ function viewIRU(el){
     el.innerHTML = `
       <div class="ph"><div><div class="eb">My Record</div><h1>My <em>IRU</em></h1></div></div>
       <section class="band"><p class="muted">No holder record yet. It will be created automatically on your first interaction with the registry.</p></section>
+      ${viceOuvMemberModelHtml()}
     `;
     return;
   }
@@ -10466,6 +10511,7 @@ function viewIRU(el){
       <div class="st"><span class="l">Total ref value</span><div class="v gr">${(mine.VICE.refCents || mine.V4X.refCents) ? Money.fmt((mine.VICE.refCents || 0n) + (mine.V4X.refCents || 0n)) : '—'}</div></div>
       <div class="st"><span class="l">Allocations</span><div class="v">${mine.allocations.length}</div></div>
     </div>
+    ${viceOuvMemberModelHtml()}
     <section class="band">
       <div class="band-head"><h2>Classification</h2></div>
       <div class="rw"><span class="rw-l">Tier</span><span class="rw-v">${mine.classification.tier ? `${esc(mine.classification.tier.tier)} · ${esc(mine.classification.tier.name)}` : '<span class="meta">Not assigned</span>'}</span></div>
