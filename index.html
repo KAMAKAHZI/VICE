@@ -2682,6 +2682,35 @@ async function checkMemberAccess(epoch=authEpoch){
   toast(message,'error');
   return false;
 }
+// Refresh the active member's authoritative records when returning to VICE OS.
+// This complements the 45-second fallback without inventing or executing approvals.
+let viceResumeSyncBusy=false;
+async function viceResumeInstitutionalSync(){
+ if(viceResumeSyncBusy||viceSyncInFlight||APP_MODE!=='LIVE'||!S.user||document.hidden)return;
+ viceResumeSyncBusy=true;
+ const epoch=authEpoch,userId=S.user.id;
+ try{
+  if(!(await checkMemberAccess(epoch)))return;
+  await Promise.all([refreshGovernance(),refreshIssuerReferences(),refreshEstateRegistry()]);
+  if(epoch!==authEpoch||S.user?.id!==userId)return;
+  const result=await sb.rpc('get_my_holder');
+  if(epoch!==authEpoch||S.user?.id!==userId)return;
+  if(!result.error){
+   const holder=Array.isArray(result.data)?result.data[0]:null;
+   const vice=Number(holder?.vice_units||0),v4x=Number(holder?.v4x_units||0);
+   if(Number.isSafeInteger(vice)&&Number.isSafeInteger(v4x)&&
+     (vice!==Number(S.personalHoldings.viceUnits||0)||v4x!==Number(S.personalHoldings.v4xUnits||0)))
+     await hydrateData();
+  }
+  if(epoch===authEpoch&&S.user?.id===userId){
+   if(['governance','command','portfolio','admin','iru','documents'].includes(S.tab))renderMain();
+   renderNav();
+  }
+ }catch(e){console.warn('VICE resume sync deferred:',e);}
+ finally{viceResumeSyncBusy=false;}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void viceResumeInstitutionalSync();});
+window.addEventListener('focus',()=>{void viceResumeInstitutionalSync();});
 function startViceSync(){
   if(viceSyncTimer)clearInterval(viceSyncTimer);
   // Polling is a fallback when Realtime publications are not configured.
