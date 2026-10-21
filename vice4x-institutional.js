@@ -1,6 +1,6 @@
 'use strict';
 const ViceInstitutional=(()=>{
- const core=ViceInstitutionalCore,blank=()=>({owner:null,epoch:0,loading:false,loaded:false,error:null,leads:[],drafts:[],financings:[],proposals:[],signers:[],authorizations:[],ouvRelease:null,lastRefreshAt:0,diagnostics:null,providers:null,model:{principal:1000000,months:3,grossProfit:0,costs:0,lossCarry:0,lead_id:'',evidence:''}});let state=blank();
+ const core=ViceInstitutionalCore,blank=()=>({owner:null,epoch:0,loading:false,loaded:false,error:null,leads:[],drafts:[],financings:[],proposals:[],signers:[],authorizations:[],policy:null,ouvRelease:null,lastRefreshAt:0,diagnostics:null,providers:null,model:{principal:1000000,months:3,grossProfit:0,costs:0,lossCarry:0,lead_id:'',evidence:''}});let state=blank();
  const allowed=()=>isRegistryOperator(),label=s=>String(s||'').replaceAll('_',' '),money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(n)||0);
  function clear(){const epoch=state.epoch+1;state=blank();state.epoch=epoch;}
  function owner(){if(state.owner!==S.user?.id){clear();state.owner=S.user?.id;}}
@@ -9,11 +9,11 @@ const ViceInstitutional=(()=>{
  async function refresh(){owner();if(state.loading||!allowed())return;const epoch=state.epoch;state.loading=true;
   try{
    if(APP_MODE!=='LIVE'||S.user?.id==='sim-user'){state.loaded=true;return;}
-   const results=await Promise.all(['vice_omega_leads','vice_omega_outreach','vice_omega_financings','vice_sovereign_proposals','vice_exec_signers'].map(t=>sb.from(t).select('*').limit(500)));
+   const results=await Promise.all(['vice_omega_leads','vice_omega_outreach','vice_omega_financings','vice_sovereign_proposals','vice_exec_signers','vice_exec_authorization_policy'].map(t=>sb.from(t).select('*').limit(500)));
    for(const r of results)if(r.error)throw r.error;
    const [diagnostics,authorizations,ouvRelease]=await Promise.all([rpc('vice_institutional_diagnostics'),rpc('vice_sovereign_feed'),rpc('vice_ouv_release_snapshot').catch(e=>({error:String(e.message||e)}))]);let providers;try{providers=await edge({action:'status'});}catch(e){providers={error:e.message};}
    if(epoch!==state.epoch||state.owner!==S.user?.id)return;
-   [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.diagnostics=diagnostics;state.authorizations=Array.isArray(authorizations)?authorizations:[];state.ouvRelease=ouvRelease?.error?null:ouvRelease||null;state.providers=providers;state.error=null;
+   [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.policy=results[5]?.data?.find(x=>x.version==='VICE-EXEC-AUTH-2');state.diagnostics=diagnostics;state.authorizations=Array.isArray(authorizations)?authorizations:[];state.ouvRelease=ouvRelease?.error?null:ouvRelease||null;state.providers=providers;state.error=null;
   }catch(e){if(epoch===state.epoch)state.error=e.message;}finally{if(epoch===state.epoch){state.loaded=true;state.loading=false;state.lastRefreshAt=Date.now();if(['omega','sovereign','self-diagnosis'].includes(S.tab))renderMain();}}
  }
  function load(){
@@ -123,9 +123,10 @@ const ViceInstitutional=(()=>{
     <p class="meta">On-chain quorum: ${p.quorum_verified_at?'verified':'awaiting configured verifier'} · Execution timelock: ${p.execute_after?esc(p.execute_after):'not started'}.</p>
     <p class="inst-hash">Payload SHA-256: ${esc(p.payload_hash)}</p>
     <details><summary>Submitted payload · claims are independently checked</summary><pre class="inst-preview">${esc(JSON.stringify(p.payload,null,2))}</pre></details>
-    <div class="actions">${button('gates','Check execution gates',`data-id="${esc(p.id)}"`)}
+    <div class="actions">${button('gates','Check execution gates',`data-id="${esc(p.id)}"`)}<button class="btn btn-g" data-exec="receipts" data-id="${esc(p.id)}">Export receipts</button>
     ${canApprove?button('approve-proposal','Authorize proposal with 2FA',`data-id="${esc(p.id)}"`):''}
     ${canApprove?button('approve-device','Sign with verified device key',`data-id="${esc(p.id)}"`):''}
+    ${p.status==='REVIEW'&&role?button('reject-mfa','Reject proposal with 2FA',`data-id="${esc(p.id)}"`):''}
     ${signed?'<span class="bdg gr">YOUR EXECUTIVE APPROVAL IS VERIFIED — NO RE-SIGN REQUIRED</span>':''}
     ${!valid?'<span class="meta">Authorization unavailable: proposal must be in valid REVIEW status.</span>':''}</div></section>`;
   }).join('')||'<section class="band"><p>No structural proposals recorded.</p></section>';
@@ -142,107 +143,14 @@ const ViceInstitutional=(()=>{
    <section class="band"><div class="band-head"><h2>Structural state</h2><span class="bdg gd">WRITES LOCKED</span></div>
     <p>Current references: <b>${money(state.diagnostics?.reference?.vice_price??S.iruClasses[0].ouv)} VICE</b> · <b>${money(state.diagnostics?.reference?.v4x_price??S.iruClasses[1].ouv)} V4X</b> · ratio 1:160.</p>
     <p class="meta">Executive approvals using verified device signatures or fresh authenticator 2FA have equal internal governance authority. Structural execution separately requires verified on-chain quorum, policy checks, and timelock; no automatic price or unit change.</p>
-    <div class="actions">${button('proposal-new','Record proposal')}${button('enroll','Enroll a new signing device',role&&state.signers.find(x=>x.user_id===S.user?.id)?.public_key?'disabled title="Key already enrolled; use controlled recovery to replace"':'')}${button('halt','Sign emergency structural halt')}<a class="btn btn-g" href="/governance.html" target="_blank" rel="noopener">Public governance feed ↗</a></div>
-    <p class="meta">${state.signers.map(x=>`${esc(x.role)}: ${x.public_key?'key enrolled':'key enrollment pending'}`).join(' · ')||'Designated signers loading'}. ${role?'Signed in as '+esc(role):'Executive authorization requires designated CEO/CFO account'}. 2FA proposal approvals do not depend on browser-stored keys.</p>
+    <div class="actions">${button('proposal-new','Record proposal')}${button('enroll','Enroll a new signing device',role&&state.signers.find(x=>x.user_id===S.user?.id)?.public_key?'disabled title="Key already enrolled; use controlled recovery to replace"':'')}${button('halt','Sign emergency structural halt')}${button('halt-mfa','Authorize halt with 2FA')}${button('mfa-setup','Authenticator setup')}<a class="btn btn-g" href="/governance.html" target="_blank" rel="noopener">Public governance feed ↗</a></div>
+    <p class="meta">${state.signers.map(x=>`${esc(x.role)}: ${x.public_key?'key enrolled':'key enrollment pending'}`).join(' · ')||'Designated signers loading'}. ${role?'Signed in as '+esc(role):'Executive authorization requires designated CEO/CFO account'}. 2FA proposal approvals do not depend on browser-stored keys.</p><p class="meta">VICE-EXEC-AUTH-2 · Policy effective ${state.policy?esc(new Date(state.policy.effective_at).toLocaleString()):'Loading policy'}. Each executive counts once.</p>
    </section>${modelBand}${cards}</div>`;
  }
- function approveWith2FADialog(id){
-  const p=state.proposals.find(x=>x.id===id);
-  if(!p||p.status!=='REVIEW'||!Array.isArray(p.validation_issues)||p.validation_issues.length)throw Error('Proposal is not eligible for approval');
-  if(!['CEO','CFO'].includes(execRole()))throw Error('Only the designated CEO or CFO may authorize a structural proposal');
-  if(execAlreadyAuthorized(p))throw Error('Your executive role already authorized this proposal; a second signature is not required');
-  modal('Approve exact proposal with authenticator 2FA',
-   '<p class="note">Same internal governance approval authority as a registered device key. This creates a verified 2FA authorization record, not a forged device-key signature.</p>'+
-   '<p><strong>'+esc(execRole())+' · '+esc(p.id)+'</strong></p>'+
-   '<p class="inst-hash">Proposal SHA-256: '+esc(p.payload_hash)+'</p>'+
-   '<p class="meta">Enter a fresh 6-digit code from your enrolled authenticator to approve this specific proposal. CEO and CFO approvals are separate and no transfer or structural execution occurs.</p>'+
-   '<label class="field">Authenticator code<input id="inst-approval-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6-digit code"></label>',
-   button('approve-2fa-confirm','Verify 2FA & Approve',`data-id="${esc(id)}"`));
- }
- async function finish2FAApproval(id){
-  const code=String(document.getElementById('inst-approval-code')?.value||'').trim();
-  if(!/^[0-9]{6}$/.test(code))throw Error('Enter the six-digit authenticator code');
-  const p=state.proposals.find(x=>x.id===id);
-  if(!p||p.status!=='REVIEW'||execAlreadyAuthorized(p))throw Error('Proposal already authorized or no longer open for approval');
-  const started=await rpc('vice_exec_mfa_begin',{p_action:'APPROVE',p_proposal:id,p_recovery:null});
-  if(!started?.id||started.payload_hash!==p.payload_hash)throw Error('Server proposal hash changed. Refresh governance before approving.');
-  const done=await edge({action:'mfa_authorize',authorization_action:'APPROVE',
-    request_id:started.id,proposal_id:id,code});
-  if(!done?.verified||done.action!=='APPROVE')throw Error('Authenticator approval was not verified');
-  closeModal();
-  await refresh();
-  try{if(typeof refreshGovernance==='function')await refreshGovernance()}catch(e){console.warn('Governance feed refresh deferred',e)}
-  toast('Verified '+execRole()+' 2FA authorization recorded for '+id,'success');
- }
+ async function approveWith2FADialog(id){return ViceExecutiveAuth.authorize('APPROVE',id);}
  function diagnosis(el){if(denied(el))return;const d=state.diagnostics;el.innerHTML=`<div class="inst">${header('Self <em>Diagnosis</em>','Measured controls and explicitly identified infrastructure dependencies.')}<section class="band"><div class="band-head"><h2>Database integrity</h2><span class="meta">${d?new Date(d.checked_at).toLocaleString():'Awaiting check'}</span></div>${[['Reference ratio',d?.ratio_ok?'PASS · 1:160':'UNVERIFIED'],['Institutional audit chain',d?.audit_chain_ok?`PASS · ${d.audit_events} events`:'UNVERIFIED'],['Structural mutation gate',d?.structural_writes_locked?'LOCKED':'UNVERIFIED'],['On-chain quorum verifier',d?.onchain_quorum||'UNVERIFIED'],['Atomic scaling executor',d?.atomic_executor||'UNVERIFIED']].map(([a,b])=>`<div class="rw"><span>${a}</span><span class="bdg ${b.startsWith('PASS')?'gr':'gd'}">${esc(label(b))}</span></div>`).join('')}<p class="inst-hash">Audit head: ${esc(d?.audit_head||'No events recorded')}</p></section><section class="band"><div class="band-head"><h2>Runtime and perimeter evidence</h2></div>${[['Environment',d?.air_gap],['OI agent sandbox',d?.agent_runtime],['Model-weight verification',d?.model_weights],['Zero-leakage certification',d?.zero_leakage],['Socket / perimeter scan',d?.perimeter_scan]].map(([a,b])=>`<div class="rw"><span>${a}</span><span class="meta">${esc(label(b||'UNVERIFIED'))}</span></div>`).join('')}<p class="meta">This is a networked Netlify/Supabase application. No air-gapped agent runtime or embedding scrubber is connected. Hash-chain checks show database consistency; independent external anchoring is not yet configured. Refresh runs a new database integrity check.</p></section></div>`;}
 
- async function deviceKey(create=false){
-  const user=S.user?.id;
-  if(!user||user==='sim-user')throw Error('Executive sign-in required');
-  if(!globalThis.crypto?.subtle||!globalThis.indexedDB)throw Error('Secure browser key storage unavailable. Use verified 2FA for proposal approval.');
-  const storedSigner=state.signers.find(x=>x.user_id===user);
-  let enrolled=storedSigner?.public_key;
-  if(!enrolled){const q=await sb.from('vice_exec_signers').select('public_key').eq('user_id',user).maybeSingle();if(q.error)throw q.error;enrolled=q.data?.public_key||null;}
-  const dbOpen=(name)=>new Promise((ok,no)=>{const request=indexedDB.open(name,1);
-   request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('keys'))request.result.createObjectStore('keys')};
-   request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error)});
-  const get=(db,id)=>new Promise((ok,no)=>{const request=db.transaction('keys').objectStore('keys').get(id);request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error)});
-  const put=(db,id,pair,prior)=>new Promise((ok,no)=>{const tx=db.transaction('keys','readwrite'),store=tx.objectStore('keys');
-   if(prior?.privateKey)store.put(prior,'prior:'+user+':'+Date.now());
-   store.put(pair,id);tx.oncomplete=ok;tx.onerror=()=>no(tx.error)});
-  const same=async pair=>{if(!pair?.privateKey||!pair?.publicKey||!enrolled)return false;
-   const key=await crypto.subtle.exportKey('jwk',pair.publicKey);
-   return ['kty','crv','x','y'].every(k=>key[k]===enrolled[k])};
-  const db=await dbOpen('vice-executive-keys');
-  try{
-   const local=await get(db,user);
-   if(enrolled&&await same(local))return local;
-   if(enrolled){
-    // Recovery and proposal signing historically used two DIFFERENT IndexedDB databases.
-    // Promote only a local, non-extractable key that matches the currently registered server key.
-    const recovery=await dbOpen('vice-executive-signing');
-    try{
-     for(const name of ['recovery-replacement:'+user,'executive:'+user,'executive']){
-      const candidate=await get(recovery,name);
-      if(await same(candidate)){
-       await put(db,user,candidate,local);
-       return candidate;
-      }
-     }
-    }finally{recovery.close()}
-    throw Error('The local device key does not match the registered executive key. Choose "Authorize proposal with 2FA" instead. No signature was recorded.');
-   }
-   if(!create)throw Error('No registered executive key exists; enroll a device or authorize proposals using 2FA.');
-   if(local?.privateKey) return local;
-   const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},false,['sign','verify']);
-   await put(db,user,pair,null);
-   return pair;
-  }finally{db.close()}
- }
- async function attest(action,proposal){
-  const user=S.user?.id;if(!user)throw Error('Executive authentication required');
-  if(action==='APPROVE'){
-   const p=state.proposals.find(x=>x.id===proposal);
-   if(!p||p.status!=='REVIEW')throw Error('Proposal is not open for approval');
-   if(execAlreadyAuthorized(p))throw Error('Executive '+execRole()+' already authorized this proposal. Check the 2FA authorization status; do not sign twice.');
-  }
-  if(action==='ENROLL'&&state.signers.some(x=>x.user_id===user&&x.public_key))throw Error('Key already enrolled. Use controlled recovery to replace it.');
-  const pair=await deviceKey(action==='ENROLL');
-  if(user!==S.user?.id)throw Error('Executive account changed');
-  const jwk=await crypto.subtle.exportKey('jwk',pair.publicKey);
-  const signer=state.signers.find(x=>x.user_id===user);
-  const enrolled=signer?.public_key;
-  if(action!=='ENROLL'&&(!enrolled||['kty','crv','x','y'].some(k=>enrolled[k]!==jwk[k])))
-   throw Error('Registered signing key mismatch. Use the proposal 2FA authorization button; no signature was created.');
-  const c=await rpc('vice_exec_challenge',{p_action:action,p_proposal:proposal||null,
-   p_public_key:action==='ENROLL'?{kty:jwk.kty,crv:jwk.crv,x:jwk.x,y:jwk.y}:null});
-  if(user!==S.user?.id)throw Error('Executive account changed');
-  const bytes=new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},pair.privateKey,new TextEncoder().encode(c.message)));
-  const signature=btoa(String.fromCharCode(...bytes));
-  const result=await edge({action:'verify_signature',challenge_id:c.id,signature});
-  if(!result.verified)throw Error('Executive device signature was not verified');
-  return result;
- }
+ async function attest(action,proposal){return ViceExecutiveAuth.signKey(action,proposal||null);}
  NAV.find(g=>g.group==='Operations').items.splice(0,0,{id:'omega',label:'OMEGA Engine',icon:'building',perm:'assign'},{id:'sovereign',label:'Sovereign Governance',icon:'shield',perm:'assign'},{id:'self-diagnosis',label:'Self Diagnosis',icon:'activity',perm:'assign'});TABS.push('omega','sovereign','self-diagnosis');VIEWS.omega=omega;VIEWS.sovereign=sovereign;VIEWS['self-diagnosis']=diagnosis;
  // Preserve the direct simplified OUV proposal form in Admin. Sovereign Governance remains a separate approval/review view.
  document.addEventListener('input',e=>{if(e.target.closest('#inst-model,#inst-risk'))calculate();if(e.target.matches('[data-inst-search]')){const q=e.target.value.toLowerCase();document.querySelectorAll('[data-inst-lead]').forEach(r=>r.hidden=!r.textContent.toLowerCase().includes(q));}});
@@ -288,8 +196,9 @@ const ViceInstitutional=(()=>{
       '<p class="meta">Read-only server verification. Viewing status cannot authorize or apply prices.</p>');
     return;
   }
-  if(act==='approve-proposal'){approveWith2FADialog(t.dataset.id);return;}
-  if(act==='approve-2fa-confirm'){await finish2FAApproval(t.dataset.id);return;}
+  if(act==='approve-proposal'){await approveWith2FADialog(t.dataset.id);return;}
+  if(act==='reject-mfa'){await ViceExecutiveAuth.authorize('REJECT',t.dataset.id);return;}
+  if(act==='mfa-setup'){await ViceExecutiveAuth.manageMfa();return;}if(act==='halt-mfa'){await ViceExecutiveAuth.authorize('HALT');return;}
   if(act==='enroll')await attest('ENROLL');if(act==='approve-device')await attest('APPROVE',t.dataset.id);if(act==='halt')await attest('HALT');
   if(user!==S.user?.id)return;closeModal();await refresh();toast('Confirmed by the institutional service','success');
  }catch(err){if(user===S.user?.id)toast(err.message,'error');}finally{t.disabled=false;}})();});
