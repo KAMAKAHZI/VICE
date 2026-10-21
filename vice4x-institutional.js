@@ -56,10 +56,11 @@ const ViceInstitutional=(()=>{
   if(!f?.reportValidity())throw Error('Valid distribution quantities required');
   const v=values('inst-ouv-model');
   const n=x=>Number(x);
-  if(![v.vice_units,v.v4x_units].every(x=>/^\\d+$/.test(String(x)))||
+  if(![v.vice_units,v.v4x_units].every(x=>/^\d+$/.test(String(x)))||
    !Number.isSafeInteger(n(v.vice_units))||!Number.isSafeInteger(n(v.v4x_units))||
    n(v.vice_units)<0||n(v.v4x_units)<0)throw Error('Enter nonnegative whole numbers');
   if(n(v.vice_units)===0&&n(v.v4x_units)===0)throw Error('Enter at least one unit');
+  if(state.ouvRelease?.model_usable===false)throw Error('Release model is paused until ledger reconciliation and baseline verification pass');
   const q=await rpc('vice_ouv_release_quote',{p_vice_units:n(v.vice_units),p_v4x_units:n(v.v4x_units),p_pool:v.pool});
   const pct=Number(q.appreciation_percent||0),a=q.modeled_ouv||{},official=q.official_ouv||{};
   modal('Distribution model · verified SQL arithmetic',
@@ -114,14 +115,14 @@ const ViceInstitutional=(()=>{
     ${!valid?'<span class="meta">Authorization unavailable: proposal must be in valid REVIEW status.</span>':''}</div></section>`;
   }).join('')||'<section class="band"><p>No structural proposals recorded.</p></section>';
   const ou=state.ouvRelease;
-  const modelBand=ou?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">MODEL ONLY — GOVERNANCE NOT ACTIVATED</span></div>'+
+  const modelBand=ou&&ou.model_usable!==false?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">MODEL ONLY — GOVERNANCE NOT ACTIVATED</span></div>'+
    '<p class="meta">Source: committed strategic issuance and estate reserve distribution records · fixed total of 20,000,000 units · 1:160 reference ratio.</p>'+
    '<p>Net newly distributed since model baseline: <strong>'+esc(String(ou.incremental_units))+' units</strong> · mathematical change <strong>'+esc(String(ou.appreciation_percent))+'%</strong>.</p>'+
    '<p>Modeled VICE: <strong>'+ouvMoney8(ou.modeled_ouv?.VICE)+'</strong> · Modeled V4X: <strong>'+ouvMoney8(ou.modeled_ouv?.V4X)+'</strong></p>'+
    '<p>Official VICE: <strong>'+ouvMoney8(ou.official_ouv?.VICE)+'</strong> · Official V4X: <strong>'+ouvMoney8(ou.official_ouv?.V4X)+'</strong></p>'+
    '<p class="note warn">Automatic OUV issuance policy is a draft. Financial appreciation cannot be inferred from redistribution alone. Official portfolio values do not change until a properly approved, auditable policy and structural executor are active.</p>'+
    '<div class="actions">'+button('ouv-model-quote','Preview 100,000 + 100,000 distribution')+'</div></section>'
-   :'<section class="band"><p class="note warn">OUV release model unavailable; no automatic revaluation is active.</p></section>';
+   :'<section class="band"><p class="note warn">OUV distribution model paused or unavailable: supply totals or baseline need reconciliation. No automatic official revaluation is active.</p></section>';
   el.innerHTML=`<div class="inst">${header('Sovereign <em>Governance</em>','Executive attestations and equal-authority 2FA approvals with a separate immutable audit trail.')}
    <section class="band"><div class="band-head"><h2>Structural state</h2><span class="bdg gd">WRITES LOCKED</span></div>
     <p>Current references: <b>${money(state.diagnostics?.reference?.vice_price??S.iruClasses[0].ouv)} VICE</b> · <b>${money(state.diagnostics?.reference?.v4x_price??S.iruClasses[1].ouv)} V4X</b> · ratio 1:160.</p>
