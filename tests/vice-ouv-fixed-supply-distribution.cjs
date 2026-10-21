@@ -91,6 +91,19 @@ test('same unit holdings; only the modeled reference amount changes',()=>{
  assert.equal(holder.vice,10000n);
  assert.equal(holder.v4x,10000n);
 });
+test('multi-class official portfolio total rounds exact reference sum only once to cents',()=>{
+ const priceVice=282645403n;       // $2.82645403 at 8dp
+ const priceV4x=priceVice*160n;   // $452.23264480 at exact 1:160
+ const vice=1n,v4x=2n;
+ const cents=x=>(x+500000n)/1000000n;
+ const lineSum=cents(vice*priceVice)+cents(v4x*priceV4x);
+ const portfolioCents=cents(vice*priceVice+v4x*priceV4x);
+ assert.equal(lineSum,90730n);   // incorrect two-step display sum: $907.30
+ assert.equal(portfolioCents,90729n); // canonical SQL ROUND(full total): $907.29
+ const displayedViceCents=cents(vice*priceVice);
+ const displayedV4xCents=portfolioCents-displayedViceCents;
+ assert.equal(displayedViceCents+displayedV4xCents,portfolioCents);
+});
 test('cash distributions and secondary transfers are NOT new releases',()=>{
  const eligible=new Set(['UNITS_ISSUED','ESTATE_ALLOCATION_DISTRIBUTED']);
  for(const type of ['CASH_DISTRIBUTION_PAID','HOLDER_TRANSFER','ALLOCATION_APPROVED','ALLOCATION_RESERVED'])
