@@ -57,6 +57,27 @@ A holder with 10,000 VICE and 10,000 V4X would have a *modeled* internal referen
 6. If a separate major OUV proposal (e.g. `PROP-20261019-548A9057-34F`) first takes effect, **rebase this model to those actually effective OUVs and the new net release counts** through governance before activation. Never compound a stale baseline.
 7. Distinguish formula-generated internal management reference from external fair market value, market cap, independently appraised collateral, cash or realizable returns on all screens/documents. Do not describe a payout as investment performance without separately verified evidence.
 
+## Completion update — automated model and server reconciliation
+
+The implementation now includes two independent layers:
+
+1. **Working read-only distribution model:** committed issuance and estate-reserve distribution events are detected automatically; each event has an idempotent model audit entry. The arithmetic updates from current net released quantities, so ordinary activity never requires repetitive approval *for the model*. Authorized executives can preview source-limited distributions. Members receive an authenticated, account-scoped `My IRU` model preview that refreshes while that page is open. This does not rewrite official totals.
+2. **Still locked official OUV:** the production `vice_dao_config` references remain the official source and are unchanged until approved on-chain verification and an audited structural executor implement the full governance procedure. The proposed automatic index may not be described or deployed as genuine asset appreciation without independent valuation support.
+
+The model is now paired with `vice_private.ouv_release_reconciliation()`, an independent check of strategic holder balances versus program counters, estate-holder balances versus transferred reserve balances, the 7.5M-per-class estate book, the 2.5M-per-class strategic cap, and the exact 1:160 ratio. Failure to reconcile, or changing the official OUV without a governed rebase, stops the executive quoting interface instead of silently reporting obsolete projected references. The optional model preview is isolated from app sign-in and the remaining institutional modules.
+
+The signed-in holder-specific RPC `vice_ouv_my_reference_snapshot()` discloses only that account's verified holder and estate-transfer quantities, server-computed official reference, and an explicitly labeled *model* total. It does not provide a mechanism to list another holder's balances. Member-facing `My IRU` cards also now derive official references from the live canonical issuer price rather than a stale journal-only reference.
+
+### Final controlled activation checklist
+
+- **Governance:** CEO/CFO approve an exact distribution-index policy, permitted event types, evidence criteria and numeric "major appreciation" threshold. **Five percent is currently only a proposal**, not an active rule.
+- **Economic basis:** independent accounting or valuation review establishes whether an allocation-based internal reference adjustment is appropriate. An internal formula alone cannot substantiate fair market appreciation.
+- **Execution controls:** configure verified on-chain quorum (with explicit proof/replay protections), complete the required public review and 72-hour timelock, and deploy/test an atomic, idempotent official OUV executor that publishes an effective policy record without touching IRU unit counts.
+- **Rebase:** before activating automatic official values, synchronize this model with any intervening independently approved major OUV event. Pending `PROP-20261019-548A9057-34F` must not be treated as executed merely because it has both executive attestations.
+- **Acceptance:** run both mathematical tests and issuer/member live-session tests, verify 250-holder RLS and confidentiality, historical signed certificates, portfolio banner and total values, and publish Netlify from the final GitHub main SHA once to avoid unnecessary credits.
+
+**Exact model examples from live Supabase:** 10,000 total newly allocated IRUs gives +0.05% (VICE $2.00100000 / V4X $320.16000000); 10,000 in each program gives +0.10% (VICE $2.00200000 / V4X $320.32000000). These remain only provisional management-reference model outputs.
+
 ## Installed additive backend and frontend
 
 - Database `public.vice_ouv_release_policy`: fixed baseline, supply and `MODEL_ONLY` status.
