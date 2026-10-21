@@ -10428,7 +10428,7 @@ function viceOuvMemberModelHtml(){
         c.error=error?.message||(!data?'No response':'');
         c.at=Date.now();
       })
-      .catch(e=>{if(authEpoch===epoch){c.error=String(e.message||e);c.at=Date.now();}})
+      .catch(e=>{if(authEpoch===epoch){c.data=null;c.error=String(e.message||e);c.at=Date.now();}})
       .finally(()=>{c.loading=false;if(authEpoch===epoch&&S.tab==='iru'&&String(S.user?.id)===id)renderMain();});
   }
   if(!window.__viceOuvMemberTimer){
