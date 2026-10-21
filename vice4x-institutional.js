@@ -1,6 +1,6 @@
 'use strict';
 const ViceInstitutional=(()=>{
- const core=ViceInstitutionalCore,blank=()=>({owner:null,epoch:0,loading:false,loaded:false,error:null,leads:[],drafts:[],financings:[],proposals:[],signers:[],diagnostics:null,providers:null,model:{principal:1000000,months:3,grossProfit:0,costs:0,lossCarry:0,lead_id:'',evidence:''}});let state=blank();
+ const core=ViceInstitutionalCore,blank=()=>({owner:null,epoch:0,loading:false,loaded:false,error:null,leads:[],drafts:[],financings:[],proposals:[],signers:[],authorizations:[],diagnostics:null,providers:null,model:{principal:1000000,months:3,grossProfit:0,costs:0,lossCarry:0,lead_id:'',evidence:''}});let state=blank();
  const allowed=()=>isRegistryOperator(),label=s=>String(s||'').replaceAll('_',' '),money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(n)||0);
  function clear(){const epoch=state.epoch+1;state=blank();state.epoch=epoch;}
  function owner(){if(state.owner!==S.user?.id){clear();state.owner=S.user?.id;}}
@@ -11,9 +11,9 @@ const ViceInstitutional=(()=>{
    if(APP_MODE!=='LIVE'||S.user?.id==='sim-user'){state.loaded=true;return;}
    const results=await Promise.all(['vice_omega_leads','vice_omega_outreach','vice_omega_financings','vice_sovereign_proposals','vice_exec_signers'].map(t=>sb.from(t).select('*').limit(500)));
    for(const r of results)if(r.error)throw r.error;
-   const diagnostics=await rpc('vice_institutional_diagnostics');let providers;try{providers=await edge({action:'status'});}catch(e){providers={error:e.message};}
+   const [diagnostics,authorizations]=await Promise.all([rpc('vice_institutional_diagnostics'),rpc('vice_sovereign_feed')]);let providers;try{providers=await edge({action:'status'});}catch(e){providers={error:e.message};}
    if(epoch!==state.epoch||state.owner!==S.user?.id)return;
-   [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.diagnostics=diagnostics;state.providers=providers;state.error=null;
+   [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.diagnostics=diagnostics;state.authorizations=Array.isArray(authorizations)?authorizations:[];state.providers=providers;state.error=null;
   }catch(e){if(epoch===state.epoch)state.error=e.message;}finally{if(epoch===state.epoch){state.loaded=true;state.loading=false;if(['omega','sovereign','self-diagnosis'].includes(S.tab))renderMain();}}
  }
  function load(){owner();if(!state.loaded&&!state.loading)queueMicrotask(refresh);}
@@ -38,20 +38,137 @@ const ViceInstitutional=(()=>{
  const risk=document.getElementById('inst-risk-output');if(risk){try{const v=values('inst-risk'),r=core.drawdown(v.opening,v.equity,v.flows,v.limit);risk.innerHTML=`<span class="bdg ${r.halt?'rd':'gr'}">${r.halt?'HALT NEW EXPOSURE':'BELOW THRESHOLD'}</span> &nbsp; Flow-adjusted drawdown ${r.drawdownPct.toFixed(2)}% · scenario calculation`;}catch(e){risk.textContent=e.message;}}}
  function leadModal(l={}){modal(l.id?'Review institutional executive':'Add institutional executive',`<form id="inst-lead" class="inst-grid">${field('full_name','Full name',l.full_name,'text','required maxlength="200"')}${field('company','Company',l.company,'text','required maxlength="200"')}${field('title','Title',l.title)}${field('email','Corporate email',l.email,'email')}${field('phone','Business phone',l.phone)}${field('hq_address','Company headquarters',l.hq_address)}${field('linkedin','LinkedIn URL',l.linkedin,'url')}${field('asset_tier','Revenue / AUM tier and source',l.asset_tier)}${select('tier','Institutional tier',['A','B','C'],l.tier||'A')}${select('email_status','Email evidence',['UNVERIFIED','REVIEWED'],l.email_status==='UNVERIFIED'?'UNVERIFIED':'REVIEWED')}${select('stage','Stage',['NEW','REVIEW','QUALIFIED','CLOSED'],l.stage||'NEW')}${select('suppressed','Do not contact',['false','true'],String(l.suppressed||false))}${text('contact_basis','Contact permission / relationship basis',l.contact_basis)}${text('offering_basis','Offering route and solicitation eligibility evidence',l.evidence?.offering_basis)}${text('counsel_reference','Counsel review / approved communication reference',l.evidence?.counsel_reference)}${text('investor_verification','Institutional/accredited verification reference',l.evidence?.investor_verification)}<p class="meta inst-wide">Evidence is an executive record, not automatic legal or accreditation certification. Editing cancels unsent drafts so changed contacts cannot receive previously approved messages.</p></form>`,`${button('lead-save','Save executive',`data-id="${l.id||''}"`)}`);}
  function draftModal(d){const l=state.leads.find(l=>l.id===d.lead_id);modal('Outreach review',`<p><b>${esc(l?.full_name)} · ${esc(l?.company)}</b><br>${esc(l?.email||'No verified email')}</p><h3>${esc(d.subject)}</h3><pre class="inst-preview">${esc(d.body)}</pre><p class="meta">${esc(label(d.status))}${d.provider_id?' · Provider receipt '+esc(d.provider_id):''}</p>${d.last_error?`<p class="note warn">${esc(d.last_error)}</p>`:''}`,`${d.status==='DRAFT'?button('queue','Approve & queue',`data-id="${d.id}"`):''}${d.status==='QUEUED'?button('send','Send approved message',`data-id="${d.id}" ${state.providers?.email_configured?'':'disabled title="Email provider setup required"'}`):''}`);}
- function sovereign(el){if(denied(el))return;el.innerHTML=`<div class="inst">${header('Sovereign <em>Governance</em>','Executive attestation, public proposal review and structural integrity.')}
- <section class="band"><div class="band-head"><h2>Structural state</h2><span class="bdg gd">WRITES LOCKED</span></div><p>Current references: <b>${money(state.diagnostics?.reference?.vice_price??S.iruClasses[0].ouv)} VICE</b> · <b>${money(state.diagnostics?.reference?.v4x_price??S.iruClasses[1].ouv)} V4X</b> · ratio 1:160.</p><p class="meta">A reference scaling changes the reference applied to existing quantities. It does not multiply holder units or establish an appraised collateral value. Execution requires matching baseline, two verified executive signatures, verified on-chain quorum and a subsequent 72-hour timelock.</p><div class="actions">${button('proposal-new','Record proposal')}${button('enroll','Enroll this device’s signing key')}${button('halt','Sign emergency structural halt')}<a class="btn btn-g" href="/governance.html" target="_blank" rel="noopener">Public governance feed ↗</a></div><p class="meta">${state.signers.map(s=>`${esc(s.role)}: ${s.public_key?'signing key enrolled':'enrollment pending'}`).join(' · ')||'Designated signers loading'}. The private key stays on this device. Device loss requires a controlled recovery; no automatic key replacement.</p></section>
- ${state.proposals.map(p=>`<section class="band"><div class="band-head"><h2>${esc(p.id)}</h2><span class="bdg gd">${esc(p.status)}</span></div><p>${money(p.payload.parameters.previous_baseline.vice_ouv)} / ${money(p.payload.parameters.previous_baseline.v4x_ouv)} → ${money(p.payload.parameters.target_scaled_tier.vice_ouv)} / ${money(p.payload.parameters.target_scaled_tier.v4x_ouv)}</p><p class="meta">${p.validation_issues.length?esc(p.validation_issues.map(label).join(' · ')):'Baseline and ratio valid'} · Public review through ${new Date(p.validation_until).toLocaleString()}.</p><p class="meta">On-chain quorum: ${p.quorum_verified_at?'verified':'awaiting configured verifier'} · Execution timelock: ${p.execute_after?esc(p.execute_after):'not started'}.</p><p class="inst-hash">Payload SHA-256: ${esc(p.payload_hash)}</p><details><summary>Submitted payload · claims are independently checked</summary><pre class="inst-preview">${esc(JSON.stringify(p.payload,null,2))}</pre></details><div class="actions">${button('gates','Check execution gates',`data-id="${esc(p.id)}"`)} ${button('approve-proposal','Sign this exact proposal',`data-id="${esc(p.id)}" ${p.validation_issues.length?'disabled':''}`)}</div></section>`).join('')||'<section class="band"><p>No structural proposals recorded.</p></section>'}</div>`;}
+
+ function execRole(){return state.signers.find(x=>x.user_id===S.user?.id)?.role||null;}
+ function latestAuthorization(p){return state.authorizations.find(a=>a.id===p.id&&a.payload_hash===p.payload_hash)||null;}
+ function execAlreadyAuthorized(p){const a=latestAuthorization(p),role=execRole();return role==='CEO'?!!a?.ceo_signed:role==='CFO'?!!a?.cfo_signed:false;}
+ function execAuthorizerLabel(a,role){const ok=role==='CEO'?a?.ceo_signed:a?.cfo_signed;const method=role==='CEO'?a?.ceo_authorization_method:a?.cfo_authorization_method;return ok?'AUTHORIZED · '+(method==='MFA_TOTP'?'2FA AUTHENTICATOR':method==='CRYPTOGRAPHIC'?'DEVICE SIGNATURE':String(method||'VERIFIED')):'AWAITING '+role;}
+ function sovereign(el){if(denied(el))return;
+  const role=execRole();
+  const cards=state.proposals.map(p=>{
+   const a=latestAuthorization(p),valid=Array.isArray(p.validation_issues)&&p.validation_issues.length===0&&p.status==='REVIEW';
+   const signed=execAlreadyAuthorized(p),signedCount=Number(a?.verified_executive_authorizations??a?.verified_executive_signatures??0);
+   const canApprove=valid&&(role==='CEO'||role==='CFO')&&!signed;
+   const params=p.payload?.parameters||{},old=params.previous_baseline||{},next=params.target_scaled_tier||{};
+   const issueText=Array.isArray(p.validation_issues)&&p.validation_issues.length?p.validation_issues.map(label).join(' · '):'Baseline and ratio valid';
+   return `<section class="band"><div class="band-head"><h2>${esc(p.id)}</h2><span class="bdg gd">${esc(p.status)}</span></div>
+    <p>${money(old.vice_ouv)} / ${money(old.v4x_ouv)} → ${money(next.vice_ouv)} / ${money(next.v4x_ouv)}</p>
+    <p class="meta">${esc(issueText)} · Public review through ${p.validation_until?esc(new Date(p.validation_until).toLocaleString()):'—'}.</p>
+    <p class="meta">Executive authorizations: ${signedCount}/2 · CEO: ${esc(execAuthorizerLabel(a,'CEO'))} · CFO: ${esc(execAuthorizerLabel(a,'CFO'))}.</p>
+    <p class="meta">On-chain quorum: ${p.quorum_verified_at?'verified':'awaiting configured verifier'} · Execution timelock: ${p.execute_after?esc(p.execute_after):'not started'}.</p>
+    <p class="inst-hash">Payload SHA-256: ${esc(p.payload_hash)}</p>
+    <details><summary>Submitted payload · claims are independently checked</summary><pre class="inst-preview">${esc(JSON.stringify(p.payload,null,2))}</pre></details>
+    <div class="actions">${button('gates','Check execution gates',`data-id="${esc(p.id)}"`)}
+    ${canApprove?button('approve-proposal','Authorize proposal with 2FA',`data-id="${esc(p.id)}"`):''}
+    ${canApprove?button('approve-device','Sign with verified device key',`data-id="${esc(p.id)}"`):''}
+    ${signed?'<span class="bdg gr">YOUR EXECUTIVE APPROVAL IS VERIFIED — NO RE-SIGN REQUIRED</span>':''}
+    ${!valid?'<span class="meta">Authorization unavailable: proposal must be in valid REVIEW status.</span>':''}</div></section>`;
+  }).join('')||'<section class="band"><p>No structural proposals recorded.</p></section>';
+  el.innerHTML=`<div class="inst">${header('Sovereign <em>Governance</em>','Executive attestations and equal-authority 2FA approvals with a separate immutable audit trail.')}
+   <section class="band"><div class="band-head"><h2>Structural state</h2><span class="bdg gd">WRITES LOCKED</span></div>
+    <p>Current references: <b>${money(state.diagnostics?.reference?.vice_price??S.iruClasses[0].ouv)} VICE</b> · <b>${money(state.diagnostics?.reference?.v4x_price??S.iruClasses[1].ouv)} V4X</b> · ratio 1:160.</p>
+    <p class="meta">Executive approvals using verified device signatures or fresh authenticator 2FA have equal internal governance authority. Structural execution separately requires verified on-chain quorum, policy checks, and timelock; no automatic price or unit change.</p>
+    <div class="actions">${button('proposal-new','Record proposal')}${button('enroll','Enroll a new signing device',role&&state.signers.find(x=>x.user_id===S.user?.id)?.public_key?'disabled title="Key already enrolled; use controlled recovery to replace"':'')}${button('halt','Sign emergency structural halt')}<a class="btn btn-g" href="/governance.html" target="_blank" rel="noopener">Public governance feed ↗</a></div>
+    <p class="meta">${state.signers.map(x=>`${esc(x.role)}: ${x.public_key?'key enrolled':'key enrollment pending'}`).join(' · ')||'Designated signers loading'}. ${role?'Signed in as '+esc(role):'Executive authorization requires designated CEO/CFO account'}. 2FA proposal approvals do not depend on browser-stored keys.</p>
+   </section>${cards}</div>`;
+ }
+ function approveWith2FADialog(id){
+  const p=state.proposals.find(x=>x.id===id);
+  if(!p||p.status!=='REVIEW'||!Array.isArray(p.validation_issues)||p.validation_issues.length)throw Error('Proposal is not eligible for approval');
+  if(!['CEO','CFO'].includes(execRole()))throw Error('Only the designated CEO or CFO may authorize a structural proposal');
+  if(execAlreadyAuthorized(p))throw Error('Your executive role already authorized this proposal; a second signature is not required');
+  modal('Approve exact proposal with authenticator 2FA',
+   '<p class="note">Same internal governance approval authority as a registered device key. This creates a verified 2FA authorization record, not a forged device-key signature.</p>'+
+   '<p><strong>'+esc(execRole())+' · '+esc(p.id)+'</strong></p>'+
+   '<p class="inst-hash">Proposal SHA-256: '+esc(p.payload_hash)+'</p>'+
+   '<p class="meta">Enter a fresh 6-digit code from your enrolled authenticator to approve this specific proposal. CEO and CFO approvals are separate and no transfer or structural execution occurs.</p>'+
+   '<label class="field">Authenticator code<input id="inst-approval-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6-digit code"></label>',
+   button('approve-2fa-confirm','Verify 2FA & Approve',`data-id="${esc(id)}"`));
+ }
+ async function finish2FAApproval(id){
+  const code=String(document.getElementById('inst-approval-code')?.value||'').trim();
+  if(!/^[0-9]{6}$/.test(code))throw Error('Enter the six-digit authenticator code');
+  const p=state.proposals.find(x=>x.id===id);
+  if(!p||p.status!=='REVIEW'||execAlreadyAuthorized(p))throw Error('Proposal already authorized or no longer open for approval');
+  const started=await rpc('vice_exec_mfa_begin',{p_action:'APPROVE',p_proposal:id,p_recovery:null});
+  if(!started?.id||started.payload_hash!==p.payload_hash)throw Error('Server proposal hash changed. Refresh governance before approving.');
+  const done=await edge({action:'mfa_authorize',authorization_action:'APPROVE',
+    request_id:started.id,proposal_id:id,code});
+  if(!done?.verified||done.action!=='APPROVE')throw Error('Authenticator approval was not verified');
+  closeModal();
+  await refresh();
+  try{if(typeof refreshGovernance==='function')await refreshGovernance()}catch(e){console.warn('Governance feed refresh deferred',e)}
+  toast('Verified '+execRole()+' 2FA authorization recorded for '+id,'success');
+ }
  function diagnosis(el){if(denied(el))return;const d=state.diagnostics;el.innerHTML=`<div class="inst">${header('Self <em>Diagnosis</em>','Measured controls and explicitly identified infrastructure dependencies.')}<section class="band"><div class="band-head"><h2>Database integrity</h2><span class="meta">${d?new Date(d.checked_at).toLocaleString():'Awaiting check'}</span></div>${[['Reference ratio',d?.ratio_ok?'PASS · 1:160':'UNVERIFIED'],['Institutional audit chain',d?.audit_chain_ok?`PASS · ${d.audit_events} events`:'UNVERIFIED'],['Structural mutation gate',d?.structural_writes_locked?'LOCKED':'UNVERIFIED'],['On-chain quorum verifier',d?.onchain_quorum||'UNVERIFIED'],['Atomic scaling executor',d?.atomic_executor||'UNVERIFIED']].map(([a,b])=>`<div class="rw"><span>${a}</span><span class="bdg ${b.startsWith('PASS')?'gr':'gd'}">${esc(label(b))}</span></div>`).join('')}<p class="inst-hash">Audit head: ${esc(d?.audit_head||'No events recorded')}</p></section><section class="band"><div class="band-head"><h2>Runtime and perimeter evidence</h2></div>${[['Environment',d?.air_gap],['OI agent sandbox',d?.agent_runtime],['Model-weight verification',d?.model_weights],['Zero-leakage certification',d?.zero_leakage],['Socket / perimeter scan',d?.perimeter_scan]].map(([a,b])=>`<div class="rw"><span>${a}</span><span class="meta">${esc(label(b||'UNVERIFIED'))}</span></div>`).join('')}<p class="meta">This is a networked Netlify/Supabase application. No air-gapped agent runtime or embedding scrubber is connected. Hash-chain checks show database consistency; independent external anchoring is not yet configured. Refresh runs a new database integrity check.</p></section></div>`;}
- async function deviceKey(create=false){const db=await new Promise((resolve,reject)=>{const q=indexedDB.open('vice-executive-keys',1);q.onupgradeneeded=()=>q.result.createObjectStore('keys');q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});try{let pair=await new Promise((resolve,reject)=>{const q=db.transaction('keys').objectStore('keys').get(S.user.id);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});if(!pair&&create){pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},false,['sign','verify']);await new Promise((resolve,reject)=>{const tx=db.transaction('keys','readwrite');tx.objectStore('keys').put(pair,S.user.id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}if(!pair)throw Error('This device does not hold your enrolled key. Use the enrolled device or the controlled recovery process.');return pair;}finally{db.close();}}
- async function attest(action,proposal){const user=S.user.id;const pair=await deviceKey(action==='ENROLL');if(user!==S.user?.id)return;const jwk=await crypto.subtle.exportKey('jwk',pair.publicKey);
-  if(action!=='ENROLL'){
-    const signer=state.signers.find(x=>x.user_id===user);
-    const enrolled=signer?.public_key;
-    if(enrolled && (enrolled.x!==jwk.x || enrolled.y!==jwk.y)){
-      throw Error('This browser has a different signing key from the enrolled executive key. Use the original enrolled browser/device or initiate authorized controlled key recovery. No proposal has been signed.');
-    }
+
+ async function deviceKey(create=false){
+  const user=S.user?.id;
+  if(!user||user==='sim-user')throw Error('Executive sign-in required');
+  if(!globalThis.crypto?.subtle||!globalThis.indexedDB)throw Error('Secure browser key storage unavailable. Use verified 2FA for proposal approval.');
+  const storedSigner=state.signers.find(x=>x.user_id===user);
+  let enrolled=storedSigner?.public_key;
+  if(!enrolled){const q=await sb.from('vice_exec_signers').select('public_key').eq('user_id',user).maybeSingle();if(q.error)throw q.error;enrolled=q.data?.public_key||null;}
+  const dbOpen=(name)=>new Promise((ok,no)=>{const request=indexedDB.open(name,1);
+   request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('keys'))request.result.createObjectStore('keys')};
+   request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error)});
+  const get=(db,id)=>new Promise((ok,no)=>{const request=db.transaction('keys').objectStore('keys').get(id);request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error)});
+  const put=(db,id,pair,prior)=>new Promise((ok,no)=>{const tx=db.transaction('keys','readwrite'),store=tx.objectStore('keys');
+   if(prior?.privateKey)store.put(prior,'prior:'+user+':'+Date.now());
+   store.put(pair,id);tx.oncomplete=ok;tx.onerror=()=>no(tx.error)});
+  const same=async pair=>{if(!pair?.privateKey||!pair?.publicKey||!enrolled)return false;
+   const key=await crypto.subtle.exportKey('jwk',pair.publicKey);
+   return ['kty','crv','x','y'].every(k=>key[k]===enrolled[k])};
+  const db=await dbOpen('vice-executive-keys');
+  try{
+   const local=await get(db,user);
+   if(enrolled&&await same(local))return local;
+   if(enrolled){
+    // Recovery and proposal signing historically used two DIFFERENT IndexedDB databases.
+    // Promote only a local, non-extractable key that matches the currently registered server key.
+    const recovery=await dbOpen('vice-executive-signing');
+    try{
+     for(const name of ['recovery-replacement:'+user,'executive:'+user,'executive']){
+      const candidate=await get(recovery,name);
+      if(await same(candidate)){
+       await put(db,user,candidate,local);
+       return candidate;
+      }
+     }
+    }finally{recovery.close()}
+    throw Error('The local device key does not match the registered executive key. Choose "Authorize proposal with 2FA" instead. No signature was recorded.');
+   }
+   if(!create)throw Error('No registered executive key exists; enroll a device or authorize proposals using 2FA.');
+   if(local?.privateKey) return local;
+   const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},false,['sign','verify']);
+   await put(db,user,pair,null);
+   return pair;
+  }finally{db.close()}
+ }
+ async function attest(action,proposal){
+  const user=S.user?.id;if(!user)throw Error('Executive authentication required');
+  if(action==='APPROVE'){
+   const p=state.proposals.find(x=>x.id===proposal);
+   if(!p||p.status!=='REVIEW')throw Error('Proposal is not open for approval');
+   if(execAlreadyAuthorized(p))throw Error('Executive '+execRole()+' already authorized this proposal. Check the 2FA authorization status; do not sign twice.');
   }
-  const c=await rpc('vice_exec_challenge',{p_action:action,p_proposal:proposal||null,p_public_key:action==='ENROLL'?{kty:jwk.kty,crv:jwk.crv,x:jwk.x,y:jwk.y}:null});if(user!==S.user?.id)return;const bytes=new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},pair.privateKey,new TextEncoder().encode(c.message)));const signature=btoa(String.fromCharCode(...bytes));const result=await edge({action:'verify_signature',challenge_id:c.id,signature});if(!result.verified)throw Error('Signature not verified');return result;}
+  if(action==='ENROLL'&&state.signers.some(x=>x.user_id===user&&x.public_key))throw Error('Key already enrolled. Use controlled recovery to replace it.');
+  const pair=await deviceKey(action==='ENROLL');
+  if(user!==S.user?.id)throw Error('Executive account changed');
+  const jwk=await crypto.subtle.exportKey('jwk',pair.publicKey);
+  const signer=state.signers.find(x=>x.user_id===user);
+  const enrolled=signer?.public_key;
+  if(action!=='ENROLL'&&(!enrolled||['kty','crv','x','y'].some(k=>enrolled[k]!==jwk[k])))
+   throw Error('Registered signing key mismatch. Use the proposal 2FA authorization button; no signature was created.');
+  const c=await rpc('vice_exec_challenge',{p_action:action,p_proposal:proposal||null,
+   p_public_key:action==='ENROLL'?{kty:jwk.kty,crv:jwk.crv,x:jwk.x,y:jwk.y}:null});
+  if(user!==S.user?.id)throw Error('Executive account changed');
+  const bytes=new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},pair.privateKey,new TextEncoder().encode(c.message)));
+  const signature=btoa(String.fromCharCode(...bytes));
+  const result=await edge({action:'verify_signature',challenge_id:c.id,signature});
+  if(!result.verified)throw Error('Executive device signature was not verified');
+  return result;
+ }
  NAV.find(g=>g.group==='Operations').items.splice(0,0,{id:'omega',label:'OMEGA Engine',icon:'building',perm:'assign'},{id:'sovereign',label:'Sovereign Governance',icon:'shield',perm:'assign'},{id:'self-diagnosis',label:'Self Diagnosis',icon:'activity',perm:'assign'});TABS.push('omega','sovereign','self-diagnosis');VIEWS.omega=omega;VIEWS.sovereign=sovereign;VIEWS['self-diagnosis']=diagnosis;
  // Preserve the direct simplified OUV proposal form in Admin. Sovereign Governance remains a separate approval/review view.
  document.addEventListener('input',e=>{if(e.target.closest('#inst-model,#inst-risk'))calculate();if(e.target.matches('[data-inst-search]')){const q=e.target.value.toLowerCase();document.querySelectorAll('[data-inst-lead]').forEach(r=>r.hidden=!r.textContent.toLowerCase().includes(q));}});
@@ -69,7 +186,9 @@ const ViceInstitutional=(()=>{
   if(act==='proposal-new'){modal('Record structural proposal',`<form id="inst-proposal">${text('payload','Complete JSON payload · claimed statuses are independently verified',JSON.stringify({protocol_version:'VICE4X-SOVEREIGN-ELITE-v3.0',proposal_id:'PROP-2026-10-NEW-REVISION',parameters:{previous_baseline:{vice_ouv:state.diagnostics?.reference?.vice_price,v4x_ouv:state.diagnostics?.reference?.v4x_price},target_scaled_tier:{vice_ouv:25,v4x_ouv:4000},structural_ratio:160}},null,2))}</form>`,button('proposal-save','Record & publish for review'));return;}
   if(act==='proposal-save'){const payload=JSON.parse(values('inst-proposal').payload);await rpc('vice_sovereign_submit',{p_payload:payload});}
   if(act==='gates'){const r=await rpc('vice_sovereign_check',{p_id:t.dataset.id});if(user!==S.user?.id)return;modal('Execution gate results','<p>No prices or quantities changed.</p><ul>'+r.reasons.map(x=>'<li>'+esc(label(x))+'</li>').join('')+'</ul>');return;}
-  if(act==='enroll')await attest('ENROLL');if(act==='approve-proposal')await attest('APPROVE',t.dataset.id);if(act==='halt')await attest('HALT');
+  if(act==='approve-proposal'){approveWith2FADialog(t.dataset.id);return;}
+  if(act==='approve-2fa-confirm'){await finish2FAApproval(t.dataset.id);return;}
+  if(act==='enroll')await attest('ENROLL');if(act==='approve-device')await attest('APPROVE',t.dataset.id);if(act==='halt')await attest('HALT');
   if(user!==S.user?.id)return;closeModal();await refresh();toast('Confirmed by the institutional service','success');
  }catch(err){if(user===S.user?.id)toast(err.message,'error');}finally{t.disabled=false;}})();});
  return {clear,refresh,calculate};
