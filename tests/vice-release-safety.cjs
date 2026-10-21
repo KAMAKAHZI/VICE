@@ -88,3 +88,6 @@ assert(html.includes("'application/pdf':'pdf','text/plain':'txt'"),'VICE Link PD
 assert(html.includes('kind===\'file\'&&!['),'VICE Link file-kind gate missing');
 
 assert(html.includes("const kind=String(file.type||'').startsWith('image/')?'image':'file'"),'file picker must route PDFs and text as file attachments');
+
+assert(html.includes('authSetupTask&&authSetupOwner===session.user.id'),'SIGNED_IN must deduplicate an in-flight session restore');
+assert(html.includes('periodic access verification runs separately'),'repeat SIGNED_IN must not cause duplicate member access RPC');

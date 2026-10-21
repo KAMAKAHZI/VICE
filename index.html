@@ -2393,7 +2393,7 @@ function clearMemberSession(){
 function onAuthenticated(user){
   if(APP_MODE === 'SIM') return Promise.resolve();
   if(!user?.id) return Promise.reject(new Error('Missing authenticated user'));
-  if(S.user?.id === user.id && $('login')?.hidden === true) return checkMemberAccess();
+  if(S.user?.id === user.id && $('login')?.hidden === true) return Promise.resolve(true); // periodic access verification runs separately; auth events must not trigger duplicate RPCs
   if(authSetupTask){
     if(authSetupOwner===user.id&&authSetupEpoch===authEpoch)return authSetupTask;
     clearMemberSession();
@@ -13672,8 +13672,8 @@ viceAuthReady.then(ready => {
       const mn = document.querySelector('main.mn'); if(mn) mn.style.display = 'none';
       $('cmTabs')?.classList.remove('on');
     } else if(event === 'SIGNED_IN' && session && session.user){
-      if(S.user?.id!==session.user.id){
-        setTimeout(() => onAuthenticated(session.user).catch(e => console.warn('Auth state sync failed:', e)), 0);
+      if(S.user?.id!==session.user.id && !(authSetupTask&&authSetupOwner===session.user.id)){
+        setTimeout(() => {if(S.user?.id!==session.user.id && !(authSetupTask&&authSetupOwner===session.user.id))onAuthenticated(session.user).catch(e => console.warn('Auth state sync failed:', e));}, 0);
       }
     } else if(event === 'TOKEN_REFRESHED'){
       /* silent */
