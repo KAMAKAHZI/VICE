@@ -23,6 +23,27 @@ try{for(const width of [1440,390]){
  await page.evaluate(()=>go('sovereign'));await page.locator('#view').getByText('BASELINE MISMATCH',{exact:false}).first().waitFor();assert.equal(await page.locator('[data-inst="approve-proposal"]').count(),0,'Invalid proposal must not expose executive authorization');assert.equal(await page.locator('[data-inst="approve-device"]').count(),0,'Invalid proposal must not expose device authorization');
  await page.locator('[data-inst="enroll"]').click();try{await page.waitForFunction(()=>window.__instCalls.some(x=>x.name==='vice_exec_challenge'),{},{timeout:8000});}catch(e){const diagnostic=await page.evaluate(()=>({calls:window.__instCalls,toastText:document.querySelector('#toasts')?.innerText,button:document.querySelector('[data-inst="enroll"]')?.outerHTML,crypto:!!crypto?.subtle,indexedDB:!!indexedDB}));throw new Error('Executive key enrollment did not reach challenge RPC: '+JSON.stringify({diagnostic,pageErrors:errors}),{cause:e});}
  const key=await page.evaluate(()=>window.__instCalls.find(x=>x.name==='vice_exec_challenge').args.p_public_key);assert.equal(key.kty,'EC');assert(!key.d);assert.equal(key.x.length,43);
+ // Abort the key-store transaction deliberately: an aborted write must reject, never authorize.
+ const abortOutcome=await page.evaluate(async()=>{
+  const opened=await new Promise((resolve,reject)=>{const req=indexedDB.open('vice-executive-keys',1);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+  try{
+   return await new Promise((resolve,reject)=>{
+    const tx=opened.transaction('keys','readwrite');
+    const req=tx.objectStore('keys').put({test:true},'abort-regression');
+    req.onerror=()=>reject(req.error);
+    tx.oncomplete=()=>resolve('COMMITTED');
+    tx.onabort=()=>resolve('ABORTED');
+    tx.onerror=()=>resolve('ERROR');
+    tx.abort();
+   });
+  }finally{opened.close()}
+ });
+ assert.equal(abortOutcome,'ABORTED','IndexedDB transaction abort must not report a successful commit');
+ const noAbortedRecord=await page.evaluate(async()=>{
+  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('vice-executive-keys',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+  try{return await new Promise((resolve,reject)=>{const tx=db.transaction('keys','readonly'),r=tx.objectStore('keys').get('abort-regression');r.onsuccess=()=>resolve(r.result===undefined);r.onerror=()=>reject(r.error)})}finally{db.close()}
+ });
+ assert.equal(noAbortedRecord,true,'Aborted key write must not persist a record');
  await page.evaluate(()=>go('self-diagnosis'));await page.locator('#view').getByText('Database integrity',{exact:true}).waitFor();assert.match(await page.locator('#view').textContent(),/NOT CERTIFIED/);
  await page.evaluate(()=>{S.profile.role='HOLDER';S.tab='omega';renderMain();});assert.match(await page.locator('#view').textContent(),/CEO or CFO access required/);assert.deepEqual(errors,[]);console.log('PASS institutional UI '+width+': model, lead save/search, escaped content, outreach, key enrollment, blocked scaling, honest diagnostics and role isolation');await page.close();
 }}finally{await browser.close();await new Promise(r=>server.close(r));}
