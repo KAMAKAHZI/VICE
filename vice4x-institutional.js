@@ -75,7 +75,7 @@ const ViceInstitutional=(()=>{
    !Number.isSafeInteger(n(v.vice_units))||!Number.isSafeInteger(n(v.v4x_units))||
    n(v.vice_units)<0||n(v.v4x_units)<0)throw Error('Enter nonnegative whole numbers');
   if(n(v.vice_units)===0&&n(v.v4x_units)===0)throw Error('Enter at least one unit');
-  if(state.ouvRelease?.model_usable===false)throw Error('Release model is paused until ledger reconciliation and baseline verification pass');
+  if(!state.ouvRelease||state.ouvRelease.model_usable!==true||state.ouvRelease.status!=='MODEL_ONLY')throw Error('Release model is paused until ledger reconciliation and baseline verification pass');
   const q=await rpc('vice_ouv_release_quote',{p_vice_units:n(v.vice_units),p_v4x_units:n(v.v4x_units),p_pool:v.pool});
   const pct=Number(q.appreciation_percent||0),a=q.modeled_ouv||{},official=q.official_ouv||{};
   modal('Distribution model · verified SQL arithmetic',
@@ -130,7 +130,7 @@ const ViceInstitutional=(()=>{
     ${!valid?'<span class="meta">Authorization unavailable: proposal must be in valid REVIEW status.</span>':''}</div></section>`;
   }).join('')||'<section class="band"><p>No structural proposals recorded.</p></section>';
   const ou=state.ouvRelease;
-  const modelBand=ou&&ou.model_usable!==false?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">MODEL ONLY — GOVERNANCE NOT ACTIVATED</span></div>'+
+  const modelBand=ou&&ou.model_usable===true&&ou.status==='MODEL_ONLY'?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">MODEL ONLY — GOVERNANCE NOT ACTIVATED</span></div>'+
    '<p class="meta">Source: committed strategic issuance and estate reserve distribution records · fixed total of 20,000,000 units · 1:160 reference ratio.</p>'+
    '<p>Net newly distributed since model baseline: <strong>'+esc(String(ou.incremental_units))+' units</strong> · mathematical change <strong>'+esc(String(ou.appreciation_percent))+'%</strong>.</p>'+
    '<p>Modeled VICE: <strong>'+ouvMoney8(ou.modeled_ouv?.VICE)+'</strong> · Modeled V4X: <strong>'+ouvMoney8(ou.modeled_ouv?.V4X)+'</strong></p>'+
