@@ -91,3 +91,6 @@ assert(html.includes("const kind=String(file.type||'').startsWith('image/')?'ima
 
 assert(html.includes('authSetupTask&&authSetupOwner===session.user.id'),'SIGNED_IN must deduplicate an in-flight session restore');
 assert(html.includes('periodic access verification runs separately'),'repeat SIGNED_IN must not cause duplicate member access RPC');
+
+assert(html.includes('viceLoginCooldownSeconds()'),'authentication cooldown must prevent repeated 429 requests');
+assert(html.includes('viceLoginRetryAfter=Date.now()+60000'),'HTTP 429 must activate a cooldown');

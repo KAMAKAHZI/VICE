@@ -2179,6 +2179,9 @@ function closeModal(){ $('modal')?.classList.remove('on'); }
    AUTH
    ═══════════════════════════════════════════════════════════════════ */
 let authBusy = false;
+// A local cooldown prevents accidental bursts after an upstream 429.
+let viceLoginRetryAfter=0;
+function viceLoginCooldownSeconds(){return Math.max(0,Math.ceil((viceLoginRetryAfter-Date.now())/1000));}
 
 async function signInWithGoogle(){
   if(!(await viceAuthReady)){showViceClockWarning();return;}
@@ -2205,6 +2208,8 @@ async function signInWithGoogle(){
 async function login(){
   if(!(await viceAuthReady)){showViceClockWarning();return;}
   if(authBusy) return;
+  const wait=viceLoginCooldownSeconds();
+  if(wait){toast('Sign-in temporarily limited. Retry in '+wait+' seconds.','warn');return;}
   authBusy = true;
   try{
     const identifier = normalizeLoginIdentifier($('lIdentifier').value);
@@ -2220,11 +2225,13 @@ async function login(){
     if(btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
     if(error){
+      if(error.status===429)viceLoginRetryAfter=Date.now()+60000;
       toast(error.status===429 ? 'Sign-in rate limit reached. Stop retrying, sync Windows time, close duplicate VICE tabs, and retry after the limit resets.' : 'Login failed: ' + error.message, error.status===429?'warn':'error');
       if(btn){ btn.disabled=false; btn.textContent='Log In'; }
       authBusy=false;
       return;
     }
+    viceLoginRetryAfter=0;
     await onAuthenticated(data.user);
   }catch(e){
     toast('Login failed: ' + e.message,'error');
