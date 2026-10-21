@@ -94,3 +94,6 @@ assert(html.includes('periodic access verification runs separately'),'repeat SIG
 
 assert(html.includes('viceLoginCooldownSeconds()'),'authentication cooldown must prevent repeated 429 requests');
 assert(html.includes('viceLoginRetryAfter=Date.now()+60000'),'HTTP 429 must activate a cooldown');
+
+assert(html.includes('await viceRequireSecondFactor(user,epoch)'),'member hydration must require second factor when enrolled');
+assert(html.includes("case 'vice-signin-mfa-confirm'"),'MFA challenge action missing');

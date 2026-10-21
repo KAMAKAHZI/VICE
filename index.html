@@ -2367,6 +2367,7 @@ let authSetupOwner = null;
 let authSetupEpoch = -1;
 let authEpoch = 0;
 function clearMemberSession(){
+  if(viceMfaPending){const pending=viceMfaPending;viceMfaPending=null;pending.finish(false);}
   setSidebarOpen(false);
   try{Notify.clear();window.ViceComms?.clear();window.Vice4xOperations?.clear();window.ViceInstitutional?.clear();}catch{}
   authEpoch++;
@@ -2413,9 +2414,52 @@ function onAuthenticated(user){
   authSetupTask = completeAuthenticatedSetup(user,epoch).finally(() => { authSetupTask = null;authSetupOwner=null; });
   return authSetupTask;
 }
+// An enrolled authenticator must complete an AAL2 challenge before member data loads.
+// Password-recovery sessions are handled separately by the recovery UI.
+let viceMfaPending=null;
+async function viceRequireSecondFactor(user,epoch){
+ const assurance=await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+ if(epoch!==authEpoch)return false;
+ if(assurance.error)throw assurance.error;
+ if(assurance.data?.currentLevel==='aal2')return true;
+ if(assurance.data?.nextLevel!=='aal2')return true;
+ const factors=await sb.auth.mfa.listFactors();
+ if(epoch!==authEpoch)return false;
+ if(factors.error)throw factors.error;
+ const factor=(factors.data?.totp||[]).find(x=>x.status==='verified');
+ if(!factor)throw Error('An enrolled second factor is required but unavailable. Contact support.');
+ if(viceMfaPending&&viceMfaPending.userId===user.id)return viceMfaPending.promise;
+ let finish;
+ const promise=new Promise(resolve=>{finish=resolve});
+ const pending={userId:user.id,epoch,factorId:factor.id,promise,finish};
+ viceMfaPending=pending;
+ openModal('Verify your authenticator','<p class="note">Enter the current 6-digit code from your authenticator to finish signing in.</p>'+
+ '<div class="ff"><label>Authenticator code</label><input id="viceSignInTotp" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>'+
+ '<div class="mact"><button class="btn btn-p" data-act="vice-signin-mfa-confirm">Verify and continue</button></div>');
+ return promise;
+}
+async function viceCompleteSecondFactor(){
+ const pending=viceMfaPending;
+ if(!pending)return;
+ const code=String($('viceSignInTotp')?.value||'').trim();
+ if(!/^\\d{6}$/.test(code)){toast('Enter a 6-digit authenticator code','warn');return;}
+ const btn=document.querySelector('[data-act="vice-signin-mfa-confirm"]');
+ if(btn)btn.disabled=true;
+ try{
+  const result=await sb.auth.mfa.challengeAndVerify({factorId:pending.factorId,code});
+  if(result.error)throw result.error;
+  if(pending.epoch!==authEpoch)throw Error('Session changed; sign in again');
+  viceMfaPending=null;
+  closeModal();
+  pending.finish(true);
+ }catch(e){toast('Authenticator verification: '+e.message,'error');}
+ finally{if(btn)btn.disabled=false;}
+}
 async function completeAuthenticatedSetup(user,epoch=authEpoch){
   const current=()=>epoch===authEpoch;
   try {
+    if(!(await viceRequireSecondFactor(user,epoch)))return;
+    if(!current())return;
     if(!(await checkMemberAccess(epoch)))return;
     const inviteCode=sessionStorage.getItem('pending_invite') ||
       new URLSearchParams(location.search).get('invite');
@@ -3193,6 +3237,7 @@ document.addEventListener('click', (e) => {
     case 'google-sign-in': signInWithGoogle(); return;
     case 'forgot': forgotPassword(); return;
     case 'vice-health-check': viceServiceDiagnostics(); return;
+    case 'vice-signin-mfa-confirm': void viceCompleteSecondFactor(); return;
     case 'auth-reset-complete': applyRecoveredPassword(); return;
     case 'invite-help': openInviteHelp(); return;
     case 'sign-out': logout(); return;
