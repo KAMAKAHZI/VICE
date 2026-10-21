@@ -2957,7 +2957,7 @@ async function persistIruEvent(ev,correlationId=crypto.randomUUID()){
   if(error)throw error;
   if(['UNITS_ISSUED','UNITS_RETIRED'].includes(ev?.type)) {
     S.tokenCerts.loaded=false;
-    ViceTokenCertificates.load().then(()=>{if(S.tab==='iru')renderMain();}).catch(()=>{});
+    ViceTokenCertificates.load().then(()=>{if(S.tab==='iru'||S.tab==='documents')renderMain();}).catch(()=>{});
   }
   return data;
 }
@@ -10690,12 +10690,12 @@ function viewDocuments(el){
       </div>
     </div>
     <section class="band">
-      <div class="band-head"><h2>Token Certificates · Issuer Registry</h2><span class="meta">${S.tokenCerts.loading?'Loading…':S.tokenCerts.list.length}</span></div>
+      <div class="band-head"><h2>Token Certificates · Issuer Registry</h2><span class="meta">${S.tokenCerts.loading?'Loading…':S.tokenCerts.list.length}</span><button class="btn btn-xs btn-gd" data-act="iru-cert-refresh">Refresh</button></div>
       ${S.tokenCerts.error?'<p class="muted" role="alert">Certificate registry unavailable: '+esc(S.tokenCerts.error)+'</p>':''}
       ${S.tokenCerts.list.filter(c=>isOwner()||c.profile_id===S.user?.id||c.holder_client_id===S.profile?.clientId)
         .map(c=>`<div class="row"><span class="row-l"><b>${esc(c.cert_id)}</b><span class="meta">${esc(c.kind)} · ${esc(c.program)} · ${esc(fmtD(c.issued_at))}</span></span>
           <span class="row-r"><button class="btn btn-xs btn-gd" data-act="iru-cert-preview" data-id="${esc(c.cert_id)}">Preview</button>
-          <button class="btn btn-xs btn-g" data-act="iru-cert-download" data-id="${esc(c.cert_id)}">Download</button></span></div>`).join('')||'<p class="muted">No verified IRU certificates yet.</p>'}
+          <button class="btn btn-xs btn-g" data-act="iru-cert-download" data-id="${esc(c.cert_id)}">Download</button></span></div>`).join('')||(S.tokenCerts.loading?'<p class="muted">Loading issuer certificates…</p>':S.tokenCerts.error?'<p class="muted">Certificate registry could not be loaded. Use Refresh to retry.</p>':'<p class="muted">No certificates found for this account.</p>')}
     </section>
     <section class="band">
       <div class="band-head"><h2>Library</h2><span class="meta">${docs.length}</span></div>
