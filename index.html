@@ -10129,17 +10129,18 @@ function viceCommsBubble(value){
    const filename=esc(String(item.name||'Attachment').slice(0,120));
    if(item.kind==='image')return '<div class="vice-comms-media"><img data-vice-chat-media="'+esc(path)+'" loading="lazy" alt="'+filename+'" style="max-width:min(100%,320px);max-height:320px;object-fit:contain;border-radius:8px"><small class="meta">'+filename+'</small></div>';
    if(item.kind==='audio')return '<div class="vice-comms-media"><audio data-vice-chat-media="'+esc(path)+'" controls preload="none" style="width:min(100%,320px)"></audio><small class="meta">'+filename+'</small></div>';
+   if(item.kind==='file')return '<div class="vice-comms-media"><a href="#" data-vice-chat-file="'+esc(path)+'" download="'+filename+'" rel="noopener noreferrer">Download '+filename+'</a></div>';
   }catch(e){return '[Invalid media attachment]'}
  }
  return esc(msg).replace(/\r?\n/g,'<br>');
 }
 async function viceHydrateChatMedia(root){
  if(!root||!S.user||APP_MODE!=='LIVE')return;
- await Promise.all(Array.from(root.querySelectorAll('[data-vice-chat-media]')).map(async el=>{
+ await Promise.all(Array.from(root.querySelectorAll('[data-vice-chat-media],[data-vice-chat-file]')).map(async el=>{
   try{
-   const result=await sb.storage.from('vice-chat-media').createSignedUrl(el.dataset.viceChatMedia,300);
+   const result=await sb.storage.from('vice-chat-media').createSignedUrl((el.dataset.viceChatMedia||el.dataset.viceChatFile),300);
    if(result.error)throw result.error;
-   if(el.isConnected&&result.data?.signedUrl)el.src=result.data.signedUrl;
+   if(el.isConnected&&result.data?.signedUrl){if(el.matches('[data-vice-chat-file]'))el.href=result.data.signedUrl;else el.src=result.data.signedUrl;}
   }catch(_){if(el.isConnected)el.replaceWith(document.createTextNode('Attachment unavailable or access denied'))}
  }));
 }
