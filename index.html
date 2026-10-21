@@ -2640,7 +2640,15 @@ async function refreshDaoConfig(){
     return;
   }
   S.daoPriceSyncStatus=Math.abs(v4x-vice*160)<0.00000001?'CANONICAL':'CONFLICT';
+  const viceOuvChanged=Number(S.iruClasses[0].ouv)!==vice||Number(S.iruClasses[1].ouv)!==v4x;
   S.iruClasses[0].ouv=vice;S.iruClasses[1].ouv=v4x;
+  if(viceOuvChanged){
+    window.dispatchEvent(new CustomEvent('vice:official-ouv-updated',{detail:{vice,v4x,effectiveAt:data.updated_at}}));
+    // All portfolio figures and certificate previews must derive from canonical server OUV.
+    // Historical signed certificates remain immutable; reissue separately when authorized.
+    if(['command','portfolio','iru','documents','governance','admin'].includes(S.tab))renderMain();
+    renderNav();
+  }
   // Banner is driven by effective, server-recorded OUV versions only.
   // Never label a submitted proposal or unverified percentage as appreciation.
   window.viceOuvBannerText='VICE ◆ V4X ◆ OUV RECORD ACTIVE';
