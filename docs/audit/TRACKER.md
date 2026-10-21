@@ -9,10 +9,10 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 | FIX-1 | Review PR #9 test expectations | Phase 0 | P0 | OPEN | FIX-0 | agent | PR #9 | testing/evidence |
 | FIX-2 | Edge function provenance and drift | Phase 0 | P0 | BLOCKED | Supabase CLI access for vice-passkey source | agent/Caasi | Source absent from git; fail-closed function | deployment |
 | FIX-3 | Browser diagnostics and readiness | Phase 0 | P0 | OPEN | FIX-1 | agent | tests/vice-institutional-browser.mjs | testing/evidence |
-| FIX-4 | IndexedDB and enrollment | Phase 0 | P0 | IN-PROGRESS | FIX-3 | agent | 013b255, af3cf2a, 423cecb, cf32e3c; browser acceptance rerun pending | auth/session |
+| FIX-4 | IndexedDB and enrollment | Phase 0 | P0 | IN-PROGRESS | FIX-3 | agent | 013b255, af3cf2a, 423cecb, 8b038ec; institutional browser passed run 39679133289; direct application abort tests still needed | auth/session |
 | FIX-5 | Accessible persistent error toasts | Phase 0 | P1 | OPEN | FIX-3 | agent | index.html | frontend |
 | FIX-6 | Strict test section markers | Phase 0 | P1 | PASS | FIX-1 | agent | 7152dad: regression tests; release integrity run 39677635671 passed | testing/evidence |
-| FIX-7 | CI and supply chain | Phase 0 | P0 | IN-PROGRESS | FIX-6 | agent | 14aab81, 6d906d9: expanded CI triggers; acceptance run 39678148083 pending | testing/evidence |
+| FIX-7 | CI and supply chain | Phase 0 | P0 | IN-PROGRESS | FIX-6 | agent | 14aab81, 6d906d9, 62a3ee3: expanded CI triggers; acceptance run 39679133289 PASS; supply-chain pinning pending | testing/evidence |
 | FIX-8 | Evidence registers and score | Phase 0 | P0 | OPEN | FIX-7 | agent | docs/audit/ | testing/evidence |
 | FIX-9 | Phase 0 review and handoff | Phase 0 | P0 | OPEN | FIX-0 through FIX-8 | agent/Caasi | Pending | deployment |
 | PKG-01 | Baseline code audit | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
