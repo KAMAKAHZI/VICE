@@ -10525,20 +10525,29 @@ function viewIRU(el){
 
   // Official issuer references come from vice_dao_config; replayed IRU journal
   // snapshots are historical and must never override the current policy.
-  const officialCentsFor=(held,programIndex)=>{
-    if(APP_MODE!=='LIVE')return null;
-    if(S.daoPriceSyncStatus!=='CANONICAL')return null;
-    const price=Number(S.iruClasses[programIndex]?.ouv);
-    if(!Number.isFinite(price)||price<0)return null;
-    const scaled=BigInt(Math.round(price*100000000)); // authoritative 8dp server reference
-    return (BigInt(held)*scaled+500000n)/1000000n; // rounded USD cents
-  };
-  const viceLiveRef=officialCentsFor(mine.VICE.held,0);
-  const v4xLiveRef=officialCentsFor(mine.V4X.held,1);
+  // Canonical My IRU display matches SQL: add *exact* eight-decimal line
+  // values first, then round the combined holder reference ONCE to cents.
+  // Independent per-class rounding can overstate a displayed total by $0.01.
+  // Allocate any sub-cent reconciliation difference to the V4X display line.
+  const officialScaled=APP_MODE==='LIVE'&&S.daoPriceSyncStatus==='CANONICAL'
+    ?S.iruClasses.slice(0,2).map(c=>{
+      const n=Number(c?.ouv);
+      return Number.isFinite(n)&&n>0?BigInt(Math.round(n*100000000)):null;
+    }):null;
+  const canShowOfficial=!!officialScaled&&officialScaled.length===2
+    &&officialScaled.every(p=>p!==null)
+    &&officialScaled[1]===officialScaled[0]*160n;
+  const roundedCents=n=>(n+500000n)/1000000n;
+  const viceLiveRef=canShowOfficial
+    ?roundedCents(BigInt(mine.VICE.held)*officialScaled[0]):null;
+  const combinedLiveRef=canShowOfficial
+    ?roundedCents(BigInt(mine.VICE.held)*officialScaled[0]
+                 +BigInt(mine.V4X.held)*officialScaled[1]):null;
+  const v4xLiveRef=canShowOfficial?combinedLiveRef-viceLiveRef:null;
   const viceShownRef=APP_MODE==='LIVE'?viceLiveRef:mine.VICE.refCents;
   const v4xShownRef=APP_MODE==='LIVE'?v4xLiveRef:mine.V4X.refCents;
-  const combinedShownRef=viceShownRef!==null&&v4xShownRef!==null
-    ?viceShownRef+v4xShownRef:null;
+  const combinedShownRef=APP_MODE==='LIVE'?combinedLiveRef
+    :viceShownRef!==null&&v4xShownRef!==null?viceShownRef+v4xShownRef:null;
   el.innerHTML = `
     <div class="ph">
       <div><div class="eb">My Record</div><h1>My <em>IRU &amp; Units</em></h1>
