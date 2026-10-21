@@ -10456,11 +10456,37 @@ function viceOuvMemberModelHtml(){
     '<div class="rw"><span class="rw-l">Net new distribution since model baseline</span><span class="rw-v">'+esc(fmtNum(Number(d.incremental_distributed_units||0)))+' units · '+esc(String(d.distribution_model_change_percent||0))+'% modeled</span></div>'+
     note+'</section>';
 }
+
+function viceOuvIssuerIndexHtml(){
+ if(APP_MODE!=='LIVE'||!S.user?.id)return '';
+ const uid=String(S.user.id);
+ let c=window.__viceOuvIssuerModel;
+ if(!c||c.uid!==uid){c={uid,loading:false,at:0,data:null};window.__viceOuvIssuerModel=c;}
+ if(!c.loading&&(!c.at||Date.now()-c.at>=60000)){
+  const epoch=authEpoch;c.loading=true;
+  sb.rpc('vice_ouv_release_snapshot').then(({data,error})=>{
+   if(authEpoch!==epoch||String(S.user?.id)!==uid)return;
+   c.data=error?null:data;c.at=Date.now();
+  }).catch(e=>{console.warn('Issuer OUV model refresh:',e.message);if(authEpoch===epoch){c.data=null;c.at=Date.now()}})
+  .finally(()=>{c.loading=false;if(authEpoch===epoch&&S.tab==='iru'&&String(S.user?.id)===uid)renderMain()});
+ }
+ const info='<p class="note">This is an internal fixed-supply release index, not a market price, actual appreciation, cash, appraisal, or officially effective OUV. Legal total supply stays fixed and reserve balances decline when units transfer.</p>';
+ if(!c.data)return '<section class="band"><div class="band-head"><h2>Distribution Index</h2><span class="bdg gd">MODEL ONLY</span></div><p class="meta">Loading verified distribution arithmetic…</p>'+info+'</section>';
+ const d=c.data;
+ const fmt8=x=>Number.isFinite(Number(x))?'$'+Number(x).toFixed(8):'—';
+ return '<section class="band"><div class="band-head"><h2>Distribution Index</h2><span class="bdg gd">MODEL ONLY · NOT OFFICIAL OUV</span></div>'+
+ (d.model_usable===false?'<p class="note warn">Model paused: accounting reconciliation or base OUV needs review.</p>':
+  '<div class="rw"><span class="rw-l">Net new units since index baseline</span><span class="rw-v">'+esc(fmtNum(Number(d.incremental_units||0)))+' of 20,000,000 · '+esc(String(d.appreciation_percent||0))+'% model</span></div>'+
+  '<div class="rw"><span class="rw-l">Model VICE / V4X references</span><span class="rw-v">'+esc(fmt8(d.modeled_ouv?.VICE))+' / '+esc(fmt8(d.modeled_ouv?.V4X))+'</span></div>'+
+  '<div class="rw"><span class="rw-l">Official VICE / V4X references</span><span class="rw-v">'+esc(fmt8(d.official_ouv?.VICE))+' / '+esc(fmt8(d.official_ouv?.V4X))+'</span></div>')+
+ info+'</section>';
+}
 function viewIRU(el){
   // Founder executive identity controls the issuer reserve; it is not
   // implicitly an individually issued VIP/holder allocation.
   if(isOwner()){
-    const reserve=7500000;
+    const viceReserve=managedReserveUnits('VICE');
+    const v4xReserve=managedReserveUnits('V4X');
     const vice=Number(S.iruClasses[0]?.ouv)||0;
     const v4x=Number(S.iruClasses[1]?.ouv)||0;
     const fmt=v=>Number(v).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
@@ -10470,14 +10496,15 @@ function viewIRU(el){
       <section class="band"><div class="band-head"><h2>Issuer reserve · VC-000001</h2><span class="bdg gd">INSTITUTIONAL</span></div>
         <div class="rw"><span class="rw-l">Legal entity</span><span class="rw-v">VICE Capital Inc.</span></div>
         <div class="rw"><span class="rw-l">Authorized controller</span><span class="rw-v">Founder &amp; CEO</span></div>
-        <div class="rw"><span class="rw-l">VICE reserve units</span><span class="rw-v">${fmtNum(reserve)}</span></div>
-        <div class="rw"><span class="rw-l">V4X reserve units</span><span class="rw-v">${fmtNum(reserve)}</span></div>
+        <div class="rw"><span class="rw-l">VICE unassigned reserve units</span><span class="rw-v">${fmtNum(viceReserve)}</span></div>
+        <div class="rw"><span class="rw-l">V4X unassigned reserve units</span><span class="rw-v">${fmtNum(v4xReserve)}</span></div>
         <div class="rw"><span class="rw-l">Current VICE management OUV</span><span class="rw-v">${fmt(vice)}</span></div>
         <div class="rw"><span class="rw-l">Current V4X management OUV</span><span class="rw-v">${fmt(v4x)}</span></div>
-        <div class="rw"><span class="rw-l">Combined reserve management reference</span><span class="rw-v">${fmt(reserve*(vice+v4x))}</span></div>
+        <div class="rw"><span class="rw-l">Combined reserve management reference</span><span class="rw-v">${fmt(viceReserve*vice+v4xReserve*v4x)}</span></div>
         <p class="note">Reference calculations use the current displayed issuer OUV and stated reserve allocation, not an independently appraised fair market value. Reserve control does not constitute personal ownership. Historical certificates and signed balances are not modified by this display.</p>
         <div class="actions"><button class="btn btn-gd" data-go="governance">Governance</button><button class="btn btn-gd" data-go="admin">Propose OUV revision</button></div>
-      </section>`;
+      </section>
+      ${viceOuvIssuerIndexHtml()}`;
     return;
   }
   if(!S.tokenCerts.loaded&&!S.tokenCerts.loading&&S.user?.id&&S.user.id!=='sim-user')
