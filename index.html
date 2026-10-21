@@ -13799,10 +13799,10 @@ ${txt(1275,3110,'VICE CAPITAL INC.  •  OFFICIAL ACADEMY COMPLETION RECORD',22,
     }finally{URL.revokeObjectURL(src);}
   }
   async function downloadPNG(c){
-    const blob=await toPNG(c);const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download=`${c.id}-VICE-Certificate.png`;
+    let blob,extension='png';try{blob=await toPNG(c);}catch(e){console.warn('Certificate PNG export unavailable, preserving vector certificate:',e);blob=new Blob([render(c)],{type:'image/svg+xml;charset=utf-8'});extension='svg';toast('PNG restricted by browser; exporting full-resolution vector SVG instead.','warn');}const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`${c.id}-VICE-Certificate.${extension}`;
     document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
-    toast('Certificate PNG exported at 2550 × 3300','success');
+    if(extension==='png')toast('Certificate PNG exported at 2550 × 3300','success');
   }
   function print(c){
     const w=window.open('','_blank');if(!w){toast('Allow pop-ups to print your certificate','warn');return;}
