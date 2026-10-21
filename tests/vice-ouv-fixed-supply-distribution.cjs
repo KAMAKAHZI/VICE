@@ -207,3 +207,14 @@ test('audited issuance less correction equals the current strategic supply count
  assert.equal(active.v4x,730999n);
  assert.equal(active.vice+active.v4x,1464498n);
 });
+
+test('live governance model refreshes on a safe bounded cadence without signing in again',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const js=fs.readFileSync(path.resolve(__dirname,'../vice4x-institutional.js'),'utf8');
+ assert.match(js,/lastRefreshAt/);
+ assert.match(js,/window\.setInterval\(/);
+ assert.match(js,/Date\.now\(\)-state\.lastRefreshAt<45000/);
+ assert.match(js,/document\.visibilityState!=='visible'/);
+ assert.match(js,/if\(APP_MODE!=='LIVE'/);
+ assert.doesNotMatch(js,/setInterval\([\s\S]{0,700}signInWithPassword/);
+});
