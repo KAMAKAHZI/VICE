@@ -2604,6 +2604,24 @@ async function refreshViceScarcitySnapshot(){
   S.scarcitySyncStatus='VERIFIED';
   window.dispatchEvent(new CustomEvent('vice:scarcity-reference-updated',{detail:{asOf:data.as_of}}));
 }
+// Governance execution readiness is server-authoritative. Never infer execution
+// from MFA success, recorded votes, or a client-side proposal status.
+async function viceReadGovernanceReadiness(proposalId){
+ if(APP_MODE!=='LIVE'||!S.user||!sb)throw Error('Authenticated LIVE session required');
+ const id=String(proposalId||'').trim();
+ if(!/^PROP-[A-Z0-9-]{8,80}$/.test(id))throw Error('Invalid governance proposal identifier');
+ const {data,error}=await sb.rpc('vice_ouv_activation_readiness',{p_proposal_id:id});
+ if(error)throw error;
+ if(!data||data.proposal_id!==id)throw Error('Unverified governance readiness response');
+ return data;
+}
+window.viceGovernanceReadiness=async function(proposalId){
+ const result=await viceReadGovernanceReadiness(proposalId);
+ const blockers=Array.isArray(result.next_unmet_gates)?result.next_unmet_gates:[];
+ const status=result.can_apply===true?'All published readiness gates passed; execution still requires the authorized backend executor.':'Not executable: '+(blockers.length?blockers.join(', '):'backend authorization pending');
+ toast(status,result.can_apply===true?'info':'warn');
+ return result;
+};
 async function refreshIssuerReferences(){
   const epoch=authEpoch;
   if(!S.user||APP_MODE!=='LIVE')return;
