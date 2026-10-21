@@ -1,6 +1,6 @@
 'use strict';
 const ViceInstitutional=(()=>{
- const core=ViceInstitutionalCore,blank=()=>({owner:null,epoch:0,loading:false,loaded:false,error:null,leads:[],drafts:[],financings:[],proposals:[],signers:[],authorizations:[],ouvRelease:null,diagnostics:null,providers:null,model:{principal:1000000,months:3,grossProfit:0,costs:0,lossCarry:0,lead_id:'',evidence:''}});let state=blank();
+ const core=ViceInstitutionalCore,blank=()=>({owner:null,epoch:0,loading:false,loaded:false,error:null,leads:[],drafts:[],financings:[],proposals:[],signers:[],authorizations:[],ouvRelease:null,lastRefreshAt:0,diagnostics:null,providers:null,model:{principal:1000000,months:3,grossProfit:0,costs:0,lossCarry:0,lead_id:'',evidence:''}});let state=blank();
  const allowed=()=>isRegistryOperator(),label=s=>String(s||'').replaceAll('_',' '),money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(n)||0);
  function clear(){const epoch=state.epoch+1;state=blank();state.epoch=epoch;}
  function owner(){if(state.owner!==S.user?.id){clear();state.owner=S.user?.id;}}
@@ -14,9 +14,24 @@ const ViceInstitutional=(()=>{
    const [diagnostics,authorizations,ouvRelease]=await Promise.all([rpc('vice_institutional_diagnostics'),rpc('vice_sovereign_feed'),rpc('vice_ouv_release_snapshot').catch(e=>({error:String(e.message||e)}))]);let providers;try{providers=await edge({action:'status'});}catch(e){providers={error:e.message};}
    if(epoch!==state.epoch||state.owner!==S.user?.id)return;
    [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.diagnostics=diagnostics;state.authorizations=Array.isArray(authorizations)?authorizations:[];state.ouvRelease=ouvRelease?.error?null:ouvRelease||null;state.providers=providers;state.error=null;
-  }catch(e){if(epoch===state.epoch)state.error=e.message;}finally{if(epoch===state.epoch){state.loaded=true;state.loading=false;if(['omega','sovereign','self-diagnosis'].includes(S.tab))renderMain();}}
+  }catch(e){if(epoch===state.epoch)state.error=e.message;}finally{if(epoch===state.epoch){state.loaded=true;state.loading=false;state.lastRefreshAt=Date.now();if(['omega','sovereign','self-diagnosis'].includes(S.tab))renderMain();}}
  }
- function load(){owner();if(!state.loaded&&!state.loading)queueMicrotask(refresh);}
+ function load(){
+  owner();
+  if(state.loading || !allowed())return;
+  if(!state.loaded || Date.now()-state.lastRefreshAt>45000)queueMicrotask(refresh);
+ }
+ // Live institutional data is refreshed without manual page reload after a
+ // distribution or sovereign vote. The loop never reauthenticates or changes balances.
+ if(typeof window!=='undefined' && typeof document!=='undefined' && typeof window.setInterval==='function'){
+  window.setInterval(()=>{
+   if(APP_MODE!=='LIVE'||!S.user?.id||document.visibilityState!=='visible'||!allowed())return;
+   if(!['sovereign','self-diagnosis'].includes(S.tab)||state.loading)return;
+   if(Date.now()-state.lastRefreshAt<45000)return;
+   refresh().catch(err=>console.warn('Institutional background refresh deferred',err));
+  },45000);
+ }
+
  const notice=()=>state.error?`<p class="note warn">Records unavailable: ${esc(state.error)}</p>`:!state.loaded?'<p class="meta" role="status">Loading confirmed records…</p>':'';
  const button=(act,text,attrs='')=>`<button type="button" class="btn btn-g" data-inst="${act}" ${attrs}>${text}</button>`;
  const field=(key,title,value='',type='text',attrs='')=>`<label class="field">${title}<input name="${key}" type="${type}" value="${esc(String(value??''))}" ${attrs}></label>`;
