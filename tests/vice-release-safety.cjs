@@ -83,3 +83,6 @@ assert(html.includes('S.tokenCerts.list.filter(c=>!c.revoked&&'), 'Documents mus
 assert(html.includes(')).filter(c=>!c.revoked);'), 'IRU registry must exclude revoked certificates');
 const comms=read('vice4x-comms.js');
 assert(comms.includes("m.kind==='file'?'File attachment'"),'Comms notification must recognize file attachments');
+
+assert(html.includes("'application/pdf':'pdf','text/plain':'txt'"),'VICE Link PDF and text attachment mapping missing');
+assert(html.includes('kind===\'file\'&&!['),'VICE Link file-kind gate missing');
