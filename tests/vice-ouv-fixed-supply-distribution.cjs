@@ -163,3 +163,20 @@ test('Each holder official IRU total rounds both 8-decimal references only once'
  assert.match(html,/const v4xLiveRef=canShowOfficial\?combinedLiveRef-viceLiveRef:null/);
  assert.match(html,/combinedShownRef=APP_MODE==='LIVE'\?combinedLiveRef/);
 });
+
+test('CEO estate reserve portfolio never falls back to unassigned 7.5M when live ledger fails',()=>{
+ const fs=require('node:fs'),path=require('node:path'),html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
+ const code=html.slice(html.indexOf('function managedReserveUnits(program){'),html.indexOf('function managedReserveUsd(){'));
+ assert.match(code,/if\(APP_MODE==='LIVE'\)/);
+ assert.match(code,/if\(ledgerValue===undefined\|\|ledgerValue===null\)return 0/);
+ assert.match(code,/n<=7500000\?n:0/);
+});
+test('Background live sync reloads authoritative strategic and estate book after new distributions',()=>{
+ const fs=require('node:fs'),path=require('node:path'),html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
+ const code=html.slice(html.indexOf('function startViceSync(){'),html.indexOf('async function hydrateData(){'));
+ assert.match(code,/viceSyncInFlight/);
+ assert.match(code,/sb\.rpc\('get_my_holder'\)/);
+ assert.match(code,/await hydrateData\(\)/);
+ assert.match(code,/await refreshEstateRegistry\(\)/);
+ assert.match(code,/await refreshIssuerReferences\(\)/);
+});
