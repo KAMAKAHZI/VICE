@@ -2367,7 +2367,7 @@ let authSetupOwner = null;
 let authSetupEpoch = -1;
 let authEpoch = 0;
 function clearMemberSession(){
-  if(viceMfaPending){const pending=viceMfaPending;viceMfaPending=null;pending.finish(false);}
+  if(viceMfaPending){const pending=viceMfaPending;viceMfaPending=null;clearTimeout(pending.timer);pending.finish(false);}
   setSidebarOpen(false);
   try{Notify.clear();window.ViceComms?.clear();window.Vice4xOperations?.clear();window.ViceInstitutional?.clear();}catch{}
   authEpoch++;
@@ -2432,6 +2432,7 @@ async function viceRequireSecondFactor(user,epoch){
  let finish;
  const promise=new Promise(resolve=>{finish=resolve});
  const pending={userId:user.id,epoch,factorId:factor.id,promise,finish};
+ pending.timer=setTimeout(()=>{if(viceMfaPending===pending){viceMfaPending=null;pending.finish(false);toast('Authenticator verification expired. Please sign in again.','warn');}},300000);
  viceMfaPending=pending;
  openModal('Verify your authenticator','<p class="note">Enter the current 6-digit code from your authenticator to finish signing in.</p>'+
  '<div class="ff"><label>Authenticator code</label><input id="viceSignInTotp" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>'+
@@ -2450,6 +2451,7 @@ async function viceCompleteSecondFactor(){
   if(result.error)throw result.error;
   if(pending.epoch!==authEpoch)throw Error('Session changed; sign in again');
   viceMfaPending=null;
+  clearTimeout(pending.timer);
   closeModal();
   pending.finish(true);
  }catch(e){toast('Authenticator verification: '+e.message,'error');}
