@@ -86,3 +86,5 @@ assert(comms.includes("m.kind==='file'?'File attachment'"),'Comms notification m
 
 assert(html.includes("'application/pdf':'pdf','text/plain':'txt'"),'VICE Link PDF and text attachment mapping missing');
 assert(html.includes('kind===\'file\'&&!['),'VICE Link file-kind gate missing');
+
+assert(html.includes("const kind=String(file.type||'').startsWith('image/')?'image':'file'"),'file picker must route PDFs and text as file attachments');

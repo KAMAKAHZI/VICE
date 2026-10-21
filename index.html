@@ -3203,7 +3203,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('change',e=>{
  if(e.target?.id!=='viceMediaInput')return;
  const file=e.target.files?.[0];e.target.value='';
- if(file)void viceSendMedia(file,'image').catch(error=>toast('Image failed: '+error.message,'error'));
+ if(file){const kind=String(file.type||'').startsWith('image/')?'image':'file';void viceSendMedia(file,kind).catch(error=>toast('Attachment failed: '+error.message,'error'));}
 });
 /* ═══════════════════════════════════════════════════════════════════
    ACCOUNT MENU
@@ -10246,7 +10246,7 @@ function commsChats(){
           `).join('') : '<p class="muted" style="padding:12px 0">No messages yet.</p>'}
         </div>
         <div class="cm-input">
-          <button class="btn btn-sm btn-g vice-attach" data-act="vice-attach" title="Attach image">+</button>
+          <button class="btn btn-sm btn-g vice-attach" data-act="vice-attach" title="Attach image or document">+</button>
           <button class="btn btn-sm btn-g vice-voice" data-act="vice-voice" title="Record or stop voice note">${viceVoiceRecording ? 'Stop' : 'Mic'}</button>
           <input type="file" id="viceMediaInput" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,text/plain" hidden>
           <input type="text" id="cmIn" placeholder="Message ${esc(prof.name)}…" data-enter="comms-dm-send">
@@ -10283,7 +10283,7 @@ function commsChats(){
           }).join('') : '<p class="muted" style="padding:12px 0">No messages yet — say hello.</p>'}
         </div>
         <div class="cm-input">
-          <button class="btn btn-sm btn-g vice-attach" data-act="vice-attach" title="Attach image">+</button>
+          <button class="btn btn-sm btn-g vice-attach" data-act="vice-attach" title="Attach image or document">+</button>
           <button class="btn btn-sm btn-g vice-voice" data-act="vice-voice" title="Record or stop voice note">${viceVoiceRecording ? 'Stop' : 'Mic'}</button>
           <input type="file" id="viceMediaInput" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,text/plain" hidden>
           <input type="text" id="cmIn" placeholder="Message ${esc(ch.name)}…" data-enter="comms-send">
