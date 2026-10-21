@@ -11,9 +11,9 @@ const ViceInstitutional=(()=>{
    if(APP_MODE!=='LIVE'||S.user?.id==='sim-user'){state.loaded=true;return;}
    const results=await Promise.all(['vice_omega_leads','vice_omega_outreach','vice_omega_financings','vice_sovereign_proposals','vice_exec_signers'].map(t=>sb.from(t).select('*').limit(500)));
    for(const r of results)if(r.error)throw r.error;
-   const [diagnostics,authorizations,ouvRelease]=await Promise.all([rpc('vice_institutional_diagnostics'),rpc('vice_sovereign_feed'),rpc('vice_ouv_release_snapshot')]);let providers;try{providers=await edge({action:'status'});}catch(e){providers={error:e.message};}
+   const [diagnostics,authorizations,ouvRelease]=await Promise.all([rpc('vice_institutional_diagnostics'),rpc('vice_sovereign_feed'),rpc('vice_ouv_release_snapshot').catch(e=>({error:String(e.message||e)}))]);let providers;try{providers=await edge({action:'status'});}catch(e){providers={error:e.message};}
    if(epoch!==state.epoch||state.owner!==S.user?.id)return;
-   [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.diagnostics=diagnostics;state.authorizations=Array.isArray(authorizations)?authorizations:[];state.ouvRelease=ouvRelease||null;state.providers=providers;state.error=null;
+   [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.diagnostics=diagnostics;state.authorizations=Array.isArray(authorizations)?authorizations:[];state.ouvRelease=ouvRelease?.error?null:ouvRelease||null;state.providers=providers;state.error=null;
   }catch(e){if(epoch===state.epoch)state.error=e.message;}finally{if(epoch===state.epoch){state.loaded=true;state.loading=false;if(['omega','sovereign','self-diagnosis'].includes(S.tab))renderMain();}}
  }
  function load(){owner();if(!state.loaded&&!state.loading)queueMicrotask(refresh);}
@@ -40,6 +40,7 @@ const ViceInstitutional=(()=>{
  function draftModal(d){const l=state.leads.find(l=>l.id===d.lead_id);modal('Outreach review',`<p><b>${esc(l?.full_name)} · ${esc(l?.company)}</b><br>${esc(l?.email||'No verified email')}</p><h3>${esc(d.subject)}</h3><pre class="inst-preview">${esc(d.body)}</pre><p class="meta">${esc(label(d.status))}${d.provider_id?' · Provider receipt '+esc(d.provider_id):''}</p>${d.last_error?`<p class="note warn">${esc(d.last_error)}</p>`:''}`,`${d.status==='DRAFT'?button('queue','Approve & queue',`data-id="${d.id}"`):''}${d.status==='QUEUED'?button('send','Send approved message',`data-id="${d.id}" ${state.providers?.email_configured?'':'disabled title="Email provider setup required"'}`):''}`);}
 
 
+ function ouvMoney8(n){const v=Number(n);return Number.isFinite(v)?'$'+v.toFixed(8):'UNVERIFIED';}
  function releaseQuotePreview(){
   modal('OUV distribution impact · mathematical model',
    '<p class="note warn">A token distribution does not create underlying economic value. This calculation is an internal scarcity/reference indicator ONLY, not the official OUV or an independently supported fair market valuation.</p>'+
@@ -64,8 +65,8 @@ const ViceInstitutional=(()=>{
   modal('Distribution model · verified SQL arithmetic',
    '<p class="meta">Net additional released units since model baseline: '+esc(String(q.incremental_units))+' of 20,000,000 fixed units.</p>'+
    '<p>Modeled distribution index change: <strong>'+esc(pct.toFixed(8))+'%</strong>.</p>'+
-   '<p>Modeled VICE OUV: <strong>'+money(a.VICE)+'</strong> (official: '+money(official.VICE)+')</p>'+
-   '<p>Modeled V4X OUV: <strong>'+money(a.V4X)+'</strong> (official: '+money(official.V4X)+')</p>'+
+   '<p>Modeled VICE OUV: <strong>'+ouvMoney8(a.VICE)+'</strong> (official: '+ouvMoney8(official.VICE)+')</p>'+
+   '<p>Modeled V4X OUV: <strong>'+ouvMoney8(a.V4X)+'</strong> (official: '+ouvMoney8(official.V4X)+')</p>'+
    '<p class="note warn">'+(q.major_governance_required?'MAJOR EVENT: new executive governance approval would be required. ':'')+'This is MODEL ONLY. No holder balances, official OUVs, certificates or financial values were changed.</p>');
  }
  function execRole(){return state.signers.find(x=>x.user_id===S.user?.id)?.role||null;}
@@ -116,8 +117,8 @@ const ViceInstitutional=(()=>{
   const modelBand=ou?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">MODEL ONLY — GOVERNANCE NOT ACTIVATED</span></div>'+
    '<p class="meta">Source: committed strategic issuance and estate reserve distribution records · fixed total of 20,000,000 units · 1:160 reference ratio.</p>'+
    '<p>Net newly distributed since model baseline: <strong>'+esc(String(ou.incremental_units))+' units</strong> · mathematical change <strong>'+esc(String(ou.appreciation_percent))+'%</strong>.</p>'+
-   '<p>Modeled VICE: <strong>'+money(ou.modeled_ouv?.VICE)+'</strong> · Modeled V4X: <strong>'+money(ou.modeled_ouv?.V4X)+'</strong></p>'+
-   '<p>Official VICE: <strong>'+money(ou.official_ouv?.VICE)+'</strong> · Official V4X: <strong>'+money(ou.official_ouv?.V4X)+'</strong></p>'+
+   '<p>Modeled VICE: <strong>'+ouvMoney8(ou.modeled_ouv?.VICE)+'</strong> · Modeled V4X: <strong>'+ouvMoney8(ou.modeled_ouv?.V4X)+'</strong></p>'+
+   '<p>Official VICE: <strong>'+ouvMoney8(ou.official_ouv?.VICE)+'</strong> · Official V4X: <strong>'+ouvMoney8(ou.official_ouv?.V4X)+'</strong></p>'+
    '<p class="note warn">Automatic OUV issuance policy is a draft. Financial appreciation cannot be inferred from redistribution alone. Official portfolio values do not change until a properly approved, auditable policy and structural executor are active.</p>'+
    '<div class="actions">'+button('ouv-model-quote','Preview 100,000 + 100,000 distribution')+'</div></section>'
    :'<section class="band"><p class="note warn">OUV release model unavailable; no automatic revaluation is active.</p></section>';
