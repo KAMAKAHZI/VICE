@@ -45,10 +45,14 @@ BEGIN
   SELECT c.vice_price,c.v4x_price
   INTO official_v,official_x
   FROM public.vice_dao_config c WHERE c.id=1;
-  from_v:=NULLIF(p.payload#>>'{parameters,previous_baseline,vice_ouv}','')::numeric;
-  from_x:=NULLIF(p.payload#>>'{parameters,previous_baseline,v4x_ouv}','')::numeric;
-  to_v:=NULLIF(p.payload#>>'{parameters,target_scaled_tier,vice_ouv}','')::numeric;
-  to_x:=NULLIF(p.payload#>>'{parameters,target_scaled_tier,v4x_ouv}','')::numeric;
+  from_v:=CASE WHEN (p.payload#>>'{parameters,previous_baseline,vice_ouv}') ~ '^[0-9]{1,15}([.][0-9]{1,8})?$'
+     THEN (p.payload#>>'{parameters,previous_baseline,vice_ouv}')::numeric ELSE NULL END;
+  from_x:=CASE WHEN (p.payload#>>'{parameters,previous_baseline,v4x_ouv}') ~ '^[0-9]{1,15}([.][0-9]{1,8})?$'
+     THEN (p.payload#>>'{parameters,previous_baseline,v4x_ouv}')::numeric ELSE NULL END;
+  to_v:=CASE WHEN (p.payload#>>'{parameters,target_scaled_tier,vice_ouv}') ~ '^[0-9]{1,15}([.][0-9]{1,8})?$'
+     THEN (p.payload#>>'{parameters,target_scaled_tier,vice_ouv}')::numeric ELSE NULL END;
+  to_x:=CASE WHEN (p.payload#>>'{parameters,target_scaled_tier,v4x_ouv}') ~ '^[0-9]{1,15}([.][0-9]{1,8})?$'
+     THEN (p.payload#>>'{parameters,target_scaled_tier,v4x_ouv}')::numeric ELSE NULL END;
   evidence:=vice_private.ouv_release_reconciliation();
   review_over:=p.validation_until IS NOT NULL AND now()>=p.validation_until;
   IF p.status<>'REVIEW' THEN gate:=gate||'"NOT_IN_ACTIVE_REVIEW"'::jsonb; END IF;
