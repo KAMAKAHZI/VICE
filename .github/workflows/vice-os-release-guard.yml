@@ -3,6 +3,10 @@ on:
   push:
     paths:
       - 'index.html'
+      - 'vice4x-institutional.js'
+      - 'vice4x-institutional-core.js'
+      - 'supabase/functions/**'
+      - 'scripts/**'
       - 'version.json'
       - 'supabase/functions/vice-mt5-cloud/index.ts'
       - 'tests/**'
@@ -18,6 +22,10 @@ on:
   pull_request:
     paths:
       - 'index.html'
+      - 'vice4x-institutional.js'
+      - 'vice4x-institutional-core.js'
+      - 'supabase/functions/**'
+      - 'scripts/**'
       - 'version.json'
       - 'supabase/functions/vice-mt5-cloud/index.ts'
       - 'tests/**'
