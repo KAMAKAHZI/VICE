@@ -1578,7 +1578,14 @@ function toast(msg, type='info'){
       close.className='tst-dismiss';
       close.setAttribute('aria-label','Dismiss error notification');
       close.textContent='×';
-      close.addEventListener('click',event=>{event.stopPropagation();clearTimeout(timer);el.remove();});
+      const dismissError = event => {event.stopPropagation();clearTimeout(timer);el.remove();};
+      close.addEventListener('click',dismissError);
+      // Capture-phase delegation elsewhere in the OS must not swallow this control.
+      document.addEventListener('click',event=>{
+        if(event.target===close || close.contains(event.target))dismissError(event);
+      },{capture:true,signal:(()=>{const controller=new AbortController();
+        const observer=new MutationObserver(()=>{if(!el.isConnected){controller.abort();observer.disconnect();}});
+        queueMicrotask(()=>observer.observe(host,{childList:true}));return controller.signal;})()});
       el.appendChild(close);
     }
     host.appendChild(el);
