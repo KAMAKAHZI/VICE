@@ -11018,6 +11018,11 @@ function viewGovernance(el){
   const sovereignCards = sovereign.map(p=>{
     const refs=p.payload?.parameters?.target_scaled_tier||{};
     const baseline=p.payload?.parameters?.previous_baseline||{};
+    // Proposal baselines are historical claims, never the official current OUV.
+    const issuerVerified=APP_MODE==='LIVE'&&S.daoPriceSyncStatus==='CANONICAL';
+    const officialVice=issuerVerified?Number(S.iruClasses?.[0]?.ouv):NaN;
+    const officialV4x=issuerVerified?Number(S.iruClasses?.[1]?.ouv):NaN;
+    const officialRefs=Number.isFinite(officialVice)&&Number.isFinite(officialV4x)&&officialVice>0&&officialV4x>0;
     const authorizations=Number(p.verified_executive_authorizations??p.verified_executive_signatures??0);
     const deadline=Date.parse(p.validation_until||'');
     const cutoff=Number.isFinite(deadline)?new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(deadline):'Unverified deadline';
@@ -11026,7 +11031,8 @@ function viewGovernance(el){
     return `<div class="row" style="display:block;border-bottom:1px solid var(--bd);padding:14px 0">
       <div class="row-l"><b>${esc(p.id)}</b>
       <span class="meta">Institutional structural proposal · Executive review only · Member voting not authorized</span>
-      <span class="meta">Current: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')} · Requested: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
+      <span class="meta">Official issuer reference: VICE ${officialRefs?esc(officialVice):'UNVERIFIED'} / V4X ${officialRefs?esc(officialV4x):'UNVERIFIED'} · Proposal baseline: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')}</span>
+      <span class="meta">Requested, not effective: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
       <span class="meta">Published ${fmtD(p.published_at)} · Review ends ${esc(cutoff)} · ${stillReviewing?'REVIEW OPEN':'REVIEW DEADLINE PASSED'}</span>
       <span class="meta"><strong>${esc(executiveStatus)}</strong> · ${authorizations}/2 verified · CEO: ${p.ceo_signed?('AUTHORIZED ('+esc(p.ceo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'} · CFO: ${p.cfo_signed?('AUTHORIZED ('+esc(p.cfo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'}</span>
       <span class="note warn">This vote authorizes a proposal, not a change in official OUV. Execution separately requires independent on-chain quorum verification, a completed timelock and an audited executor. Existing holder values remain unchanged.</span></div>
