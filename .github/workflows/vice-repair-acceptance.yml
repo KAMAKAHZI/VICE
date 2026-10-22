@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 12
     services:
       postgres:
-        image: postgres:17
+        image: postgres:17.11 # fixed PG17 patch release; immutable registry digest review pending
         env:
           POSTGRES_PASSWORD: isolated-test-only
           POSTGRES_DB: vice_staging
