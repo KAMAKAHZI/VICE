@@ -13,7 +13,7 @@ try{for(const width of [1440,390]){
  await page.waitForFunction(()=>document.querySelector('#view')?.textContent.includes('Manual records are available now.'));
  await page.locator('#inst-model [name="grossProfit"]').fill('150000');await page.locator('#inst-model [name="costs"]').fill('10000');await page.locator('#inst-model [name="lossCarry"]').fill('5000');assert.match(await page.locator('#inst-model-output').textContent(),/63,375/);assert.match(await page.locator('#inst-model-output').textContent(),/37,500/);
  assert.equal(await page.locator('[data-inst="apollo"]').isDisabled(),true);
- assert.equal(await page.evaluate(()=>Array.from(document.querySelectorAll('#toasts .tst')).every(el=>getComputedStyle(el).pointerEvents==='none')),true,'Toast notifications must not intercept touch/click actions');
+ assert.equal(await page.evaluate(()=>Array.from(document.querySelectorAll('#toasts .tst:not(.err)')).every(el=>getComputedStyle(el).pointerEvents==='none')),true,'Toast notifications must not intercept touch/click actions');
  // Errors remain accessible, are dismissible by keyboard, and cannot swallow unrelated taps.
  await page.evaluate(()=>toast('Synthetic executive authentication failure','error'));
  const errorToast=page.locator('#toasts .tst.err').filter({hasText:'Synthetic executive authentication failure'});
