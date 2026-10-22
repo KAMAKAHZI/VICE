@@ -52,6 +52,16 @@ else check('passkey route is fail-closed until verifier is installed',()=>{
   assert.match(passkey,/WEBAUTHN_VERIFIER_NOT_CONFIGURED/);
   assert.match(passkey,/return reply\(501,/);
 });
+check('institutional CI uses immutable action pins',()=>{
+  for(const file of ['.github/workflows/vice-repair-acceptance.yml','.github/workflows/vice-os-release-guard.yml']){
+    const yaml=read(file);
+    const actions=[...yaml.matchAll(/^\s*-\s*uses:\s*([^\s#]+)/gm)].map(m=>m[1]);
+    assert(actions.length>=2,'No job action references found in '+file);
+    for(const action of actions)assert.match(action,/^[\w.-]+\/[\w.-]+@[a-f0-9]{40}$/,'Mutable or unpinned action in '+file+': '+action);
+  }
+  const acceptance=read('.github/workflows/vice-repair-acceptance.yml');
+  assert.match(acceptance,/npm install --ignore-scripts --no-save/,'Untrusted npm lifecycle scripts must not execute in acceptance CI');
+});
 check('release metadata does not claim certified production',()=>{
   assert.notEqual(version.release_acceptance?.financial_operations_certified,true);
   assert.notEqual(version.release_acceptance?.live_login_tested,true);
