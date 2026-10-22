@@ -1,0 +1,21 @@
+name: Temporary VICE server lockfile bootstrap
+on:
+  push:
+    branches: ['fix/phase0-hardening']
+    paths:
+      - '.github/workflows/vice-bridge-lock-bootstrap.yml'
+permissions:
+  contents: read
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Resolve exact production bridge dependency lock
+        run: |
+          npm install --prefix server --package-lock-only --ignore-scripts --no-audit --no-fund
+          node -e "const z=require('node:zlib'),f=require('node:fs');console.log('VICE_BRIDGE_LOCK_GZIP_BASE64:'+z.gzipSync(f.readFileSync('server/package-lock.json')).toString('base64'))"
