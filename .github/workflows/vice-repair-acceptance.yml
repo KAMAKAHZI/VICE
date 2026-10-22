@@ -66,6 +66,7 @@ jobs:
         run: |
           npm ci --prefix server --ignore-scripts --no-audit --no-fund
           npm run check --prefix server
+          node --test tests/vice-mailer-bridge.cjs
           npm audit --prefix server --audit-level=high
           npm audit --prefix tests --audit-level=high
       - name: Validate registry, CFO authority and account suspension in isolated PostgreSQL
