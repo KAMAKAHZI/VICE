@@ -187,20 +187,28 @@ const ViceInstitutional=(()=>{
    const timer=setTimeout(()=>reject(Error(label+' timed out. Close other VICE OS tabs and retry.')),ms);
    Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},err=>{clearTimeout(timer);reject(err)});
   });
-  const dbOpen=(name)=>keyTimeout(new Promise((resolve,reject)=>{
+  const dbOpen=(name)=>new Promise((resolve,reject)=>{
    let settled=false;
-   const fail=(reason)=>{if(settled)return;settled=true;reject(reason instanceof Error?reason:Error(String(reason)))};
-   const request=indexedDB.open(name,1);
+   const timer=setTimeout(()=>fail(Error('Executive key database open timed out. Close other VICE OS tabs and retry.')),10000);
+   const fail=(reason)=>{
+    if(settled)return;
+    settled=true;clearTimeout(timer);
+    reject(reason instanceof Error?reason:Error(String(reason)));
+   };
+   let request;
+   try{request=indexedDB.open(name,1)}catch(error){fail(error);return}
    request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('keys'))request.result.createObjectStore('keys')};
    request.onblocked=()=>fail(Error('Executive key database upgrade is blocked by another tab. Close other VICE OS tabs and retry.'));
    request.onerror=()=>fail(request.error||Error('Executive key database could not be opened'));
    request.onsuccess=()=>{
     const db=request.result;
     db.onversionchange=()=>{db.close()};
+    // IndexedDB open requests cannot be cancelled. Close any connection that
+    // succeeds *after* timeout/blocked/error instead of leaking it.
     if(settled){db.close();return}
-    settled=true;resolve(db);
+    settled=true;clearTimeout(timer);resolve(db);
    };
-  }),'Executive key database open');
+  });
   const get=(db,id)=>keyTimeout(new Promise((resolve,reject)=>{
    let tx,request;
    try{tx=db.transaction('keys','readonly');request=tx.objectStore('keys').get(id)}
