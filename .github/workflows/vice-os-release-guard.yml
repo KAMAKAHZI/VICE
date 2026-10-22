@@ -19,7 +19,7 @@ on:
       - 'netlify/functions/turn-credentials.mjs'
       - 'supabase/migrations/**'
       - '.github/workflows/vice-os-release-guard.yml'
-      - '.github/workflows/vice-repair-acceptance.yml'
+      - '.github/workflows/**'
   pull_request:
     paths:
       - 'index.html'
@@ -39,7 +39,7 @@ on:
       - 'netlify/functions/turn-credentials.mjs'
       - 'supabase/migrations/**'
       - '.github/workflows/vice-os-release-guard.yml'
-      - '.github/workflows/vice-repair-acceptance.yml'
+      - '.github/workflows/**'
 permissions:
   contents: read
 jobs:
