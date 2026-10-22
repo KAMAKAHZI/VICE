@@ -76,6 +76,9 @@ check('every GitHub Actions workflow uses immutable action and reusable-workflow
   assert.deepEqual(bridgeLock.packages[''].dependencies,bridge.dependencies,'Bridge dependencies must match exact production manifest');
   for(const [name,pkg] of Object.entries(bridgeLock.packages))if(name)assert.match(pkg.integrity||'',/^sha512-[A-Za-z0-9+/]+=*$/,'Missing bridge package integrity '+name);
   assert.match(read('.github/workflows/vice-os-release-guard.yml'),/['"]\.github\/workflows\/\*\*['"]/,'Release guard must rerun for changes to ANY workflow');
+  const release=read('.github/workflows/vice-netlify-production.yml');
+  assert.match(release,/npx --yes netlify-cli@\d+\.\d+\.\d+ deploy --prod/,'Production CLI must use a fixed release version');
+  assert.doesNotMatch(release,/netlify-cli@latest/,'Mutable production CLI release is prohibited');
 });
 check('release metadata does not claim certified production',()=>{
   assert.notEqual(version.release_acceptance?.financial_operations_certified,true);
