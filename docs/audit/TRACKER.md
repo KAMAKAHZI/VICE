@@ -12,7 +12,7 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 | FIX-4 | IndexedDB and enrollment | Phase 0 | P0 | IN-PROGRESS | FIX-3 | agent | e5a9ad5: direct application write abort, native abort, denied IDB open fail-closed; tested PASS in 39784036952; real recovery, MFA and all timeout/device scenarios still OPEN | auth/session |
 | FIX-5 | Accessible persistent error toasts | Phase 0 | P1 | PASS | FIX-3 | agent | e2931a5; acceptance runs 39722328663 and 39722324140 PASS (desktop/mobile alert keyboard + pointer dismissal) | frontend |
 | FIX-6 | Strict test section markers | Phase 0 | P1 | PASS | FIX-1 | agent | 7152dad: regression tests; release integrity run 39677635671 passed | testing/evidence |
-| FIX-7 | CI and supply chain | Phase 0 | P0 | IN-PROGRESS | FIX-6 | agent | All action refs SHA-pinned; tests/package-lock.json + server/package-lock.json generated with npm SRI; npm ci --ignore-scripts and bridge syntax check PASS 39784036952; container digest pinning, SCA and CLI deployment pinning OPEN | testing/evidence |
+| FIX-7 | CI and supply chain | Phase 0 | P0 | IN-PROGRESS | FIX-6 | agent | Immutable workflow action SHA pins; locked npm dependencies/tests + server, npm audit high gate, source credential sentinel, Dependabot update PRs, offline 14-template mailer MIME tests, PostgreSQL 17.11 patch and Netlify CLI 27.13.0 pins; immutable Docker image digests and full external SCA remain OPEN | testing/evidence |
 | FIX-8 | Evidence registers and score | Phase 0 | P0 | IN-PROGRESS | FIX-7 | agent | docs/audit/PASSKEY_PROVENANCE.md, passkey-deployment-baseline.json and SUPABASE_ADVISORS_2026-10-22.md; 85 security/34 performance advisories triaged, no readiness score inferred | testing/evidence |
 | FIX-9 | Phase 0 review and handoff | Phase 0 | P0 | IN-PROGRESS | FIX-0 through FIX-8 | agent/owner | docs/audit/PHASE0_HANDOFF_2026-10-22.md prepared; production go/no-go remains BLOCKED pending approval, external review and reconciliations | deployment |
 | PKG-01 | Baseline code audit | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
@@ -65,3 +65,12 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 - App-level aborted executive key write, denied DB open and 1440/390 browser exercises are included in the passing suite; simulated browser verification does not establish real-user cryptographic MFA or approval quorum.
 - `docs/audit/PHASE0_HANDOFF_2026-10-22.md` distinguishes verified controls from pending go-live and external assurance.
 - PR #8 contains separate, conflicted executive 2FA and certificate work; its integration and real-user acceptance have **not** been verified with PR #10. Do not merge either as a claimed 100% release without reconciliation and authorization.
+
+## Final hardening candidate evidence (2026-10-22)
+- `f32d984` adds narrow release-blocking source-controlled secret detection (private-key blocks, known privileged token prefixes, literal server-secret assignments and tracked private key filenames). This is not comprehensive secret scanning; independent history and external scanner review remain open.
+- `a1d3edb` configures Dependabot update PRs for Node bridge, acceptance tests and GitHub Actions; updates remain review-gated.
+- `70c829f` and `29df5c3` add 14 issuer-email template assertions and offline Nodemailer stream transport smoke on the locked patched Node bridge. Real SMTP deliverability is not tested.
+- `461e1bb` pins manual Netlify CLI to verified v27.13.0 rather than mutable `latest`; no production deploy was performed.
+- `b62bfa9` pins disposable PostgreSQL CI to `17.11` (a patch tag, **not** a signed registry digest); `fc5173a` adds the static invariant. Exact digest pinning is pending.
+- The original AGENTS.md directive remains **BLOCKED** because the complete verbatim user-authored v2.1 text was not in an accessible artifact. No invented substitute has been committed.
+- Former audit PR #9 was closed **unmerged** as superseded by PR #10. Executive repair PR #8 remains independently draft/conflicted and requires review/integration before live MFA recovery acceptance.
