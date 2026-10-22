@@ -72,6 +72,43 @@ try{for(const width of [1440,390]){
  }finally{
   await page.evaluate(()=>{indexedDB.open=window.__originalIdbOpen;delete window.__originalIdbOpen;});
  }
+ // Exercise the application key-write path, not just raw IndexedDB transaction events.
+ // A synthetic aborted write may not issue a signing challenge or persist a key.
+ await page.evaluate(async()=>{
+  const db=await new Promise((resolve,reject)=>{
+   const r=indexedDB.open('vice-executive-keys',1);
+   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+  });
+  try{
+   await new Promise((resolve,reject)=>{
+    const tx=db.transaction('keys','readwrite');
+    tx.objectStore('keys').delete(S.user.id);
+    tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error||Error('Unable to prepare key-write abort regression'));
+   });
+  }finally{db.close();}
+  window.__originalExecutivePut=IDBObjectStore.prototype.put;
+  IDBObjectStore.prototype.put=function(value,key){
+   const request=window.__originalExecutivePut.call(this,value,key);
+   if(key===S.user.id){
+    request.addEventListener('error',event=>event.preventDefault());
+    this.transaction.abort();
+   }
+   return request;
+  };
+ });
+ try{
+  await page.locator('[data-inst="enroll"]').click();
+  await page.locator('#toasts .tst.err').filter({hasText:'Executive key write transaction aborted'}).waitFor({timeout:8000});
+  assert.equal(await page.evaluate(()=>window.__instCalls.filter(x=>x.name==='vice_exec_challenge').length),earlierChallenges,'A failed executive key write must not issue any signing challenge');
+ }finally{
+  await page.evaluate(()=>{IDBObjectStore.prototype.put=window.__originalExecutivePut;delete window.__originalExecutivePut;});
+ }
+ const keyAbsentAfterAbort=await page.evaluate(async()=>{
+  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('vice-executive-keys',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+  try{return await new Promise((resolve,reject)=>{const tx=db.transaction('keys','readonly'),r=tx.objectStore('keys').get(S.user.id);r.onsuccess=()=>resolve(r.result===undefined);r.onerror=()=>reject(r.error)})}
+  finally{db.close();}
+ });
+ assert.equal(keyAbsentAfterAbort,true,'The rejected executive key write must not persist an unauthorized key');
  // Abort the key-store transaction deliberately: an aborted write must reject, never authorize.
  const abortOutcome=await page.evaluate(async()=>{
   const opened=await new Promise((resolve,reject)=>{const req=indexedDB.open('vice-executive-keys',1);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
