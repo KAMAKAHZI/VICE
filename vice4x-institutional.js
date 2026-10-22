@@ -212,18 +212,28 @@ const ViceInstitutional=(()=>{
    tx.onabort=()=>reject(tx.error||Error('Executive key lookup transaction aborted'));
    tx.onerror=()=>reject(tx.error||Error('Executive key lookup transaction failed'));
   }),'Executive key lookup');
-  const put=(db,id,pair,prior)=>keyTimeout(new Promise((resolve,reject)=>{
-   let tx;
+  const put=(db,id,pair,prior)=>new Promise((resolve,reject)=>{
+   let tx,settled=false;
+   const finish=(error)=>{
+    if(settled)return;
+    settled=true;clearTimeout(timer);
+    if(error)reject(error);else resolve();
+   };
+   const timer=setTimeout(()=>{
+    // A timed-out write must be aborted, not allowed to commit after rejection.
+    if(tx)try{tx.abort()}catch{}
+    finish(Error('Executive key write timed out; transaction aborted. Close other VICE OS tabs and retry.'));
+   },10000);
    try{
     tx=db.transaction('keys','readwrite');
     const store=tx.objectStore('keys');
     if(prior?.privateKey)store.put(prior,'prior:'+user+':'+Date.now());
     store.put(pair,id);
-   }catch(err){if(tx)try{tx.abort()}catch{}reject(err);return}
-   tx.oncomplete=()=>resolve();
-   tx.onabort=()=>reject(tx.error||Error('Executive key write transaction aborted'));
-   tx.onerror=()=>reject(tx.error||Error('Executive key write transaction failed'));
-  }),'Executive key write');
+   }catch(err){if(tx)try{tx.abort()}catch{}finish(err);return}
+   tx.oncomplete=()=>finish();
+   tx.onabort=()=>finish(tx.error||Error('Executive key write transaction aborted'));
+   tx.onerror=()=>{}; // onabort is terminal; do not report a premature outcome.
+  });
   const same=async pair=>{if(!pair?.privateKey||!pair?.publicKey||!enrolled)return false;
    const key=await crypto.subtle.exportKey('jwk',pair.publicKey);
    return ['kty','crv','x','y'].every(k=>key[k]===enrolled[k])};
