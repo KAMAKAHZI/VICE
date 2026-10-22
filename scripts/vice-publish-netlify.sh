@@ -17,6 +17,10 @@ for f in "${assets[@]}"; do
   test -s "$f" || { echo "Missing required public asset: $f" >&2; exit 1; }
   cp "$f" "$target/$f"
 done
+# The legacy source embeds only the public anon identifier; make its published
+# governance display count CEO/CFO authenticator and device approvals equally.
+# Keep the transformation narrowly scoped to dist/site and fail closed on drift.
+node scripts/vice-governance-publish.cjs
 node scripts/vice-deployment-identity.cjs
 find "$target" -mindepth 1 -maxdepth 1 -type f -printf '%f\n' | sort
 echo "Netlify publishes whitelisted dist/site only."
