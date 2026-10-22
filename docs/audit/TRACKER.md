@@ -1,5 +1,5 @@
 # VICE OS Phase 0 / Institutional Readiness Tracker
-Updated: 2026-10-21
+Updated: 2026-10-22
 Branch: fix/phase0-hardening
 Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caasi's fresh MFA approval.
 
@@ -8,11 +8,11 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 | FIX-0 | Directive persistence | Phase 0 | P0 | IN-PROGRESS | Exact v2.1 directive text | agent | User directive in conversation; AGENTS.md pending | testing/evidence |
 | FIX-1 | Review PR #9 test expectations | Phase 0 | P0 | OPEN | FIX-0 | agent | PR #9 | testing/evidence |
 | FIX-2 | Edge function provenance and drift | Phase 0 | P0 | BLOCKED | Supabase CLI access for vice-passkey source | agent/Caasi | Source absent from git; fail-closed function | deployment |
-| FIX-3 | Browser diagnostics and readiness | Phase 0 | P0 | OPEN | FIX-1 | agent | tests/vice-institutional-browser.mjs | testing/evidence |
+| FIX-3 | Browser diagnostics and readiness | Phase 0 | P0 | IN-PROGRESS | FIX-1 | agent | 39722328663: browser acceptance PASS at 1440/390; mock verifier remains synthetic, live verifier not certified | testing/evidence |
 | FIX-4 | IndexedDB and enrollment | Phase 0 | P0 | IN-PROGRESS | FIX-3 | agent | 013b255, af3cf2a, 423cecb, 8b038ec; institutional browser passed run 39679133289; direct application abort tests still needed | auth/session |
-| FIX-5 | Accessible persistent error toasts | Phase 0 | P1 | OPEN | FIX-3 | agent | index.html | frontend |
+| FIX-5 | Accessible persistent error toasts | Phase 0 | P1 | PASS | FIX-3 | agent | e2931a5; acceptance runs 39722328663 and 39722324140 PASS (desktop/mobile alert keyboard + pointer dismissal) | frontend |
 | FIX-6 | Strict test section markers | Phase 0 | P1 | PASS | FIX-1 | agent | 7152dad: regression tests; release integrity run 39677635671 passed | testing/evidence |
-| FIX-7 | CI and supply chain | Phase 0 | P0 | IN-PROGRESS | FIX-6 | agent | 14aab81, 6d906d9, 62a3ee3: expanded CI triggers; acceptance run 39679133289 PASS; supply-chain pinning pending | testing/evidence |
+| FIX-7 | CI and supply chain | Phase 0 | P0 | IN-PROGRESS | FIX-6 | agent | 14aab81, 6d906d9, 62a3ee3: expanded CI triggers; full acceptance 39722328663 PASS; dependency lockfile/action SHA pinning pending | testing/evidence |
 | FIX-8 | Evidence registers and score | Phase 0 | P0 | OPEN | FIX-7 | agent | docs/audit/ | testing/evidence |
 | FIX-9 | Phase 0 review and handoff | Phase 0 | P0 | OPEN | FIX-0 through FIX-8 | agent/Caasi | Pending | deployment |
 | PKG-01 | Baseline code audit | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
@@ -36,3 +36,8 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 - FIX-0: Commit exact directive text unchanged, not a paraphrase. CLAUDE.md must contain exactly `@AGENTS.md`.
 - FIX-2: Caasi must provide Supabase CLI authorization or download deployed source using `supabase functions download vice-passkey --project-ref sdsaewumabzjjvsmqqsl`. Keep the boundary test's current SKIP until source is committed.
 - No production writes, merge, deploy, secrets or financial corrections are authorized by this tracker.
+
+## 2026-10-22 acceptance evidence
+- Head `e2931a5f76a1a3815ef0ec6c5ac5851274b1bc31`: release integrity `39722328653` PASS, Jekyll `39722328665` PASS, full PostgreSQL/browser/backend acceptance `39722328663` PASS.
+- Institutional UI browser passes both 1440px and 390px; communications tests confirm two RTCPeerConnections, screen-capture stop and call cleanup using a synthetic display source; backend suite reports 20/20 PASS on the checks executed.
+- These checks do **not** establish production authentication, live passkey verification, independent financial valuation, an external security certification, or readiness of all product modules. Existing SKIPs and BLOCKED items remain unchanged.
