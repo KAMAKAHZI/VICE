@@ -1,0 +1,11 @@
+{
+  "project_ref": "sdsaewumabzjjvsmqqsl",
+  "function_slug": "vice-passkey",
+  "version": 1,
+  "status": "ACTIVE",
+  "verify_jwt": true,
+  "ezbr_sha256": "1f23e2a11f2702b98be9cfc68784b4d4f9d10a83f36204b0beb4ba923d7f702b",
+  "source_git_blob_sha": "d1ca4566b45c092f907348ba7a92628b946cdf2d",
+  "captured_at_utc": "2026-10-22",
+  "assurance": "Metadata/source baseline only; WebAuthn verifier NOT installed (HTTP 501)."
+}

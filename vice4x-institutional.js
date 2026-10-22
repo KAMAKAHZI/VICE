@@ -1,6 +1,6 @@
 'use strict';
 const ViceInstitutional=(()=>{
- const core=ViceInstitutionalCore,blank=()=>({owner:null,epoch:0,loading:false,loaded:false,error:null,leads:[],drafts:[],financings:[],proposals:[],signers:[],authorizations:[],ouvRelease:null,lastRefreshAt:0,diagnostics:null,providers:null,model:{principal:1000000,months:3,grossProfit:0,costs:0,lossCarry:0,lead_id:'',evidence:''}});let state=blank();
+ const core=ViceInstitutionalCore,blank=()=>({owner:null,epoch:0,loading:false,loaded:false,error:null,leads:[],drafts:[],financings:[],proposals:[],signers:[],authorizations:[],ouvRelease:null,activationReadiness:null,activationReadinessError:null,lastRefreshAt:0,diagnostics:null,providers:null,model:{principal:1000000,months:3,grossProfit:0,costs:0,lossCarry:0,lead_id:'',evidence:''}});let state=blank();
  const allowed=()=>isRegistryOperator(),label=s=>String(s||'').replaceAll('_',' '),money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(n)||0);
  function clear(){const epoch=state.epoch+1;state=blank();state.epoch=epoch;}
  function owner(){if(state.owner!==S.user?.id){clear();state.owner=S.user?.id;}}
@@ -11,9 +11,22 @@ const ViceInstitutional=(()=>{
    if(APP_MODE!=='LIVE'||S.user?.id==='sim-user'){state.loaded=true;return;}
    const results=await Promise.all(['vice_omega_leads','vice_omega_outreach','vice_omega_financings','vice_sovereign_proposals','vice_exec_signers'].map(t=>sb.from(t).select('*').limit(500)));
    for(const r of results)if(r.error)throw r.error;
-   const [diagnostics,authorizations,ouvRelease]=await Promise.all([rpc('vice_institutional_diagnostics'),rpc('vice_sovereign_feed'),rpc('vice_ouv_release_snapshot').catch(e=>({error:String(e.message||e)}))]);let providers;try{providers=await edge({action:'status'});}catch(e){providers={error:e.message};}
+   const [diagnostics,authorizations,ouvRelease]=await Promise.all([rpc('vice_institutional_diagnostics'),rpc('vice_sovereign_feed'),rpc('vice_ouv_release_snapshot').catch(e=>({error:String(e.message||e)}))]);
+   // Read the real backend execution gates for the latest active structural
+   // proposal. Executive votes alone NEVER authorize client-side repricing.
+   const active=Array.isArray(authorizations)?authorizations.find(p=>p.status==='REVIEW') : null;
+   let activationReadiness=null,activationReadinessError=null;
+   if(active){
+    try{
+     const gate=await rpc('vice_ouv_activation_readiness',{p_proposal_id:active.id});
+     if(gate?.proposal_id!==active.id||!Array.isArray(gate.next_unmet_gates))
+      throw Error('Institutional activation response did not match the requested proposal.');
+     activationReadiness=gate;
+    }catch(e){activationReadinessError=String(e.message||e);}
+   }
+   let providers;try{providers=await edge({action:'status'});}catch(e){providers={error:e.message};}
    if(epoch!==state.epoch||state.owner!==S.user?.id)return;
-   [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.diagnostics=diagnostics;state.authorizations=Array.isArray(authorizations)?authorizations:[];state.ouvRelease=ouvRelease?.error?null:ouvRelease||null;state.providers=providers;state.error=null;
+   [state.leads,state.drafts,state.financings,state.proposals,state.signers]=results.map(r=>r.data||[]);state.diagnostics=diagnostics;state.authorizations=Array.isArray(authorizations)?authorizations:[];state.ouvRelease=ouvRelease?.error?null:ouvRelease||null;state.activationReadiness=activationReadiness;state.activationReadinessError=activationReadinessError;state.providers=providers;state.error=null;
   }catch(e){if(epoch===state.epoch)state.error=e.message;}finally{if(epoch===state.epoch){state.loaded=true;state.loading=false;state.lastRefreshAt=Date.now();if(['omega','sovereign','self-diagnosis'].includes(S.tab))renderMain();}}
  }
  function load(){
@@ -89,6 +102,32 @@ const ViceInstitutional=(()=>{
  function latestAuthorization(p){return state.authorizations.find(a=>a.id===p.id&&a.payload_hash===p.payload_hash)||null;}
  function execAlreadyAuthorized(p){const a=latestAuthorization(p),role=execRole();return role==='CEO'?!!a?.ceo_signed:role==='CFO'?!!a?.cfo_signed:false;}
  function execAuthorizerLabel(a,role){const ok=role==='CEO'?a?.ceo_signed:a?.cfo_signed;const method=role==='CEO'?a?.ceo_authorization_method:a?.cfo_authorization_method;return ok?'AUTHORIZED · '+(method==='MFA_TOTP'?'2FA AUTHENTICATOR':method==='CRYPTOGRAPHIC'?'DEVICE SIGNATURE':String(method||'VERIFIED')):'AWAITING '+role;}
+ function governanceDeadline(value){
+  const ms=Date.parse(value||'');
+  if(!Number.isFinite(ms))return 'Deadline unavailable';
+  return new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(ms);
+ }
+ function governanceReviewRemaining(value){
+  const ms=Date.parse(value||'');
+  if(!Number.isFinite(ms))return 'Review deadline unverified';
+  const minutes=Math.ceil((ms-Date.now())/60000);
+  if(minutes<=0)return 'Published public-review deadline has passed';
+  const days=Math.floor(minutes/1440),hours=Math.floor(minutes%1440/60),mins=minutes%60;
+  return 'Public review remains open: '+(days?days+'d ':'')+(hours?hours+'h ':'')+mins+'m';
+ }
+ const activationGateMessage={
+  NOT_IN_ACTIVE_REVIEW:'Proposal is not in active review',
+  PROPOSAL_VALIDATION_ISSUES:'Unresolved proposal validation issues',
+  CEO_AND_CFO_AUTHORIZATIONS_REQUIRED:'Both independent executive approvals are required',
+  PUBLIC_REVIEW_WINDOW_OPEN:'Public review has not closed',
+  PROPOSAL_BASELINE_DOES_NOT_MATCH_OFFICIAL_REFERENCE:'Proposed baseline disagrees with the live issuer reference',
+  PROPOSED_OUV_RATIO_OR_VALUES_INVALID:'Proposed amounts or 1:160 ratio invalid',
+  ISSUER_LEDGER_RECONCILIATION_FAILED:'Issuer unit ledger has not reconciled',
+  INDEPENDENT_ONCHAIN_QUORUM_NOT_VERIFIED:'Independent on-chain quorum is not verified',
+  ONCHAIN_QUORUM_VERIFIER_NOT_CONFIGURED:'Independent on-chain quorum verifier is not installed',
+  '72_HOUR_TIMELOCK_NOT_COMPLETED':'Execution timelock has not completed',
+  ATOMIC_GOVERNANCE_EXECUTOR_NOT_CONFIGURED:'Audited atomic governance execution service is not installed'
+ };
  function sovereign(el){if(denied(el))return;
   const role=execRole();
   const cards=state.proposals.map(p=>{
@@ -101,7 +140,9 @@ const ViceInstitutional=(()=>{
    const currentV4x=Number(state.diagnostics?.reference?.v4x_price??S.iruClasses[1].ouv);
    const targetVice=Number(next.vice_ouv),targetV4x=Number(next.v4x_ouv);
    const fmtReference=n=>Number.isFinite(n)?n.toFixed(8).replace(/0+$/,'').replace(/\.$/,''):'UNVERIFIED';
-   const reviewOpen=!p.validation_until||!Number.isFinite(Date.parse(p.validation_until))||Date.now()<Date.parse(p.validation_until);
+   const serverGate=state.activationReadiness?.proposal_id===p.id?state.activationReadiness:null;
+   const reviewOpen=serverGate?serverGate.review_complete!==true:(!p.validation_until||!Number.isFinite(Date.parse(p.validation_until))||Date.now()<Date.parse(p.validation_until));
+   const serverBlockers=serverGate?.next_unmet_gates?.map(x=>activationGateMessage[x]||label(x));
    const quorumReady=!!p.quorum_verified_at;
    const timelockReady=!!p.execute_after&&Date.now()>=Date.parse(p.execute_after);
    const executorReady=state.diagnostics?.atomic_executor==='CONFIGURED' && state.diagnostics?.structural_writes_locked===false;
@@ -112,13 +153,17 @@ const ViceInstitutional=(()=>{
    if(!quorumReady)blockers.push('Independent on-chain quorum not verified');
    if(!timelockReady)blockers.push('Execution timelock not completed');
    if(!executorReady)blockers.push('Atomic governance executor unavailable');
-   const stageLabel=proposalApplied?'EFFECTIVE':signedCount===2?'EXECUTIVE APPROVED — NOT EFFECTIVE':'PENDING EXECUTIVE APPROVAL';
+   const effectiveBlockers=serverBlockers||blockers;
+   const gateUnverified=p.status==='REVIEW'&&!serverGate;
+   const gateTimestamp=serverGate?.computed_at?new Date(serverGate.computed_at).toLocaleTimeString():'';
+   const stageLabel=proposalApplied?'EFFECTIVE':signedCount===2?'2/2 EXECUTIVES APPROVED — OFFICIAL OUV NOT UPDATED':'PENDING EXECUTIVE APPROVAL';
    return `<section class="band"><div class="band-head"><h2>${esc(p.id)}</h2><span class="bdg gd">${esc(p.status)}</span></div>
     <p><strong>${esc(stageLabel)}</strong></p>
     <p class="meta">Active management references: VICE ${esc(fmtReference(currentVice))} · V4X ${esc(fmtReference(currentV4x))} / unit.</p>
     <p>Proposed, NOT effective: VICE ${esc(fmtReference(targetVice))} · V4X ${esc(fmtReference(targetV4x))} / unit.</p>
-    <p class="meta">${esc(issueText)} · Public review through ${p.validation_until?esc(new Date(p.validation_until).toLocaleString()):'—'}.</p>
-    ${!proposalApplied?'<p class="note warn">Holder holdings and official reference values have NOT been repriced. Remaining gates: '+esc(blockers.join(' · '))+'. Existing IRU unit balances must not be multiplied or replaced.</p>':'<p class="note">Reference revision is recorded as effective; IRU unit balances remain unchanged.</p>'}
+    <p class="meta">${esc(issueText)} · Review ends ${esc(governanceDeadline(p.validation_until))}.</p>
+    <p class="meta" role="status">${esc(governanceReviewRemaining(p.validation_until))} · ${signedCount}/2 CEO/CFO authorizations confirmed.</p>
+    ${!proposalApplied?'<p class="note warn">Official issuer values and holder certificate totals have NOT changed. '+(signedCount===2?'No second vote is needed. ':'')+(gateUnverified?'Activation verification temporarily unavailable; do NOT assume approval means execution. '+esc(state.activationReadinessError||''):'Read-only backend activation check at '+esc(gateTimestamp)+'. ')+'Remaining gates: '+esc(effectiveBlockers.join(' · ')||'Verification required')+'.</p>':'<p class="note">Reference revision is recorded as effective; IRU unit balances remain unchanged.</p>'}
     <p class="meta">Executive authorizations: ${signedCount}/2 · CEO: ${esc(execAuthorizerLabel(a,'CEO'))} · CFO: ${esc(execAuthorizerLabel(a,'CFO'))}.</p>
     <p class="meta">On-chain quorum: ${p.quorum_verified_at?'verified':'awaiting configured verifier'} · Execution timelock: ${p.execute_after?esc(p.execute_after):'not started'}.</p>
     <p class="inst-hash">Payload SHA-256: ${esc(p.payload_hash)}</p>
@@ -183,13 +228,65 @@ const ViceInstitutional=(()=>{
   const storedSigner=state.signers.find(x=>x.user_id===user);
   let enrolled=storedSigner?.public_key;
   if(!enrolled){const q=await sb.from('vice_exec_signers').select('public_key').eq('user_id',user).maybeSingle();if(q.error)throw q.error;enrolled=q.data?.public_key||null;}
-  const dbOpen=(name)=>new Promise((ok,no)=>{const request=indexedDB.open(name,1);
+  const keyTimeout=(promise,label,ms=10000)=>new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>reject(Error(label+' timed out. Close other VICE OS tabs and retry.')),ms);
+   Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},err=>{clearTimeout(timer);reject(err)});
+  });
+  const dbOpen=(name)=>new Promise((resolve,reject)=>{
+   let settled=false;
+   const timer=setTimeout(()=>fail(Error('Executive key database open timed out. Close other VICE OS tabs and retry.')),10000);
+   const fail=(reason)=>{
+    if(settled)return;
+    settled=true;clearTimeout(timer);
+    reject(reason instanceof Error?reason:Error(String(reason)));
+   };
+   let request;
+   try{request=indexedDB.open(name,1)}catch(error){fail(error);return}
    request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('keys'))request.result.createObjectStore('keys')};
-   request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error)});
-  const get=(db,id)=>new Promise((ok,no)=>{const request=db.transaction('keys').objectStore('keys').get(id);request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error)});
-  const put=(db,id,pair,prior)=>new Promise((ok,no)=>{const tx=db.transaction('keys','readwrite'),store=tx.objectStore('keys');
-   if(prior?.privateKey)store.put(prior,'prior:'+user+':'+Date.now());
-   store.put(pair,id);tx.oncomplete=ok;tx.onerror=()=>no(tx.error)});
+   request.onblocked=()=>fail(Error('Executive key database upgrade is blocked by another tab. Close other VICE OS tabs and retry.'));
+   request.onerror=()=>fail(request.error||Error('Executive key database could not be opened'));
+   request.onsuccess=()=>{
+    const db=request.result;
+    db.onversionchange=()=>{db.close()};
+    // IndexedDB open requests cannot be cancelled. Close any connection that
+    // succeeds *after* timeout/blocked/error instead of leaking it.
+    if(settled){db.close();return}
+    settled=true;clearTimeout(timer);resolve(db);
+   };
+  });
+  const get=(db,id)=>keyTimeout(new Promise((resolve,reject)=>{
+   let tx,request;
+   try{tx=db.transaction('keys','readonly');request=tx.objectStore('keys').get(id)}
+   catch(err){reject(err);return}
+   let value;
+   request.onsuccess=()=>{value=request.result};
+   request.onerror=()=>reject(request.error||Error('Executive key lookup failed'));
+   tx.oncomplete=()=>resolve(value);
+   tx.onabort=()=>reject(tx.error||Error('Executive key lookup transaction aborted'));
+   tx.onerror=()=>reject(tx.error||Error('Executive key lookup transaction failed'));
+  }),'Executive key lookup');
+  const put=(db,id,pair,prior)=>new Promise((resolve,reject)=>{
+   let tx,settled=false;
+   const finish=(error)=>{
+    if(settled)return;
+    settled=true;clearTimeout(timer);
+    if(error)reject(error);else resolve();
+   };
+   const timer=setTimeout(()=>{
+    // A timed-out write must be aborted, not allowed to commit after rejection.
+    if(tx)try{tx.abort()}catch{}
+    finish(Error('Executive key write timed out; transaction aborted. Close other VICE OS tabs and retry.'));
+   },10000);
+   try{
+    tx=db.transaction('keys','readwrite');
+    const store=tx.objectStore('keys');
+    if(prior?.privateKey)store.put(prior,'prior:'+user+':'+Date.now());
+    store.put(pair,id);
+   }catch(err){if(tx)try{tx.abort()}catch{}finish(err);return}
+   tx.oncomplete=()=>finish();
+   tx.onabort=()=>finish(tx.error||Error('Executive key write transaction aborted'));
+   tx.onerror=()=>{}; // onabort is terminal; do not report a premature outcome.
+  });
   const same=async pair=>{if(!pair?.privateKey||!pair?.publicKey||!enrolled)return false;
    const key=await crypto.subtle.exportKey('jwk',pair.publicKey);
    return ['kty','crv','x','y'].every(k=>key[k]===enrolled[k])};
@@ -264,24 +361,12 @@ const ViceInstitutional=(()=>{
   if(act==='gates'){
     const r=await rpc('vice_ouv_activation_readiness',{p_proposal_id:t.dataset.id});
     if(user!==S.user?.id)return;
-    const reasons={
-      NOT_IN_ACTIVE_REVIEW:'Proposal is not in active review.',
-      PROPOSAL_VALIDATION_ISSUES:'Proposal validation issues must be cleared.',
-      CEO_AND_CFO_AUTHORIZATIONS_REQUIRED:'Separate CEO and CFO authorization is required.',
-      PUBLIC_REVIEW_WINDOW_OPEN:'Public review must finish before a reference revision can take effect.',
-      PROPOSAL_BASELINE_DOES_NOT_MATCH_OFFICIAL_REFERENCE:'Proposal uses an outdated official OUV baseline.',
-      PROPOSED_OUV_RATIO_OR_VALUES_INVALID:'Target OUV must be positive and keep the 1:160 ratio.',
-      ISSUER_LEDGER_RECONCILIATION_FAILED:'Issuer unit balances must reconcile to their reserve and strategic counters.',
-      INDEPENDENT_ONCHAIN_QUORUM_NOT_VERIFIED:'Independent on-chain quorum has not been verified.',
-      ONCHAIN_QUORUM_VERIFIER_NOT_CONFIGURED:'Deploy and test an on-chain quorum verifier.',
-      '72_HOUR_TIMELOCK_NOT_COMPLETED':'The 72-hour governance execution timelock is not complete.',
-      ATOMIC_GOVERNANCE_EXECUTOR_NOT_CONFIGURED:'Build and independently audit the atomic OUV execution service.'
-    };
+    const reasons=activationGateMessage;
     const blocked=Array.isArray(r.next_unmet_gates)?r.next_unmet_gates:[];
     modal('Official OUV activation status',
       '<p><strong>'+esc(r.proposal_id||t.dataset.id)+'</strong> · '+esc(String(r.executive_authorizations??0))+'/2 executives authorized</p>'+
       '<p class="note warn">NOT EFFECTIVE. Official OUVs, reserve allocations and holders’ unit quantities have not changed.</p>'+
-      '<p class="meta">Public review closes: '+esc(r.review_deadline?new Date(r.review_deadline).toLocaleString():'Not available')+'</p>'+
+      '<p class="meta">Public review closes: '+esc(governanceDeadline(r.review_deadline))+'</p>'+
       '<div class="rw"><span class="rw-l">Current official VICE / V4X</span><span class="rw-v">'+ouvMoney8(r.current_official_ouv?.VICE)+' / '+ouvMoney8(r.current_official_ouv?.V4X)+'</span></div>'+
       '<div class="rw"><span class="rw-l">Approved for review only</span><span class="rw-v">'+ouvMoney8(r.proposed_ouv?.VICE)+' / '+ouvMoney8(r.proposed_ouv?.V4X)+'</span></div>'+
       '<p><strong>Remaining gates</strong></p><ul>'+blocked.map(x=>'<li>'+esc(reasons[x]||label(x))+'</li>').join('')+'</ul>'+

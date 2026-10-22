@@ -3,7 +3,14 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
 const html=fs.readFileSync(process.env.VICE_TEST_SOURCE||'index.html','utf8');
-function section(a,b){const i=html.indexOf(a);assert(i>=0,a);return html.slice(i,html.indexOf(b,i));}
+function sectionFrom(source,a,b){const i=source.indexOf(a);assert(i>=0,'Missing section start marker: '+a);const j=source.indexOf(b,i+a.length);assert(j>=0,'Missing section end marker: '+b);assert(j>i,'Section end must follow start: '+b);return source.slice(i,j);}
+function section(a,b){return sectionFrom(html,a,b);}
+test('section extraction fails closed on missing or reordered markers',()=>{
+ assert.throws(()=>sectionFrom('begin content','absent','end'),/Missing section start marker: absent/);
+ assert.throws(()=>sectionFrom('begin content','begin','absent'),/Missing section end marker: absent/);
+ assert.throws(()=>sectionFrom('end begin','begin','end'),/Missing section end marker: end/);
+ assert.equal(sectionFrom('begin content end','begin','end'),'begin content ');
+});
 function run(src,globals={}){const c=vm.createContext({console,setTimeout,clearTimeout,clearInterval,...globals});vm.runInContext(src,c);return c;}
 test('Yahoo uses same-origin proxy and discards null/invalid OHLC',async()=>{
  let url;
@@ -42,7 +49,7 @@ test('Authentication coalesces duplicate initialization',async()=>{
 test('Logout cleanup removes member records, messages, certificates, and quiz answers',()=>{
  let navigationOpen=true;
  const S={user:{id:'a'},profile:{role:'SUPER_ADMIN'},comms:{messages:{secret:1}},academy:{quiz:{secret:1}},support:{tickets:[1]},oi:{messages:[1]},iru:{state:{secret:1}},documents:[1]};
- const c=run(section('function clearMemberSession(', 'function onAuthenticated('),{authEpoch:0,viceSyncTimer:null,S,setSidebarOpen(open){navigationOpen=open;},Realtime:{disconnect(){}},Link:{stop(){}},viceAbortVoiceRecording(){},safeResetCloudMt5Session(){},closeModal(){},closeSheet(){}});
+ const c=run(section('function clearMemberSession(', 'function onAuthenticated('),{authEpoch:0,viceSyncTimer:null,viceMfaPending:null,S,setSidebarOpen(open){navigationOpen=open;},Notify:{clear(){}},window:{ViceComms:{clear(){}},Vice4xOperations:{clear(){}},ViceInstitutional:{clear(){}}},Realtime:{disconnect(){}},Link:{stop(){}},viceAbortVoiceRecording(){},safeResetCloudMt5Session(){},closeModal(){},closeSheet(){}});
  c.clearMemberSession();assert.equal(S.user,null);assert.equal(S.profile.role,null);assert.equal(S.documents.length,0);assert.equal(Object.keys(S.comms.messages).length,0);assert.equal(Object.keys(S.academy.quiz).length,0);assert.equal(c.authEpoch,1);
  assert.equal(navigationOpen,false,'Successful logout clears menu and its backdrop');
 });

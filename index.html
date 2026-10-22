@@ -840,7 +840,9 @@ body.chart-view #oi-orb,body.chart-view #support-orb{display:none}
   animation:toastIn .3s var(--spring);pointer-events:none; /* Status notifications must never swallow underlying mobile taps */
 }
 .tst.ok{border-left-color:var(--gr)}
-.tst.err{border-left-color:var(--rd)}
+.tst-dismiss{margin-left:12px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;background:transparent;color:inherit;cursor:pointer;pointer-events:auto;font-size:1rem}
+.tst-dismiss:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
+.tst.err{border-left-color:var(--rd);pointer-events:auto}
 .tst.warn{border-left-color:var(--wn)}
 @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
 
@@ -1188,7 +1190,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 <div id="sheet-root"></div>
 <div id="oi-root"></div>
 <div id="lock-root"></div>
-<div class="tsts" id="toasts"></div>
+<div class="tsts" id="toasts" aria-label="Notifications"></div>
 <div id="call-root"></div>
 <div class="rt-badge" id="rtBadge" hidden><span class="rt-dot"></span><span id="rtLabel">Live</span></div>
 
@@ -1556,13 +1558,50 @@ function toast(msg, type='info'){
     const host = $('toasts'); if(!host) return;
     const el = document.createElement('div');
     el.className = 'tst ' + (type==='success'?'ok':type==='error'?'err':type==='warn'?'warn':'');
-    el.textContent = msg;
-    host.appendChild(el);
-    setTimeout(()=>{
+    const isError = type === 'error';
+    el.setAttribute('role', isError ? 'alert' : 'status');
+    el.setAttribute('aria-live', isError ? 'assertive' : 'polite');
+    const message = document.createElement('span');
+    message.textContent = String(msg);
+    el.appendChild(message);
+    let timer;
+    const dismiss = () => {
+      clearTimeout(timer);
+      if(!el.isConnected) return;
       el.style.opacity='0';
-      el.style.transition='all .3s';
+      el.style.transition='opacity .3s';
       setTimeout(()=>el.remove(),300);
-    }, 3400);
+    };
+    if(isError){
+      const close = document.createElement('button');
+      close.type='button';
+      close.className='tst-dismiss';
+      close.setAttribute('aria-label','Dismiss error notification');
+      close.textContent='×';
+      // A focus/layout shift may move the button between pointerdown and
+      // pointerup, which makes the browser target the parent for the click.
+      // Keep the gesture on this control and handle that parent-click fallback.
+      let dismissPointerStarted = false;
+      const dismissError = event => {
+        event.stopPropagation();
+        dismissPointerStarted = false;
+        clearTimeout(timer);
+        el.remove();
+      };
+      close.addEventListener('pointerdown',event=>{
+        if(event.button !== 0 || !event.isPrimary) return;
+        dismissPointerStarted = true;
+        try{close.setPointerCapture(event.pointerId);}catch(_){}
+      });
+      close.addEventListener('pointercancel',()=>{dismissPointerStarted=false;});
+      close.addEventListener('click',dismissError);
+      el.addEventListener('click',event=>{
+        if(dismissPointerStarted) dismissError(event);
+      });
+      el.appendChild(close);
+    }
+    host.appendChild(el);
+    timer=setTimeout(dismiss,isError ? 12000 : 3400);
   }catch(_){}
 }
 
@@ -2597,6 +2636,23 @@ async function refreshGovernance(){
     S.sovereignProposals=(Array.isArray(sovereign.data)?sovereign.data:[]).map(p=>({
       ...p,payload:{parameters:p.parameters}
     }));
+    // Institutional readiness is server-authoritative. Show exact unmet gates
+    // rather than implying two executive approvals automatically reprice units.
+    // Read-only; a client must never advance quorum or execute a proposal.
+    if((isOwner() || S.profile?.role==='FINANCE_OFFICER') && S.sovereignProposals.length){
+      const pending=S.sovereignProposals.filter(p=>p.status==='REVIEW').slice(0,10);
+      const results=await Promise.all(pending.map(async p=>{
+        try{
+          const {data,error}=await sb.rpc('vice_ouv_activation_readiness',{p_proposal_id:p.id});
+          return {id:p.id,data:error?null:data,error:error?.message||null};
+        }catch(e){return {id:p.id,data:null,error:e.message};}
+      }));
+      if(epoch!==authEpoch)return;
+      for(const item of results){
+        const p=S.sovereignProposals.find(p=>p.id===item.id);
+        if(p){p.activationReadiness=item.data;p.readinessError=item.error;}
+      }
+    }
   }
 }
 // Read-only, activity-derived institutional reference snapshot.
@@ -10979,11 +11035,38 @@ function viewGovernance(el){
   const sovereignCards = sovereign.map(p=>{
     const refs=p.payload?.parameters?.target_scaled_tier||{};
     const baseline=p.payload?.parameters?.previous_baseline||{};
+    // Proposal baselines are historical claims, never the official current OUV.
+    const issuerVerified=APP_MODE==='LIVE'&&S.daoPriceSyncStatus==='CANONICAL';
+    const officialVice=issuerVerified?Number(S.iruClasses?.[0]?.ouv):NaN;
+    const officialV4x=issuerVerified?Number(S.iruClasses?.[1]?.ouv):NaN;
+    const officialRefs=Number.isFinite(officialVice)&&Number.isFinite(officialV4x)&&officialVice>0&&officialV4x>0;
+    const authorizations=Number(p.verified_executive_authorizations??p.verified_executive_signatures??0);
+    const deadline=Date.parse(p.validation_until||'');
+    const cutoff=Number.isFinite(deadline)?new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(deadline):'Unverified deadline';
+    const stillReviewing=!Number.isFinite(deadline)||Date.now()<deadline;
+    const executiveStatus=authorizations===2?'BOTH EXECUTIVES APPROVED — AWAITING EXECUTION':'EXECUTIVE AUTHORIZATIONS PENDING';
+    const reviewDeadlinePassed=Number.isFinite(deadline)&&Date.now()>=deadline;
+    const approvalComplete=authorizations===2;
+    const governanceStage=p.status!=='REVIEW'?p.status
+      :!approvalComplete?'AWAITING EXECUTIVE APPROVAL'
+      :!reviewDeadlinePassed?'APPROVED · REVIEW WINDOW OPEN'
+      :'APPROVED · EXECUTION GATES PENDING';
+    const readiness=p.activationReadiness;
+    const gates=Array.isArray(readiness?.next_unmet_gates)?readiness.next_unmet_gates:[];
+    const readinessText=p.readinessError?'Readiness unavailable: '+p.readinessError
+      :readiness?(readiness.can_apply===true?'Execution gates passed; authorized server execution still required'
+        :gates.length?'Execution blocked: '+gates.join(' · '):'Execution blocked by backend policy')
+      :'Execution readiness is restricted to executive sessions; values remain unchanged';
+
     return `<div class="row" style="display:block;border-bottom:1px solid var(--bd);padding:14px 0">
       <div class="row-l"><b>${esc(p.id)}</b>
       <span class="meta">Institutional structural proposal · Executive review only · Member voting not authorized</span>
-      <span class="meta">Current: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')} · Requested: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
-      <span class="meta">Published ${fmtD(p.published_at)} · Review until ${fmtD(p.validation_until)}</span><span class="meta">Executive quorum: ${Number(p.verified_executive_authorizations??p.verified_executive_signatures??0)}/2 authorized · CEO: ${p.ceo_signed?('AUTHORIZED ('+esc(p.ceo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'} · CFO: ${p.cfo_signed?('AUTHORIZED ('+esc(p.cfo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'}</span></div>
+      <span class="meta"><strong>Current stage: ${esc(governanceStage)}</strong> · No official OUV update until the backend records a verified execution.</span>\n      <span class="meta">Official issuer reference: VICE ${officialRefs?esc(officialVice):'UNVERIFIED'} / V4X ${officialRefs?esc(officialV4x):'UNVERIFIED'} · Proposal baseline: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')}</span>
+      <span class="meta">Requested, not effective: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
+      <span class="meta">Published ${fmtD(p.published_at)} · Review ends ${esc(cutoff)} · ${stillReviewing?'REVIEW OPEN':'REVIEW DEADLINE PASSED'}</span>
+      <span class="meta"><strong>${esc(executiveStatus)}</strong> · ${authorizations}/2 verified · CEO: ${p.ceo_signed?('AUTHORIZED ('+esc(p.ceo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'} · CFO: ${p.cfo_signed?('AUTHORIZED ('+esc(p.cfo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'}</span>
+      <span class="note warn" role="status" aria-live="polite">${esc(readinessText)}</span>
+      <span class="meta">Executive votes approve the proposal only. Official OUV and certificate values remain unchanged until independently authorized server execution.</span></div>
       <div class="row-r"><span class="bdg ${p.status==='REJECTED'?'rd':'gd'}">${esc(p.status)}</span>${execRole && !(execRole==='CEO'?p.ceo_signed:p.cfo_signed) ? `<button class="btn btn-gd" data-act="exec-mfa-open" data-authorization-action="APPROVE" data-id="${esc(p.id)}">Authorize via 2FA</button>` : ''}</div>
     </div>`;
   }).join('');

@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
       - name: Validate complete application
@@ -49,7 +49,7 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          npx --yes netlify-cli@latest deploy --prod --no-build --dir=dist/site --functions=netlify/functions --site="$NETLIFY_SITE_ID" --message="VICE OS ${{ github.sha }} — verified frontend + cloud functions"
+          npx --yes netlify-cli@27.13.0 deploy --prod --no-build --dir=dist/site --functions=netlify/functions --site="$NETLIFY_SITE_ID" --message="VICE OS ${{ github.sha }} — verified frontend + cloud functions"
       - name: Run independent live smoke
         run: |
           node tests/vice-production-smoke.mjs
@@ -59,7 +59,7 @@ jobs:
           VICE_MANUAL_DEPLOY: '1'
           VICE_EXPECTED_COMMIT: ${{ github.sha }}
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: VICE_OS_NETLIFY_PRODUCTION_ACCEPTANCE
           path: production-smoke-report.json
