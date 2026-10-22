@@ -2636,6 +2636,23 @@ async function refreshGovernance(){
     S.sovereignProposals=(Array.isArray(sovereign.data)?sovereign.data:[]).map(p=>({
       ...p,payload:{parameters:p.parameters}
     }));
+    // Institutional readiness is server-authoritative. Show exact unmet gates
+    // rather than implying two executive approvals automatically reprice units.
+    // Read-only; a client must never advance quorum or execute a proposal.
+    if(viceInstitutionalAccess() && S.sovereignProposals.length){
+      const pending=S.sovereignProposals.filter(p=>p.status==='REVIEW').slice(0,10);
+      const results=await Promise.all(pending.map(async p=>{
+        try{
+          const {data,error}=await sb.rpc('vice_ouv_activation_readiness',{p_proposal_id:p.id});
+          return {id:p.id,data:error?null:data,error:error?.message||null};
+        }catch(e){return {id:p.id,data:null,error:e.message};}
+      }));
+      if(epoch!==authEpoch)return;
+      for(const item of results){
+        const p=S.sovereignProposals.find(p=>p.id===item.id);
+        if(p){p.activationReadiness=item.data;p.readinessError=item.error;}
+      }
+    }
   }
 }
 // Read-only, activity-derived institutional reference snapshot.
@@ -11028,6 +11045,13 @@ function viewGovernance(el){
     const cutoff=Number.isFinite(deadline)?new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(deadline):'Unverified deadline';
     const stillReviewing=!Number.isFinite(deadline)||Date.now()<deadline;
     const executiveStatus=authorizations===2?'BOTH EXECUTIVES APPROVED — NOT EFFECTIVE':'EXECUTIVE AUTHORIZATIONS PENDING';
+    const readiness=p.activationReadiness;
+    const gates=Array.isArray(readiness?.next_unmet_gates)?readiness.next_unmet_gates:[];
+    const readinessText=p.readinessError?'Readiness unavailable: '+p.readinessError
+      :readiness?(readiness.can_apply===true?'Execution gates passed; authorized server execution still required'
+        :gates.length?'Execution blocked: '+gates.join(' · '):'Execution blocked by backend policy')
+      :'Execution readiness is restricted to executive sessions; values remain unchanged';
+
     return `<div class="row" style="display:block;border-bottom:1px solid var(--bd);padding:14px 0">
       <div class="row-l"><b>${esc(p.id)}</b>
       <span class="meta">Institutional structural proposal · Executive review only · Member voting not authorized</span>
@@ -11035,7 +11059,8 @@ function viewGovernance(el){
       <span class="meta">Requested, not effective: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
       <span class="meta">Published ${fmtD(p.published_at)} · Review ends ${esc(cutoff)} · ${stillReviewing?'REVIEW OPEN':'REVIEW DEADLINE PASSED'}</span>
       <span class="meta"><strong>${esc(executiveStatus)}</strong> · ${authorizations}/2 verified · CEO: ${p.ceo_signed?('AUTHORIZED ('+esc(p.ceo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'} · CFO: ${p.cfo_signed?('AUTHORIZED ('+esc(p.cfo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'}</span>
-      <span class="note warn">This vote authorizes a proposal, not a change in official OUV. Execution separately requires independent on-chain quorum verification, a completed timelock and an audited executor. Existing holder values remain unchanged.</span></div>
+      <span class="note warn" role="status" aria-live="polite">${esc(readinessText)}</span>
+      <span class="meta">Executive votes approve the proposal only. Official OUV and certificate values remain unchanged until independently authorized server execution.</span></div>
       <div class="row-r"><span class="bdg ${p.status==='REJECTED'?'rd':'gd'}">${esc(p.status)}</span>${execRole && !(execRole==='CEO'?p.ceo_signed:p.cfo_signed) ? `<button class="btn btn-gd" data-act="exec-mfa-open" data-authorization-action="APPROVE" data-id="${esc(p.id)}">Authorize via 2FA</button>` : ''}</div>
     </div>`;
   }).join('');
