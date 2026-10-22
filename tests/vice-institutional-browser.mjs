@@ -14,6 +14,24 @@ try{for(const width of [1440,390]){
  await page.locator('#inst-model [name="grossProfit"]').fill('150000');await page.locator('#inst-model [name="costs"]').fill('10000');await page.locator('#inst-model [name="lossCarry"]').fill('5000');assert.match(await page.locator('#inst-model-output').textContent(),/63,375/);assert.match(await page.locator('#inst-model-output').textContent(),/37,500/);
  assert.equal(await page.locator('[data-inst="apollo"]').isDisabled(),true);
  assert.equal(await page.evaluate(()=>Array.from(document.querySelectorAll('#toasts .tst')).every(el=>getComputedStyle(el).pointerEvents==='none')),true,'Toast notifications must not intercept touch/click actions');
+ // Errors remain accessible, are dismissible by keyboard, and cannot swallow unrelated taps.
+ await page.evaluate(()=>toast('Synthetic executive authentication failure','error'));
+ const errorToast=page.locator('#toasts .tst.err').last();
+ await errorToast.waitFor();
+ assert.equal(await errorToast.getAttribute('role'),'alert');
+ assert.equal(await errorToast.getAttribute('aria-live'),'assertive');
+ assert.match(await errorToast.textContent(),/Synthetic executive authentication failure/);
+ const closeError=errorToast.getByRole('button',{name:'Dismiss error notification'});
+ await closeError.focus();
+ assert.equal(await closeError.evaluate(el=>document.activeElement===el),true,'Dismiss control must be keyboard-focusable');
+ await page.keyboard.press('Enter');
+ await errorToast.waitFor({state:'detached',timeout:3000});
+ await page.evaluate(()=>toast('Persistent security failure','error'));
+ const persistentToast=page.locator('#toasts .tst.err').last();
+ await page.waitForTimeout(3900);
+ assert.equal(await persistentToast.count(),1,'Error toast must persist longer than the previous 3.4 second timeout');
+ await persistentToast.getByRole('button',{name:'Dismiss error notification'}).click();
+ await persistentToast.waitFor({state:'detached',timeout:3000});
  await page.locator('[data-inst="lead-new"]').click();
  await page.locator('#inst-lead [name="full_name"]').fill('Synthetic <Executive>');await page.locator('#inst-lead [name="company"]').fill('Test & Co');await page.locator('#inst-lead [name="email"]').fill('test@example.test');await page.locator('[data-inst="lead-save"]').click();await page.waitForFunction(()=>document.querySelector('[data-inst-lead]')?.textContent.includes('Synthetic <Executive>'));
  assert.equal(await page.locator('executive').count(),0);await page.locator('[data-inst-search]').fill('missing');assert.equal(await page.locator('[data-inst-lead]:visible').count(),0);await page.locator('[data-inst-search]').fill('Synthetic');
