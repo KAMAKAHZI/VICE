@@ -10,10 +10,10 @@
     const wrap = document.createElement('div'); wrap.id = 'vice-ouv-final-deploy';
     wrap.style.cssText = 'margin:14px 0;padding:14px;border:1px solid #a88a3e;border-radius:12px;background:#15130e;color:#ecd28a';
     const button = document.createElement('button');
-    button.type = 'button'; button.textContent = '◆ FINAL DEPLOY & REPAIR ALL';
+    button.type = 'button'; button.textContent = '◆ VERIFY OUV EXECUTION READINESS';
     button.style.cssText = 'width:100%;padding:14px;border:1px solid #c9a84c;border-radius:9px;background:#302710;color:#f5d77e;font-weight:700;cursor:pointer';
     const status = document.createElement('p'); status.setAttribute('role','status'); status.style.whiteSpace='pre-wrap';
-    status.textContent = 'Check verified executive approvals and outstanding execution gates.';
+    status.textContent = 'Read-only governance verification. This action does not publish OUV values.';
     wrap.append(button,status); host.append(wrap);
     button.onclick = async () => {
       if(busy)return; busy=true;button.disabled=true;status.textContent='Checking authorization and execution gates…';
@@ -24,7 +24,7 @@
         if (!token) throw new Error('Sign in with your executive account to run the check.');
         const res=await fetch('/.netlify/functions/ouv-final-deploy',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action:'reconcile_ouv',proposal_id:'PROP-20261019-548A9057-34F',request_id:crypto.randomUUID()})});
         const data=await res.json();
-        status.textContent=(data.message || 'Execution not verified')+(data.issues?.length?'\nRemaining: '+data.issues.join(', '):'');
+        status.textContent=(data.message || 'Execution not verified')+(data.requested_unlock_at?'\nRequested 60-minute unlock: '+data.requested_unlock_at:'')+(data.issues?.length?'\nRemaining: '+data.issues.join(', '):'')+'\nNo valuation or holder-unit changes are performed by this check.';
       } catch(e){status.textContent='ACTION REQUIRED: '+(e?.message||'Could not verify execution');}
       finally{busy=false;button.disabled=false;}
     };
