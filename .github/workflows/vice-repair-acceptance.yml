@@ -26,8 +26,8 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
       - name: Validate recipient policy in disposable PostgreSQL
@@ -60,7 +60,7 @@ jobs:
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-staging.sql
           psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015193846_vice_academy_progress_receipts.sql
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-assertions.sql
-      - run: npm install --no-save --package-lock=false playwright@1.64.1 pdf-lib@1.17.1 @electric-sql/pglite@0.3.15
+      - run: npm install --ignore-scripts --no-save --package-lock=false playwright@1.64.1 pdf-lib@1.17.1 @electric-sql/pglite@0.3.15
       - name: Validate registry, CFO authority and account suspension in isolated PostgreSQL
         run: |
           node tests/vice-registry-controls.mjs
@@ -78,7 +78,7 @@ jobs:
       - run: node tests/vice-institutional-browser.mjs
       - run: node tests/vice-backend-acceptance.mjs
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: VICE_REPAIR_BACKEND_ACCEPTANCE
           path: backend-acceptance-report.json
