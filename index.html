@@ -1578,14 +1578,26 @@ function toast(msg, type='info'){
       close.className='tst-dismiss';
       close.setAttribute('aria-label','Dismiss error notification');
       close.textContent='×';
-      const dismissError = event => {event.stopPropagation();clearTimeout(timer);el.remove();};
+      // A focus/layout shift may move the button between pointerdown and
+      // pointerup, which makes the browser target the parent for the click.
+      // Keep the gesture on this control and handle that parent-click fallback.
+      let dismissPointerStarted = false;
+      const dismissError = event => {
+        event.stopPropagation();
+        dismissPointerStarted = false;
+        clearTimeout(timer);
+        el.remove();
+      };
+      close.addEventListener('pointerdown',event=>{
+        if(event.button !== 0 || !event.isPrimary) return;
+        dismissPointerStarted = true;
+        try{close.setPointerCapture(event.pointerId);}catch(_){}
+      });
+      close.addEventListener('pointercancel',()=>{dismissPointerStarted=false;});
       close.addEventListener('click',dismissError);
-      // Capture-phase delegation elsewhere in the OS must not swallow this control.
-      document.addEventListener('click',event=>{
-        if(event.target===close || close.contains(event.target))dismissError(event);
-      },{capture:true,signal:(()=>{const controller=new AbortController();
-        const observer=new MutationObserver(()=>{if(!el.isConnected){controller.abort();observer.disconnect();}});
-        queueMicrotask(()=>observer.observe(host,{childList:true}));return controller.signal;})()});
+      el.addEventListener('click',event=>{
+        if(dismissPointerStarted) dismissError(event);
+      });
       el.appendChild(close);
     }
     host.appendChild(el);
