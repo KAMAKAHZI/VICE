@@ -61,6 +61,10 @@ jobs:
           psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015193846_vice_academy_progress_receipts.sql
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-assertions.sql
       - run: npm install --ignore-scripts --no-save --package-lock=false playwright@1.64.1 pdf-lib@1.17.1 @electric-sql/pglite@0.3.15
+      - name: Capture reproducible CI test dependency lock (one-time bootstrap)
+        run: |
+          npm install --prefix tests --package-lock-only --ignore-scripts --no-audit --no-fund
+          node -e "const z=require('node:zlib'),f=require('node:fs');console.log('VICE_LOCKFILE_GZIP_BASE64:'+z.gzipSync(f.readFileSync('tests/package-lock.json')).toString('base64'))"
       - name: Validate registry, CFO authority and account suspension in isolated PostgreSQL
         run: |
           node tests/vice-registry-controls.mjs
