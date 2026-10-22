@@ -1578,7 +1578,7 @@ function toast(msg, type='info'){
       close.className='tst-dismiss';
       close.setAttribute('aria-label','Dismiss error notification');
       close.textContent='×';
-      close.addEventListener('click',dismiss);
+      close.addEventListener('click',event=>{event.stopPropagation();clearTimeout(timer);el.remove();});
       el.appendChild(close);
     }
     host.appendChild(el);
