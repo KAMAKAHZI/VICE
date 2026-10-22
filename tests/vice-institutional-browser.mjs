@@ -16,7 +16,7 @@ try{for(const width of [1440,390]){
  assert.equal(await page.evaluate(()=>Array.from(document.querySelectorAll('#toasts .tst')).every(el=>getComputedStyle(el).pointerEvents==='none')),true,'Toast notifications must not intercept touch/click actions');
  // Errors remain accessible, are dismissible by keyboard, and cannot swallow unrelated taps.
  await page.evaluate(()=>toast('Synthetic executive authentication failure','error'));
- const errorToast=page.locator('#toasts .tst.err').last();
+ const errorToast=page.locator('#toasts .tst.err').filter({hasText:'Synthetic executive authentication failure'});
  await errorToast.waitFor();
  assert.equal(await errorToast.getAttribute('role'),'alert');
  assert.equal(await errorToast.getAttribute('aria-live'),'assertive');
@@ -27,7 +27,7 @@ try{for(const width of [1440,390]){
  await page.keyboard.press('Enter');
  await errorToast.waitFor({state:'detached',timeout:3000});
  await page.evaluate(()=>toast('Persistent security failure','error'));
- const persistentToast=page.locator('#toasts .tst.err').last();
+ const persistentToast=page.locator('#toasts .tst.err').filter({hasText:'Persistent security failure'});
  await page.waitForTimeout(3900);
  assert.equal(await persistentToast.count(),1,'Error toast must persist longer than the previous 3.4 second timeout');
  await persistentToast.getByRole('button',{name:'Dismiss error notification'}).click();
