@@ -13,7 +13,7 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 | FIX-5 | Accessible persistent error toasts | Phase 0 | P1 | PASS | FIX-3 | agent | e2931a5; acceptance runs 39722328663 and 39722324140 PASS (desktop/mobile alert keyboard + pointer dismissal) | frontend |
 | FIX-6 | Strict test section markers | Phase 0 | P1 | PASS | FIX-1 | agent | 7152dad: regression tests; release integrity run 39677635671 passed | testing/evidence |
 | FIX-7 | CI and supply chain | Phase 0 | P0 | IN-PROGRESS | FIX-6 | agent | All 9 GitHub Action workflows SHA-pinned (checkout/setup-node/artifact/SLSA); 7365839 invariant across all workflows, 5852f32 guard-trigger; release integrity 39778801925 PASS. Dependency lockfile, container digest pinning and broader SCA remain OPEN | testing/evidence |
-| FIX-8 | Evidence registers and score | Phase 0 | P0 | OPEN | FIX-7 | agent | docs/audit/ | testing/evidence |
+| FIX-8 | Evidence registers and score | Phase 0 | P0 | IN-PROGRESS | FIX-7 | agent | docs/audit/PASSKEY_PROVENANCE.md, passkey-deployment-baseline.json and SUPABASE_ADVISORS_2026-10-22.md; 85 security/34 performance advisories triaged, no readiness score inferred | testing/evidence |
 | FIX-9 | Phase 0 review and handoff | Phase 0 | P0 | OPEN | FIX-0 through FIX-8 | agent/Caasi | Pending | deployment |
 | PKG-01 | Baseline code audit | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
 | PKG-02 | Auth and sessions | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
@@ -52,3 +52,10 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 - Full acceptance for baseline `1b4cbbba788c53562ff50c38143cf4479055f4c3` PASS: runs `39726285540` and `39726289977`; latest changes require their own fresh runs.
 - All 9 workflow action references are now SHA-pinned. The integrity guard covers changes across `.github/workflows/**`; source-checked passkey deployment metadata now has a prepared Monday read-only drift workflow with fail-closed tests.
 - GitHub cannot establish a functioning WebAuthn/passkey registration from these safeguards. Any independent-security certification, financial statement valuation, and complete production-readiness score remain **UNVERIFIED**.
+
+## Live read-only Supabase advisor review (2026-10-22)
+- **85 security advisory instances**: 7 RLS-without-policy INFO, 5 anon-executable SECURITY DEFINER WARN, 72 authenticated-executable SECURITY DEFINER WARN, 1 leaked-password-protection-disabled WARN.
+- **34 performance advisory instances**: 7 foreign keys without supporting indexes, 27 unused-index notices. Counts are adviser observations, not confirmed vulnerabilities or recommendations for blanket schema changes.
+- Reviewed live definitions for `advance_iru_allocation`, `append_iru_event`, `create_iru_allocation`, and `distribute_iru_allocation`: each has explicit active-account, auth user, registry operator checks. This is partial evidence only, not a comprehensive call-graph audit.
+- Reviewed public lookup, invitation, certificate and governance feed signatures/definitions; flagged email-lookup enumeration and public course-certificate data fields for privacy review. No live authorization or Auth configuration changes were made.
+- Detailed evidence: `docs/audit/SUPABASE_ADVISORS_2026-10-22.md`. Production remediation requires separate authorization, staging denial tests and rollback plans.
