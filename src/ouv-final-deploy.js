@@ -1,37 +1,70 @@
-/* VICE OS OUV Final Deploy control. Backend is the sole authority. */
-export function mountOuvFinalDeploy({ container, supabase, getAccessToken, endpoint = '/.netlify/functions/ouv-final-deploy' }) {
-  if (!container || !supabase || typeof getAccessToken !== 'function') throw new Error('Missing OUV deployment dependencies');
+/* VICE OS OUV executive control: backend and database are sole authorities.
+ * Alternative mount helper for module-based Admin screens; static page uses
+ * /vice-ouv-final-deploy.js. Both use the same verified API contract.
+ */
+export function mountOuvFinalDeploy({ container, getAccessToken, endpoint = '/.netlify/functions/ouv-final-deploy' }) {
+  if (!container || typeof getAccessToken !== 'function') throw new Error('Missing executive OUV dependencies');
+  const proposal_id = 'PROP-20261019-548A9057-34F';
   const root = document.createElement('section');
-  root.setAttribute('aria-label', 'OUV final deployment');
-  root.innerHTML = '<button type="button" class="btn btn-gold" data-ouv-deploy>◆ FINAL DEPLOY & REPAIR ALL</button><p data-ouv-status role="status" aria-live="polite">Ready to inspect and reconcile eligible OUV proposals.</p><pre data-ouv-receipt hidden></pre>';
+  root.setAttribute('aria-label', 'Executive OUV governance');
+  const verify = document.createElement('button');
+  const execute = document.createElement('button');
+  verify.type = execute.type = 'button';
+  verify.textContent = '◆ VERIFY OUV READINESS';
+  execute.textContent = '◆ EXECUTE APPROVED OUV';
+  execute.disabled = true;
+  const status = document.createElement('p');
+  status.setAttribute('role', 'status');
+  status.textContent = 'Execution remains locked until all independently verified governance gates pass.';
+  const receipt = document.createElement('pre');
+  receipt.hidden = true;
+  root.append(verify, execute, status, receipt);
   container.append(root);
-  const button = root.querySelector('[data-ouv-deploy]');
-  const status = root.querySelector('[data-ouv-status]');
-  const receipt = root.querySelector('[data-ouv-receipt]');
-  let running = false;
-  button.addEventListener('click', async () => {
-    if (running) return;
-    running = true; button.disabled = true;
-    status.textContent = 'Verifying governance, quorum, authorization, execution and reconciliation…';
+  let busy = false, ready = false;
+  async function run(action) {
+    if (busy || (action === 'execute_ouv' && !ready)) return;
+    if (action === 'execute_ouv' && !window.confirm(
+      'Execute the approved management reference OUV adjustment? This is not independent FMV.'
+    )) return;
+    busy = true;
+    ready = false;
+    verify.disabled = execute.disabled = true;
     receipt.hidden = true;
+    status.textContent = action === 'execute_ouv' ? 'Submitting authorized execution…' : 'Checking database governance gates…';
     try {
       const token = await getAccessToken();
-      if (!token) throw new Error('Executive sign-in required.');
-      const requestId = crypto.randomUUID();
+      if (!token) throw new Error('Executive sign-in required');
+      const request_id = crypto.randomUUID();
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token, 'Idempotency-Key': requestId },
-        body: JSON.stringify({ action: 'reconcile_ouv', request_id: requestId })
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token, 'Idempotency-Key': request_id },
+        body: JSON.stringify({ action, proposal_id, request_id, ...(action === 'execute_ouv' ? { confirm: 'EXECUTE APPROVED OUV' } : {}) })
       });
       const result = await response.json();
-      if (!response.ok || !result || !['verified', 'action_required', 'partially_repaired'].includes(result.status))
-        throw new Error(result?.message || 'OUV deployment could not be verified.');
-      status.textContent = result.status === 'verified' ? '✓ DEPLOYED & VERIFIED' : result.status === 'action_required' ? '⚠ ACTION REQUIRED' : '⚠ PARTIALLY REPAIRED';
-      receipt.textContent = JSON.stringify({ status: result.status, receipt_id: result.receipt_id ?? null, ouv_version: result.ouv_version ?? null, checks: result.checks ?? [], issues: result.issues ?? [] }, null, 2);
+      if (!result || !['verified', 'ready', 'action_required'].includes(result.status))
+        throw new Error('Invalid server verification response');
+      ready = result.status === 'ready';
+      status.textContent = result.status === 'verified'
+        ? '✓ Published and reconciled: management reference values only'
+        : result.status === 'ready' ? '✓ Ready for explicit authorized execution'
+        : '⚠ ' + (result.message || 'Governance requirements not satisfied');
+      receipt.textContent = JSON.stringify({
+        proposal_id, status: result.status, issues: result.issues || [],
+        checks: result.checks || null, ouv_version: result.ouv_version || null,
+        receipt_id: result.receipt_id || null, management_reference_only: true
+      }, null, 2);
       receipt.hidden = false;
+      if (!response.ok && result.status !== 'action_required') ready = false;
     } catch (error) {
-      status.textContent = '⚠ ACTION REQUIRED — ' + (error instanceof Error ? error.message : 'Unexpected error');
-    } finally { running = false; button.disabled = false; }
-  });
+      ready = false;
+      status.textContent = '⚠ ACTION REQUIRED — ' + (error?.message || 'Unexpected verification error');
+    } finally {
+      busy = false;
+      verify.disabled = false;
+      execute.disabled = !ready;
+    }
+  }
+  verify.addEventListener('click', () => run('reconcile_ouv'));
+  execute.addEventListener('click', () => run('execute_ouv'));
   return () => root.remove();
 }
