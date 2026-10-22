@@ -69,6 +69,12 @@ check('every GitHub Actions workflow uses immutable action and reusable-workflow
   assert.equal(lock.lockfileVersion,3,'Unexpected npm lockfile format');
   assert.deepEqual(lock.packages[''].devDependencies,manifest.devDependencies,'Lockfile must match exact test dependencies');
   for(const [name,pkg] of Object.entries(lock.packages))if(name)assert.match(pkg.integrity||'',/^sha512-[A-Za-z0-9+/]+=*$/,'Missing resolved package integrity '+name);
+  assert.match(acceptance,/npm ci --prefix server --ignore-scripts/,'Node bridge must install locked dependencies');
+  assert.match(acceptance,/npm run check --prefix server/,'Node bridge syntax must be checked in acceptance CI');
+  const bridge=JSON.parse(read('server/package.json')),bridgeLock=JSON.parse(read('server/package-lock.json'));
+  assert.equal(bridgeLock.lockfileVersion,3,'Unexpected bridge npm lockfile format');
+  assert.deepEqual(bridgeLock.packages[''].dependencies,bridge.dependencies,'Bridge dependencies must match exact production manifest');
+  for(const [name,pkg] of Object.entries(bridgeLock.packages))if(name)assert.match(pkg.integrity||'',/^sha512-[A-Za-z0-9+/]+=*$/,'Missing bridge package integrity '+name);
   assert.match(read('.github/workflows/vice-os-release-guard.yml'),/['"]\.github\/workflows\/\*\*['"]/,'Release guard must rerun for changes to ANY workflow');
 });
 check('release metadata does not claim certified production',()=>{
