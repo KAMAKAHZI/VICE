@@ -42,6 +42,21 @@ try{for(const width of [1440,390]){
  await page.evaluate(()=>go('sovereign'));await page.locator('#view').getByText('BASELINE MISMATCH',{exact:false}).first().waitFor();assert.equal(await page.locator('[data-inst="approve-proposal"]').count(),0,'Invalid proposal must not expose executive authorization');assert.equal(await page.locator('[data-inst="approve-device"]').count(),0,'Invalid proposal must not expose device authorization');
  await page.locator('[data-inst="enroll"]').click();try{await page.waitForFunction(()=>window.__instCalls.some(x=>x.name==='vice_exec_challenge'),{},{timeout:8000});}catch(e){const diagnostic=await page.evaluate(()=>({calls:window.__instCalls,toastText:document.querySelector('#toasts')?.innerText,button:document.querySelector('[data-inst="enroll"]')?.outerHTML,crypto:!!crypto?.subtle,indexedDB:!!indexedDB}));throw new Error('Executive key enrollment did not reach challenge RPC: '+JSON.stringify({diagnostic,pageErrors:errors}),{cause:e});}
  const key=await page.evaluate(()=>window.__instCalls.find(x=>x.name==='vice_exec_challenge').args.p_public_key);assert.equal(key.kty,'EC');assert(!key.d);assert.equal(key.x.length,43);
+ // Exercise the real enrollment handler with a denied IndexedDB open.
+ // Storage failure must fail closed before a new challenge or signature occurs.
+ await page.waitForFunction(()=>document.querySelector('[data-inst="enroll"]')?.disabled===false);
+ const earlierChallenges=await page.evaluate(()=>window.__instCalls.filter(x=>x.name==='vice_exec_challenge').length);
+ await page.evaluate(()=>{
+  window.__originalIdbOpen=indexedDB.open;
+  indexedDB.open=()=>{throw Error('Synthetic IndexedDB open denied');};
+ });
+ try{
+  await page.locator('[data-inst="enroll"]').click();
+  await page.locator('#toasts .tst.err').filter({hasText:'Synthetic IndexedDB open denied'}).waitFor({timeout:6000});
+  assert.equal(await page.evaluate(()=>window.__instCalls.filter(x=>x.name==='vice_exec_challenge').length),earlierChallenges,'No challenge or signature may be issued when executive storage fails');
+ }finally{
+  await page.evaluate(()=>{indexedDB.open=window.__originalIdbOpen;delete window.__originalIdbOpen;});
+ }
  // Abort the key-store transaction deliberately: an aborted write must reject, never authorize.
  const abortOutcome=await page.evaluate(async()=>{
   const opened=await new Promise((resolve,reject)=>{const req=indexedDB.open('vice-executive-keys',1);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
