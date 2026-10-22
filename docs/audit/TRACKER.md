@@ -22,8 +22,8 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 | PKG-04 | Database authorization | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
 | PKG-05 | IRU ledger and holder corrections | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
 | PKG-06 | Reconciliation and certificates | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
-| PKG-07 | Governance | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
-| PKG-08 | OUV and distributions | Post-Phase 0 | P0 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
+| PKG-07 | Governance | Post-Phase 0 | P0 | BLOCKED | Independent on-chain quorum verifier and 72-hour timelock / atomic executor | agent/owner/auditor | 2026-10-22 live: PROP-20261019-548A9057-34F has CEO MFA + CFO device (2/2 authorizations), REVIEW through 5:47 PM EDT; quorum and execute_after unset. See docs/audit/GOVERNANCE_OUV_BLOCKERS_2026-10-22.md | evidence-linked category |
+| PKG-08 | OUV and distributions | Post-Phase 0 | P0 | BLOCKED | Approved issuer reference execution policy / independent validation required | agent/owner/auditor | Live official $2 VICE / $320 V4X; proposed $2.82645403/$452.2326448 is not effective; vice_ouv_release_policy MODEL_ONLY; readiness always can_apply=false | evidence-linked category |
 | PKG-09 | Documents and e-signatures | Post-Phase 0 | P1 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
 | PKG-10 | Realtime comms and trading | Post-Phase 0 | P1 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
 | PKG-11 | Academy UI and accessibility | Post-Phase 0 | P1 | OPEN | Phase 0 complete | agent/Caasi/counsel/auditor | Pending | evidence-linked category |
@@ -80,3 +80,9 @@ Policy: OPEN/BLOCKED/UNVERIFIED are not PASS. Production operations require Caas
 - **Both executive authorizations are verified** and hash-bound. Neither CEO nor CFO should be asked to vote again. Public review closes **5:47:27 PM EDT October 22, 2026**; midnight is not the backend expiry time.
 - Official issuer OUV remains $2 VICE / $320 V4X. Proposal $2.82645403 / $452.23264480 is NOT effective. Live activation RPC explicitly returns can_apply=false because on-chain quorum and atomic executor are not configured; timelock is not started. Live price setter is intentionally fixed to $2/$320 pending separate approved amendment.
 - Branch-side governance UI now reads the **server** readiness result automatically, shows both authorizations, exact ET cutoff and blockers, and never falsely updates the portfolio or historical certificates. Backend valuation/execution work remains BLOCKED pending review and fresh institutional authorization. See docs/audit/OUV_APPROVAL_EXECUTION_2026-10-22.md.
+
+## October 22 governance discrepancy resolution
+- Live public feed returned **2 verified executive authorizations**: CEO authenticator MFA and CFO cryptographic device signature, but only **1 device signature**. The legacy public governance page erroneously displayed device signatures as total votes.
+- `ae620420` and `c2ddcac` add a deterministic public-asset conversion; `e7e1110` invokes it during Netlify build. `b3922ca` verifies published 2/2 device-or-MFA display, Eastern deadline and explicit NON-EFFECTIVE official price disclosure.
+- Full CI run `39792089465` PASS verified publication script, two governance CJS regressions, institutional 1440/390 UI and 20/20 selected backend checks. **No production deployment**.
+- The deadline is `2026-10-22 21:47:27Z` (5:47 PM EDT). Server guard constraints expressly prohibit recording independent quorum or timelock and cannot enter an executed status. Any actual OUV revision requires separate approved governance architecture; never infer price changes from executive approvals alone.
