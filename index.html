@@ -840,6 +840,8 @@ body.chart-view #oi-orb,body.chart-view #support-orb{display:none}
   animation:toastIn .3s var(--spring);pointer-events:none; /* Status notifications must never swallow underlying mobile taps */
 }
 .tst.ok{border-left-color:var(--gr)}
+.tst-dismiss{margin-left:12px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;background:transparent;color:inherit;cursor:pointer;pointer-events:auto;font-size:1rem}
+.tst-dismiss:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
 .tst.err{border-left-color:var(--rd)}
 .tst.warn{border-left-color:var(--wn)}
 @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
@@ -1188,7 +1190,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
 <div id="sheet-root"></div>
 <div id="oi-root"></div>
 <div id="lock-root"></div>
-<div class="tsts" id="toasts"></div>
+<div class="tsts" id="toasts" aria-label="Notifications"></div>
 <div id="call-root"></div>
 <div class="rt-badge" id="rtBadge" hidden><span class="rt-dot"></span><span id="rtLabel">Live</span></div>
 
@@ -1556,13 +1558,31 @@ function toast(msg, type='info'){
     const host = $('toasts'); if(!host) return;
     const el = document.createElement('div');
     el.className = 'tst ' + (type==='success'?'ok':type==='error'?'err':type==='warn'?'warn':'');
-    el.textContent = msg;
-    host.appendChild(el);
-    setTimeout(()=>{
+    const isError = type === 'error';
+    el.setAttribute('role', isError ? 'alert' : 'status');
+    el.setAttribute('aria-live', isError ? 'assertive' : 'polite');
+    const message = document.createElement('span');
+    message.textContent = String(msg);
+    el.appendChild(message);
+    let timer;
+    const dismiss = () => {
+      clearTimeout(timer);
+      if(!el.isConnected) return;
       el.style.opacity='0';
-      el.style.transition='all .3s';
+      el.style.transition='opacity .3s';
       setTimeout(()=>el.remove(),300);
-    }, 3400);
+    };
+    if(isError){
+      const close = document.createElement('button');
+      close.type='button';
+      close.className='tst-dismiss';
+      close.setAttribute('aria-label','Dismiss error notification');
+      close.textContent='×';
+      close.addEventListener('click',dismiss);
+      el.appendChild(close);
+    }
+    host.appendChild(el);
+    timer=setTimeout(dismiss,isError ? 12000 : 3400);
   }catch(_){}
 }
 
