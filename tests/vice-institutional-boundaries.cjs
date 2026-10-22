@@ -63,7 +63,12 @@ check('every GitHub Actions workflow uses immutable action and reusable-workflow
     for(const action of uses)assert.match(action,/^[\w.-]+\/[\w.-]+(?:\/\.github\/workflows\/[\w.-]+\.ya?ml)?@[a-f0-9]{40}$/,'Mutable or unpinned action in '+file+': '+action);
   }
   const acceptance=read('.github/workflows/vice-repair-acceptance.yml');
-  assert.match(acceptance,/npm install --ignore-scripts --no-save/,'Untrusted npm lifecycle scripts must not execute in acceptance CI');
+  assert.match(acceptance,/npm ci --prefix tests --ignore-scripts/,'Acceptance dependencies must be integrity-locked and lifecycle scripts disabled');
+  assert.match(acceptance,/tests\/node_modules\/\.bin\/playwright install --with-deps chromium/,'Playwright browser install must use the pinned tests dependency');
+  const manifest=JSON.parse(read('tests/package.json')),lock=JSON.parse(read('tests/package-lock.json'));
+  assert.equal(lock.lockfileVersion,3,'Unexpected npm lockfile format');
+  assert.deepEqual(lock.packages[''].devDependencies,manifest.devDependencies,'Lockfile must match exact test dependencies');
+  for(const [name,pkg] of Object.entries(lock.packages))if(name)assert.match(pkg.integrity||'',/^sha512-[A-Za-z0-9+/]+=*$/,'Missing resolved package integrity '+name);
   assert.match(read('.github/workflows/vice-os-release-guard.yml'),/['"]\.github\/workflows\/\*\*['"]/,'Release guard must rerun for changes to ANY workflow');
 });
 check('release metadata does not claim certified production',()=>{
