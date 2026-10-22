@@ -22,7 +22,7 @@
         const sessionResult = client?.auth?.getSession ? await client.auth.getSession() : null;
         const token = sessionResult?.data?.session?.access_token;
         if (!token) throw new Error('Sign in with your executive account to run the check.');
-        const res=await fetch('/.netlify/functions/ouv-final-deploy',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action:'reconcile_ouv',request_id:crypto.randomUUID()})});
+        const res=await fetch('/.netlify/functions/ouv-final-deploy',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action:'reconcile_ouv',proposal_id:'PROP-20261019-548A9057-34F',request_id:crypto.randomUUID()})});
         const data=await res.json();
         status.textContent=(data.message || 'Execution not verified')+(data.issues?.length?'\nRemaining: '+data.issues.join(', '):'');
       } catch(e){status.textContent='ACTION REQUIRED: '+(e?.message||'Could not verify execution');}
