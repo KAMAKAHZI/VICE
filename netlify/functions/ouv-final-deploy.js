@@ -35,15 +35,19 @@ exports.handler = async (event) => {
     const roles = new Set([...mfa, ...signed].filter(a => a.verified_at).map(a => a.role));
     const dual = roles.has('CEO') && roles.has('CFO');
     const reviewClosed = Date.now() >= Date.parse(proposal.validation_until);
+    const finalApproval = Math.max(...[...mfa, ...signed].filter(a => a.verified_at && (a.role === 'CEO' || a.role === 'CFO')).map(a => Date.parse(a.verified_at)));
+    const unlockAt = Number.isFinite(finalApproval) ? new Date(finalApproval + 60 * 60 * 1000).toISOString() : null;
+    const sixtyMinuteTimelockPassed = dual && Boolean(unlockAt) && Date.now() >= Date.parse(unlockAt);
     const checks = [
       { name: 'executive_approvals_2_of_2', passed: dual },
       { name: 'public_review_complete', passed: reviewClosed },
       { name: 'on_chain_quorum_verified', passed: Boolean(proposal.quorum_verified_at) },
-      { name: 'execution_timelock_complete', passed: Boolean(proposal.execute_after) && Date.now() >= Date.parse(proposal.execute_after) },
+      { name: 'requested_60_minute_timelock_elapsed', passed: sixtyMinuteTimelockPassed },
+      { name: 'stored_governance_timelock_satisfied', passed: Boolean(proposal.execute_after) && Date.now() >= Date.parse(proposal.execute_after) },
       { name: 'atomic_governance_executor', passed: false }
     ];
     return reply(409, {
-      status: 'action_required', proposal_id: proposal.id,
+      status: 'action_required', proposal_id: proposal.id, requested_unlock_at: unlockAt,
       message: dual ? 'CEO and CFO approvals confirmed; remaining execution gates are listed.' : 'Missing matching executive authorization.',
       checks, issues: checks.filter(c => !c.passed).map(c => c.name),
       note: 'No OUV values or unit balances were changed.'
