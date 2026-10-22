@@ -62,12 +62,12 @@ jobs:
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-assertions.sql
       - name: Install integrity-locked test dependencies
         run: npm ci --prefix tests --ignore-scripts --no-audit --no-fund
-      - name: Capture upgraded Node bridge dependency lock (one-time security remediation)
+      - name: Validate patched locked Node bridge and test dependency advisories
         run: |
-          npm install --prefix server --package-lock-only --ignore-scripts --no-audit --no-fund
-          node -e "const z=require('node:zlib'),f=require('node:fs');console.log('VICE_BRIDGE_PATCH_LOCK_GZIP_BASE64:'+z.gzipSync(f.readFileSync('server/package-lock.json')).toString('base64'))"
           npm ci --prefix server --ignore-scripts --no-audit --no-fund
           npm run check --prefix server
+          npm audit --prefix server --audit-level=high
+          npm audit --prefix tests --audit-level=high
       - name: Validate registry, CFO authority and account suspension in isolated PostgreSQL
         run: |
           node tests/vice-registry-controls.mjs
