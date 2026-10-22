@@ -2639,7 +2639,7 @@ async function refreshGovernance(){
     // Institutional readiness is server-authoritative. Show exact unmet gates
     // rather than implying two executive approvals automatically reprice units.
     // Read-only; a client must never advance quorum or execute a proposal.
-    if(viceInstitutionalAccess() && S.sovereignProposals.length){
+    if((isOwner() || S.profile?.role==='FINANCE_OFFICER') && S.sovereignProposals.length){
       const pending=S.sovereignProposals.filter(p=>p.status==='REVIEW').slice(0,10);
       const results=await Promise.all(pending.map(async p=>{
         try{
