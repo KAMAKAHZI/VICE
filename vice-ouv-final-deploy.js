@@ -18,8 +18,8 @@
     button.onclick = async () => {
       if(busy)return; busy=true;button.disabled=true;status.textContent='Checking authorization and execution gates…';
       try {
-        const sb = window.sb || window.supabaseClient || window._supabase || window.supabase;
-        const sessionResult = sb?.auth?.getSession ? await sb.auth.getSession() : null;
+        const client = (typeof sb !== 'undefined' && sb?.auth?.getSession) ? sb : (window.sb || window.supabaseClient || window._supabase);
+        const sessionResult = client?.auth?.getSession ? await client.auth.getSession() : null;
         const token = sessionResult?.data?.session?.access_token;
         if (!token) throw new Error('Sign in with your executive account to run the check.');
         const res=await fetch('/.netlify/functions/ouv-final-deploy',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action:'reconcile_ouv',request_id:crypto.randomUUID()})});
