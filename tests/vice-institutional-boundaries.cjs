@@ -64,6 +64,7 @@ check('every GitHub Actions workflow uses immutable action and reusable-workflow
   }
   const acceptance=read('.github/workflows/vice-repair-acceptance.yml');
   assert.match(acceptance,/npm ci --prefix tests --ignore-scripts/,'Acceptance dependencies must be integrity-locked and lifecycle scripts disabled');
+  assert.match(acceptance,/image: postgres:17\.\d+\b/,'PostgreSQL disposable acceptance must pin a PG17 patch version');
   assert.match(acceptance,/tests\/node_modules\/\.bin\/playwright install --with-deps chromium/,'Playwright browser install must use the pinned tests dependency');
   const manifest=JSON.parse(read('tests/package.json')),lock=JSON.parse(read('tests/package-lock.json'));
   assert.equal(lock.lockfileVersion,3,'Unexpected npm lockfile format');
