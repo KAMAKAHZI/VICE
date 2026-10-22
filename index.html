@@ -11044,7 +11044,13 @@ function viewGovernance(el){
     const deadline=Date.parse(p.validation_until||'');
     const cutoff=Number.isFinite(deadline)?new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(deadline):'Unverified deadline';
     const stillReviewing=!Number.isFinite(deadline)||Date.now()<deadline;
-    const executiveStatus=authorizations===2?'BOTH EXECUTIVES APPROVED — NOT EFFECTIVE':'EXECUTIVE AUTHORIZATIONS PENDING';
+    const executiveStatus=authorizations===2?'BOTH EXECUTIVES APPROVED — AWAITING EXECUTION':'EXECUTIVE AUTHORIZATIONS PENDING';
+    const reviewDeadlinePassed=Number.isFinite(deadline)&&Date.now()>=deadline;
+    const approvalComplete=authorizations===2;
+    const governanceStage=p.status!=='REVIEW'?p.status
+      :!approvalComplete?'AWAITING EXECUTIVE APPROVAL'
+      :!reviewDeadlinePassed?'APPROVED · REVIEW WINDOW OPEN'
+      :'APPROVED · EXECUTION GATES PENDING';
     const readiness=p.activationReadiness;
     const gates=Array.isArray(readiness?.next_unmet_gates)?readiness.next_unmet_gates:[];
     const readinessText=p.readinessError?'Readiness unavailable: '+p.readinessError
@@ -11055,7 +11061,7 @@ function viewGovernance(el){
     return `<div class="row" style="display:block;border-bottom:1px solid var(--bd);padding:14px 0">
       <div class="row-l"><b>${esc(p.id)}</b>
       <span class="meta">Institutional structural proposal · Executive review only · Member voting not authorized</span>
-      <span class="meta">Official issuer reference: VICE ${officialRefs?esc(officialVice):'UNVERIFIED'} / V4X ${officialRefs?esc(officialV4x):'UNVERIFIED'} · Proposal baseline: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')}</span>
+      <span class="meta"><strong>Current stage: ${esc(governanceStage)}</strong> · No official OUV update until the backend records a verified execution.</span>\n      <span class="meta">Official issuer reference: VICE ${officialRefs?esc(officialVice):'UNVERIFIED'} / V4X ${officialRefs?esc(officialV4x):'UNVERIFIED'} · Proposal baseline: VICE ${esc(baseline.vice_ouv??'—')} / V4X ${esc(baseline.v4x_ouv??'—')}</span>
       <span class="meta">Requested, not effective: VICE ${esc(refs.vice_ouv??'—')} / V4X ${esc(refs.v4x_ouv??'—')}</span>
       <span class="meta">Published ${fmtD(p.published_at)} · Review ends ${esc(cutoff)} · ${stillReviewing?'REVIEW OPEN':'REVIEW DEADLINE PASSED'}</span>
       <span class="meta"><strong>${esc(executiveStatus)}</strong> · ${authorizations}/2 verified · CEO: ${p.ceo_signed?('AUTHORIZED ('+esc(p.ceo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'} · CFO: ${p.cfo_signed?('AUTHORIZED ('+esc(p.cfo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'}</span>
