@@ -11,12 +11,20 @@ assets=(
   index.html guide.html verify.html governance.html version.json
   vice4x-icon.svg vice4x-icon-192.png vice4x-icon-512.png apple-touch-icon.png
   manifest.json manifest.webmanifest sw.js vice-mega.js vice-mega.css vice4x-operations.js vice4x-operations.css vice-solace-system.js vice4x-comms.js vice4x-comms.css vice4x-institutional-core.js vice4x-institutional.js vice4x-institutional.css
+  vice-ouv-final-deploy.js
   _headers _redirects
 )
 for f in "${assets[@]}"; do
   test -s "$f" || { echo "Missing required public asset: $f" >&2; exit 1; }
   cp "$f" "$target/$f"
 done
+python3 - <<'PY'
+from pathlib import Path
+p=Path('dist/site/index.html')
+s=p.read_text()
+s=s.replace('</body>', '<script defer src="/vice-ouv-final-deploy.js"></script>\n</body>')
+p.write_text(s)
+PY
 node scripts/vice-deployment-identity.cjs
 find "$target" -mindepth 1 -maxdepth 1 -type f -printf '%f\n' | sort
 echo "Netlify publishes whitelisted dist/site only."
