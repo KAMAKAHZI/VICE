@@ -49,7 +49,7 @@ async function checkPublished(base, secret) {
     throw new Error('Invalid reconciliation records');
   const receipt = receipts[0], version = versions[0], latest = latestRows[0],
     official = config[0], proposal = proposals[0];
-  if (!receipt && !version && !latest) return { executed: false };
+  // A latest version may belong to an unrelated proposal; it is not proof\n  // that THIS proposal executed. Missing receipt/version must not be labeled\n  // as a completed execution. The authoritative readiness gate will decide.\n  if (!receipt && !version) return { executed: false };
   const initialValid = receipts.length === 1 && versions.length === 1 && receipt &&
     receipt.payload_hash === HASH && version.id === receipt.ouv_version_id &&
     version.version === PROPOSAL && proposal?.status === 'EXECUTED' &&
@@ -76,15 +76,15 @@ async function checkPublished(base, secret) {
 }
 async function readiness(base, anon, bearer) {
   const s = await rpc(base, anon, bearer, 'vice_ouv_activation_readiness', { p_proposal_id: PROPOSAL });
-  if (!s || s.proposal_id !== PROPOSAL) throw new Error('Governance readiness response invalid');
+  if (!s || s.proposal_id !== PROPOSAL) throw new Error('Governance readiness response invalid');\n  // Two recorded authorizations are not equivalent to two independently\n  // verified signatures. Require explicit verification evidence before ready.\n  const signaturesVerified = s.cryptographic_signatures_verified === true &&\n    s.ceo_authorization_verified === true && s.cfo_authorization_verified === true;
   const issues = Array.isArray(s.next_unmet_gates) ? s.next_unmet_gates : ['UNVERIFIED_GOVERNANCE_READINESS'];
   // Solely the database authorization engine can unlock execution.
-  const ready = s.can_apply === true && issues.length === 0 &&
+  const ready = signaturesVerified && s.can_apply === true && issues.length === 0 &&
     s.executive_authorizations === 2 && s.review_complete === true &&
     s.ledger_reconciled === true && s.baseline_compatible === true &&
     sameNumber(s.proposed_ouv?.VICE, TARGET.VICE) &&
     sameNumber(s.proposed_ouv?.V4X, TARGET.V4X);
-  return { ready, issues, checks: {
+  if (!signaturesVerified && !issues.includes('CRYPTOGRAPHIC_SIGNATURE_VERIFICATION_REQUIRED'))\n    issues.push('CRYPTOGRAPHIC_SIGNATURE_VERIFICATION_REQUIRED');\n  return { ready, issues, checks: {\n    cryptographic_signatures_verified: signaturesVerified,
     executive_authorizations: s.executive_authorizations,
     review_complete: s.review_complete,
     ledger_reconciled: s.ledger_reconciled,
