@@ -13,3 +13,17 @@ assert(!found.some(x=>/supabase|secrets|\.github|bootstrap|netlify|tests|sql/i.t
 console.log('PASS PUBLIC DEPLOYMENT SAFETY: '+found.length+' whitelisted files, '+build);
 
 const identity=JSON.parse(fs.readFileSync(p.join(site,'deployment.json'),'utf8'));assert.deepEqual(Object.keys(identity).sort(),['built_at','commit','context','deployment_id','release_version']);
+
+
+// Ensure the OUV control is injected exactly once at the real document end.
+// Inline certificate templates also contain "</body>" as string content;
+// replacing every occurrence previously corrupted the principal app script.
+const stagedHtml=fs.readFileSync(p.join(site,'index.html'),'utf8');
+const injected=(stagedHtml.match(/<script defer src="\/vice-ouv-final-deploy\.js"><\/script>/g)||[]);
+assert.equal(injected.length,1,'OUV control script must be injected exactly once');
+const start=stagedHtml.indexOf('<script>\n\'use strict\';');
+assert(start>=0,'Primary VICE app script missing');
+const end=stagedHtml.indexOf('</script>',start);
+assert(end>start,'Primary VICE app script closure missing');
+assert.doesNotThrow(()=>new Function(stagedHtml.slice(start+'<script>'.length,end)),
+  'Deployment must preserve syntactically valid principal app JavaScript');
