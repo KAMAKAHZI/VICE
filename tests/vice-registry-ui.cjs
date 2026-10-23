@@ -22,7 +22,7 @@ for(const identifier of ['  MEMBER@EXAMPLE.TEST  ','  MiXeD_UsEr  '])test('Login
 });
 test('Only authoritative access denial clears a session; network errors preserve it',async()=>{
  let clears=0,signouts=0,mode='offline';
- const c=run(section('async function checkMemberAccess(', 'function startViceSync('),{APP_MODE:'LIVE',document:{getElementById:()=>null,querySelectorAll:()=>[]},authEpoch:1,clearMemberSession(){clears++},toast(){},sb:{rpc:async()=>mode==='offline'?{error:Error('offline')}:{data:{allowed:false,suspended:true}},auth:{signOut:async()=>{signouts++}}}});
+ const c=run(section('async function checkMemberAccess(', 'function startViceSync('),{APP_MODE:'LIVE',document:{getElementById:()=>null,querySelectorAll:()=>[],addEventListener:()=>{}},authEpoch:1,clearMemberSession(){clears++},toast(){},sb:{rpc:async()=>mode==='offline'?{error:Error('offline')}:{data:{allowed:false,suspended:true}},auth:{signOut:async()=>{signouts++}}}});
  await assert.rejects(c.checkMemberAccess(),/offline/);assert.equal(clears,0);
  mode='denied';assert.equal(await c.checkMemberAccess(),false);assert.equal(clears,1);assert.equal(signouts,1);
 });
