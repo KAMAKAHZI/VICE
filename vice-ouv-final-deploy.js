@@ -28,12 +28,14 @@
     buttons.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px';
     const verify = document.createElement('button');
     const execute = document.createElement('button');
-    for (const b of [verify, execute]) {
+    const reference = document.createElement('button');
+    for (const b of [verify, execute, reference]) {
       b.type = 'button';
       b.style.cssText = 'flex:1 1 220px;min-height:46px;padding:12px;border:1px solid #c9a84c;border-radius:9px;background:#302710;color:#f5d77e;font-weight:700;cursor:pointer';
     }
     verify.textContent = '◆ VERIFY OUV READINESS';
     execute.textContent = '◆ EXECUTE APPROVED OUV';
+    reference.textContent = '◆ CHECK OFFICIAL OUV';
     execute.disabled = true;
     execute.style.opacity = '0.5';
     const status = document.createElement('p');
@@ -44,12 +46,13 @@
     const details = document.createElement('pre');
     details.hidden = true;
     details.style.cssText = 'white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;font-size:12px;margin-top:10px';
-    buttons.append(verify, execute);
+    buttons.append(verify, execute, reference);
     root.append(buttons, status, details);
     host.append(root);
     const setBusy = (value) => {
-      busy = value; verify.disabled = value; execute.disabled = value || !root.dataset.ready;
+      busy = value; verify.disabled = value; reference.disabled = value; execute.disabled = value || root.dataset.ready !== 'true';
       verify.style.opacity = value ? '0.5' : '1';
+      reference.style.opacity = value ? '0.5' : '1';
       execute.style.opacity = execute.disabled ? '0.5' : '1';
     };
     const action = async (kind) => {
@@ -96,6 +99,49 @@
         setBusy(false);
       }
     };
+    reference.addEventListener('click', async () => {
+      if (busy) return;
+      setBusy(true);
+      try {
+        if (!window.ViceOUVReference) throw Error('Canonical reference module unavailable');
+        const client = getClient();
+        if (!client) throw Error('Sign in to inspect the official reference');
+        const snapshot = await window.ViceOUVReference.read(client);
+        status.textContent = 'OFFICIAL ISSUER REFERENCE — VICE 
+    execute.addEventListener('click', () => action('execute_ouv'));
+  }
+  const boot = () => {
+    mount();
+    const observer = new MutationObserver(() => {
+      if (!document.getElementById('vice-ouv-final-deploy')) mount();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+  else boot();
+})();
+ + snapshot.vice.toFixed(8) +
+          ' · V4X 
+    execute.addEventListener('click', () => action('execute_ouv'));
+  }
+  const boot = () => {
+    mount();
+    const observer = new MutationObserver(() => {
+      if (!document.getElementById('vice-ouv-final-deploy')) mount();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+  else boot();
+})();
+ + snapshot.v4x.toFixed(8) + ' · policy ' + snapshot.policyStatus +
+          '. This is not independent FMV.';
+        details.textContent = JSON.stringify(snapshot, null, 2);
+        details.hidden = false;
+      } catch (error) {
+        status.textContent = '⚠ OFFICIAL REFERENCE UNAVAILABLE — ' + (error?.message || 'Unable to verify');
+      } finally { setBusy(false); }
+    });
     verify.addEventListener('click', () => action('reconcile_ouv'));
     execute.addEventListener('click', () => action('execute_ouv'));
   }
