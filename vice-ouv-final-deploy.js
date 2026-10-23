@@ -100,15 +100,6 @@
     execute.addEventListener('click', () => action('execute_ouv'));
   }
   const boot = () => {
-    // An unfinished async auth bootstrap must never leave the sign-in shell
-    // permanently hidden. Showing the form does not grant application access.
-    setTimeout(() => {
-      try {
-        const signedIn = typeof S !== 'undefined' && Boolean(S?.user);
-        const login = document.getElementById('login');
-        if (login && !signedIn) login.hidden = false;
-      } catch (_) { /* The canonical app still controls signed-in access. */ }
-    }, 900);
     mount();
     const observer = new MutationObserver(() => {
       if (!document.getElementById('vice-ouv-final-deploy')) mount();
