@@ -130,12 +130,12 @@ const ViceInstitutional=(()=>{
     ${!valid?'<span class="meta">Authorization unavailable: proposal must be in valid REVIEW status.</span>':''}</div></section>`;
   }).join('')||'<section class="band"><p>No structural proposals recorded.</p></section>';
   const ou=state.ouvRelease;
-  const modelBand=ou&&ou.model_usable===true&&ou.status==='MODEL_ONLY'?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">MODEL ONLY — GOVERNANCE NOT ACTIVATED</span></div>'+
+  const modelBand=ou&&ou.model_usable===true&&['MODEL_ONLY','AUTO_ACTIVE'].includes(ou.status)?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">'+(ou.status==='AUTO_ACTIVE'?'AUTO ACTIVE — INTERNAL REFERENCE':'MODEL ONLY — GOVERNANCE NOT ACTIVATED')+'</span></div>'+
    '<p class="meta">Source: committed strategic issuance and estate reserve distribution records · fixed total of 20,000,000 units · 1:160 reference ratio.</p>'+
    '<p>Net newly distributed since model baseline: <strong>'+esc(String(ou.incremental_units))+' units</strong> · mathematical change <strong>'+esc(String(ou.appreciation_percent))+'%</strong>.</p>'+
    '<p>Modeled VICE: <strong>'+ouvMoney8(ou.modeled_ouv?.VICE)+'</strong> · Modeled V4X: <strong>'+ouvMoney8(ou.modeled_ouv?.V4X)+'</strong></p>'+
    '<p>Official VICE: <strong>'+ouvMoney8(ou.official_ouv?.VICE)+'</strong> · Official V4X: <strong>'+ouvMoney8(ou.official_ouv?.V4X)+'</strong></p>'+
-   '<p class="note warn">Automatic OUV issuance policy is a draft. Financial appreciation cannot be inferred from redistribution alone. Official portfolio values do not change until a properly approved, auditable policy and structural executor are active.</p>'+
+   '<p class="note warn">'+(ou.status==='AUTO_ACTIVE'?'Formula-based OUV management references adjust automatically only after verified new reserve-to-holder releases. Issuer references are not independent fair market value, cash, or appraised collateral.':'Automatic OUV policy is not yet active. Unit redistribution alone does not establish market appreciation; official references change only under properly authorized governance.')+'</p>'+
    '<div class="actions">'+button('ouv-model-quote','Preview 100,000 + 100,000 distribution')+'</div></section>'
    :'<section class="band"><p class="note warn">OUV distribution model paused or unavailable: supply totals or baseline need reconciliation. No automatic official revaluation is active.</p></section>';
   el.innerHTML=`<div class="inst">${header('Sovereign <em>Governance</em>','Executive attestations and equal-authority 2FA approvals with a separate immutable audit trail.')}
