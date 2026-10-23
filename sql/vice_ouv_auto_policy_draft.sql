@@ -3,7 +3,7 @@
 -- Never execute on production merely because this file exists.
 BEGIN;
 ALTER TABLE public.vice_ouv_release_policy
-  DROP CONSTRAINT vice_ouv_release_policy_status_check;
+  DROP CONSTRAINT IF EXISTS vice_ouv_release_policy_status_check;
 ALTER TABLE public.vice_ouv_release_policy
   ADD CONSTRAINT vice_ouv_release_policy_status_check
   CHECK (status IN ('MODEL_ONLY','AUTO_ACTIVE','SUSPENDED'));
@@ -13,6 +13,8 @@ ALTER TABLE public.vice_ouv_release_policy
   ADD COLUMN IF NOT EXISTS activation_proposal_id text,
   ADD COLUMN IF NOT EXISTS activation_evidence_hash text,
   ADD COLUMN IF NOT EXISTS paused_at timestamptz;
+ALTER TABLE public.vice_ouv_release_policy
+  DROP CONSTRAINT IF EXISTS vice_ouv_active_evidence_required;
 ALTER TABLE public.vice_ouv_release_policy
   ADD CONSTRAINT vice_ouv_active_evidence_required
   CHECK (status <> 'AUTO_ACTIVE' OR
@@ -36,7 +38,14 @@ CREATE TABLE IF NOT EXISTS public.vice_ouv_auto_execution_receipts(
 );
 ALTER TABLE public.vice_ouv_auto_execution_receipts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.vice_ouv_auto_execution_receipts FROM PUBLIC,anon,authenticated;
-REVOKE ALL ON public.vice_ouv_auto_execution_receipts_id_seq FROM PUBLIC,anon,authenticated;
+DO $revoke$
+DECLARE sequence_name regclass;
+BEGIN
+  SELECT pg_get_serial_sequence('public.vice_ouv_auto_execution_receipts','id')::regclass INTO sequence_name;
+  IF sequence_name IS NOT NULL THEN
+    EXECUTE format('REVOKE ALL ON SEQUENCE %s FROM PUBLIC, anon, authenticated',sequence_name);
+  END IF;
+END $revoke$;
 -- No public mutation interface. Privileged executor must enforce authenticated
 -- authorization, governance amendment, event eligibility and ledger consistency.
 COMMIT;
