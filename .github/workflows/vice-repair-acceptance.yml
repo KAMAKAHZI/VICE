@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 12
     services:
       postgres:
-        image: postgres:17
+        image: postgres:17.6
         env:
           POSTGRES_PASSWORD: isolated-test-only
           POSTGRES_DB: vice_staging
@@ -57,7 +57,9 @@ jobs:
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-staging.sql
           psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015193846_vice_academy_progress_receipts.sql
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-assertions.sql
-      - run: npm install --no-save --package-lock=false playwright@1.64.1 pdf-lib@1.17.1 @electric-sql/pglite@0.3.15
+      - run: npm ci --prefix tests --ignore-scripts
+      - run: npm ci --prefix server --ignore-scripts
+      - run: npm run check --prefix server
       - name: Validate registry, CFO authority and account suspension in isolated PostgreSQL
         run: |
           node tests/vice-registry-controls.mjs
@@ -68,7 +70,7 @@ jobs:
           for f in tests/*.cjs; do
             if [ "$f" != tests/vice-browser-smoke.cjs ]; then node "$f"; fi
           done
-      - run: npx playwright install --with-deps chromium
+      - run: tests/node_modules/.bin/playwright install --with-deps chromium
       - run: node tests/vice-browser-smoke.cjs
       - run: node tests/vice-pwa-layout.mjs
       - run: node tests/vice-comms-browser.mjs
