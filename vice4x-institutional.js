@@ -109,9 +109,9 @@ const ViceInstitutional=(()=>{
    const blockers=[];
    if(signedCount!==2)blockers.push('Executive approvals '+signedCount+'/2');
    if(reviewOpen)blockers.push('Public review still open');
-   if(!quorumReady)blockers.push('Independent on-chain quorum not verified');
-   if(!timelockReady)blockers.push('Execution timelock not completed');
-   if(!executorReady)blockers.push('Atomic governance executor unavailable');
+   // Do not substitute obsolete stored quorum/deadline fields for the current
+   // issuer-approved governance rule; the server gate checker is authoritative.
+   blockers.push('Verify the currently effective governance policy and database execution gates');
    const stageLabel=proposalApplied?'EFFECTIVE':signedCount===2?'EXECUTIVE APPROVED — NOT EFFECTIVE':'PENDING EXECUTIVE APPROVAL';
    return `<section class="band"><div class="band-head"><h2>${esc(p.id)}</h2><span class="bdg gd">${esc(p.status)}</span></div>
     <p><strong>${esc(stageLabel)}</strong></p>
@@ -120,7 +120,7 @@ const ViceInstitutional=(()=>{
     <p class="meta">${esc(issueText)} · Public review through ${p.validation_until?esc(new Date(p.validation_until).toLocaleString()):'—'}.</p>
     ${!proposalApplied?'<p class="note warn">Holder holdings and official reference values have NOT been repriced. Remaining gates: '+esc(blockers.join(' · '))+'. Existing IRU unit balances must not be multiplied or replaced.</p>':'<p class="note">Reference revision is recorded as effective; IRU unit balances remain unchanged.</p>'}
     <p class="meta">Executive authorizations: ${signedCount}/2 · CEO: ${esc(execAuthorizerLabel(a,'CEO'))} · CFO: ${esc(execAuthorizerLabel(a,'CFO'))}.</p>
-    <p class="meta">On-chain quorum: ${p.quorum_verified_at?'verified':'awaiting configured verifier'} · Execution timelock: ${p.execute_after?esc(p.execute_after):'not started'}.</p>
+    <p class="meta">Governance conditions and timelocks are evaluated by the authenticated server. Historical on-chain quorum/deadline fields may not apply to an approved executive-only OUV policy.</p>
     <p class="inst-hash">Payload SHA-256: ${esc(p.payload_hash)}</p>
     <details><summary>Submitted payload · claims are independently checked</summary><pre class="inst-preview">${esc(JSON.stringify(p.payload,null,2))}</pre></details>
     <div class="actions">${button('gates','Check execution gates',`data-id="${esc(p.id)}"`)}
@@ -130,12 +130,12 @@ const ViceInstitutional=(()=>{
     ${!valid?'<span class="meta">Authorization unavailable: proposal must be in valid REVIEW status.</span>':''}</div></section>`;
   }).join('')||'<section class="band"><p>No structural proposals recorded.</p></section>';
   const ou=state.ouvRelease;
-  const modelBand=ou&&ou.model_usable===true&&ou.status==='MODEL_ONLY'?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">MODEL ONLY — GOVERNANCE NOT ACTIVATED</span></div>'+
+  const modelBand=ou&&ou.model_usable===true&&['MODEL_ONLY','AUTO_ACTIVE'].includes(ou.status)?'<section class="band"><div class="band-head"><h2>Fixed-Supply OUV Distribution Model</h2><span class="bdg gd">'+(ou.status==='AUTO_ACTIVE'?'AUTO ACTIVE — INTERNAL REFERENCE':'MODEL ONLY — GOVERNANCE NOT ACTIVATED')+'</span></div>'+
    '<p class="meta">Source: committed strategic issuance and estate reserve distribution records · fixed total of 20,000,000 units · 1:160 reference ratio.</p>'+
    '<p>Net newly distributed since model baseline: <strong>'+esc(String(ou.incremental_units))+' units</strong> · mathematical change <strong>'+esc(String(ou.appreciation_percent))+'%</strong>.</p>'+
    '<p>Modeled VICE: <strong>'+ouvMoney8(ou.modeled_ouv?.VICE)+'</strong> · Modeled V4X: <strong>'+ouvMoney8(ou.modeled_ouv?.V4X)+'</strong></p>'+
    '<p>Official VICE: <strong>'+ouvMoney8(ou.official_ouv?.VICE)+'</strong> · Official V4X: <strong>'+ouvMoney8(ou.official_ouv?.V4X)+'</strong></p>'+
-   '<p class="note warn">Automatic OUV issuance policy is a draft. Financial appreciation cannot be inferred from redistribution alone. Official portfolio values do not change until a properly approved, auditable policy and structural executor are active.</p>'+
+   '<p class="note warn">'+(ou.status==='AUTO_ACTIVE'?'Formula-based OUV management references adjust automatically only after verified new reserve-to-holder releases. Issuer references are not independent fair market value, cash, or appraised collateral.':'Automatic OUV policy is not yet active. Unit redistribution alone does not establish market appreciation; official references change only under properly authorized governance.')+'</p>'+
    '<div class="actions">'+button('ouv-model-quote','Preview 100,000 + 100,000 distribution')+'</div></section>'
    :'<section class="band"><p class="note warn">OUV distribution model paused or unavailable: supply totals or baseline need reconciliation. No automatic official revaluation is active.</p></section>';
   el.innerHTML=`<div class="inst">${header('Sovereign <em>Governance</em>','Executive attestations and equal-authority 2FA approvals with a separate immutable audit trail.')}
