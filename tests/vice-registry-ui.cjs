@@ -16,13 +16,13 @@ test('Privileged broker connector denies suspended, unprovisioned and unverifiab
 });
 for(const identifier of ['  MEMBER@EXAMPLE.TEST  ','  MiXeD_UsEr  '])test('Login normalizes identifier without altering password: '+identifier.trim(),async()=>{
  let sent,lookup;const fields={lIdentifier:{value:identifier},lPass:{value:'  MiXeD Password  '},loginBtn:{disabled:false}};
- const c=run(normalize+section('async function login(', '// Read-only connectivity checks.'),{authBusy:false,viceAuthReady:Promise.resolve(true),$:id=>fields[id],toast(){},onAuthenticated:async()=>{},sb:{rpc:async(n,p)=>{lookup=p.p_identifier;return {data:'MEMBER@EXAMPLE.TEST'}},auth:{signInWithPassword:async p=>{sent=p;return {data:{user:{id:'test'}}}}}}});
+ const c=run(normalize+section('async function login(', '// Read-only connectivity checks.'),{authBusy:false,viceLoginCooldownSeconds:()=>0,viceAuthReady:Promise.resolve(true),$:id=>fields[id],toast(){},onAuthenticated:async()=>{},sb:{rpc:async(n,p)=>{lookup=p.p_identifier;return {data:'MEMBER@EXAMPLE.TEST'}},auth:{signInWithPassword:async p=>{sent=p;return {data:{user:{id:'test'}}}}}}});
  await c.login();assert.equal(sent.email,'member@example.test');assert.equal(sent.password,'  MiXeD Password  ');assert.equal(fields.loginBtn.disabled,false);
  if(!identifier.includes('@'))assert.equal(lookup,'mixed_user');
 });
 test('Only authoritative access denial clears a session; network errors preserve it',async()=>{
  let clears=0,signouts=0,mode='offline';
- const c=run(section('async function checkMemberAccess(', 'function startViceSync('),{APP_MODE:'LIVE',authEpoch:1,clearMemberSession(){clears++},toast(){},sb:{rpc:async()=>mode==='offline'?{error:Error('offline')}:{data:{allowed:false,suspended:true}},auth:{signOut:async()=>{signouts++}}}});
+ const c=run(section('async function checkMemberAccess(', 'function startViceSync('),{APP_MODE:'LIVE',window:{addEventListener:()=>{}},document:{getElementById:()=>null,querySelectorAll:()=>[],addEventListener:()=>{}},authEpoch:1,clearMemberSession(){clears++},toast(){},sb:{rpc:async()=>mode==='offline'?{error:Error('offline')}:{data:{allowed:false,suspended:true}},auth:{signOut:async()=>{signouts++}}}});
  await assert.rejects(c.checkMemberAccess(),/offline/);assert.equal(clears,0);
  mode='denied';assert.equal(await c.checkMemberAccess(),false);assert.equal(clears,1);assert.equal(signouts,1);
 });

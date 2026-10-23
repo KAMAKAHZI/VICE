@@ -5,5 +5,5 @@
   "type": "commonjs",
   "engines": {"node": ">=22"},
   "scripts": {"start": "node server.js", "check": "node --check server.js && node --check mt5-bridge.js && node --check mailer.js"},
-  "dependencies": {"ws": "8.18.3", "nodemailer": "7.0.6"}
+  "dependencies": {"ws": "8.22.0", "nodemailer": "10.1.7"}
 }

@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /tests
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      browser-test-dependencies:
+        patterns:
+          - playwright
+          - playwright-core
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

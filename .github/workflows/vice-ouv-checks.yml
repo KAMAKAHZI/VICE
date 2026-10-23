@@ -1,0 +1,44 @@
+name: VICE OUV Security & Reference Checks
+on:
+  push:
+    branches:
+      - integration/institutional-ouv-20261023
+  pull_request:
+    paths:
+      - 'vice-ouv-reference.js'
+      - 'vice-ouv-final-deploy.js'
+      - 'netlify/functions/ouv-final-deploy.js'
+      - 'tests/vice-ouv-*.cjs'
+      - 'scripts/vice-ouv-readonly-smoke.cjs'
+      - '.github/workflows/vice-ouv-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ouv-contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: JavaScript syntax checks
+        run: |
+          node --check vice-ouv-reference.js
+          node --check vice-ouv-final-deploy.js
+          node --check netlify/functions/ouv-final-deploy.js
+          node --check scripts/vice-ouv-readonly-smoke.cjs
+          node --check tests/vice-ouv-reference.cjs
+          node --check tests/vice-ouv-executive-endpoint.cjs
+          node --check tests/vice-ouv-governance-mocked.cjs
+      - name: Run financial and governance contract tests
+        run: |
+          node tests/vice-ouv-reference.cjs
+          node tests/vice-ouv-executive-endpoint.cjs
+          node tests/vice-ouv-governance-mocked.cjs
+      - name: Confirm production financial writes remain gated
+        run: |
+          test -f sql/vice_ouv_auto_execution_guard.sql
+          grep -q 'INDEPENDENT_GOVERNANCE_VERIFICATION_REQUIRED' sql/vice_ouv_auto_execution_guard.sql
+          grep -q "VICE_OUV_EXECUTION_ENABLED" netlify/functions/ouv-final-deploy.js
