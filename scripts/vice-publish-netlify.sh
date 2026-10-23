@@ -23,6 +23,9 @@ from pathlib import Path
 p=Path('dist/site/index.html')
 s=p.read_text()
 s=s.replace('</body>', '<script defer src="/vice-ouv-final-deploy.js"></script>\n</body>')
+# Both MODEL_ONLY and AUTO_ACTIVE are truthful issuer policy states. The
+# signed-in member snapshot must not disappear when automation is activated.
+s=s.replace("c.data=!error&&data?.policy_status==='MODEL_ONLY'?data:null;", "c.data=!error&&['MODEL_ONLY','AUTO_ACTIVE'].includes(data?.policy_status)?data:null;")
 p.write_text(s)
 PY
 node scripts/vice-deployment-identity.cjs
