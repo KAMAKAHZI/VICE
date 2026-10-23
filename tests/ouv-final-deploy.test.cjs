@@ -30,6 +30,7 @@ function fakeBackend({ actor = true, ready = false, executedAtStart = false, aut
     if (url.includes('vice_sovereign_proposals')) return success([{ id: proposal, payload_hash: hash, status: executed ? 'EXECUTED' : 'REVIEW' }]);
     if (url.includes('vice_ouv_activation_readiness')) return success({
       proposal_id: proposal, can_apply: ready, next_unmet_gates: ready ? [] : ['STRUCTURAL_EXECUTOR_LOCKED'],
+      cryptographic_signatures_verified: ready, ceo_authorization_verified: ready, cfo_authorization_verified: ready,
       executive_authorizations: 2, review_complete: true, ledger_reconciled: true,
       baseline_compatible: true, proposed_ouv: { VICE: 2.82645403, V4X: 452.2326448 }
     });
@@ -65,7 +66,7 @@ test('OUV endpoint cannot execute when authorization/policy gates are absent', a
       global.fetch = fake.fetch;
       const r = await handler(event());
       assert.equal(r.statusCode, 409);
-      assert.deepEqual(JSON.parse(r.body).issues, ['STRUCTURAL_EXECUTOR_LOCKED']);
+      assert.deepEqual(JSON.parse(r.body).issues, ['STRUCTURAL_EXECUTOR_LOCKED', 'CRYPTOGRAPHIC_SIGNATURE_VERIFICATION_REQUIRED']);
       assert.equal(fake.getCalls(), 0);
     });
     await t.test('server flag prevents execution', async () => {
