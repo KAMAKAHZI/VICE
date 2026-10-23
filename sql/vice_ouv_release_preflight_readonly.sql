@@ -9,6 +9,7 @@ DECLARE
   health jsonb;
   model jsonb;
   version_count bigint;
+  policy_check text;
   receipt_count bigint;
 BEGIN
   SELECT * INTO STRICT p FROM public.vice_ouv_release_policy WHERE id=1;
@@ -34,6 +35,16 @@ BEGIN
      (model#>>'{modeled_ouv,VICE}')::numeric * 160 THEN
     RAISE EXCEPTION 'OUV PREFLIGHT FAIL: modeled ratio mismatch';
   END IF;
+  SELECT pg_get_constraintdef(k.oid) INTO policy_check
+  FROM pg_constraint k JOIN pg_class t ON t.oid=k.conrelid
+  WHERE t.oid='public.vice_ouv_release_policy'::regclass
+    AND k.conname='vice_ouv_release_policy_status_check';
+  IF policy_check IS NULL THEN
+    RAISE EXCEPTION 'OUV PREFLIGHT FAIL: policy status constraint missing';
+  END IF;
+  IF p.status='AUTO_ACTIVE' AND policy_check NOT LIKE '%AUTO_ACTIVE%' THEN
+    RAISE EXCEPTION 'OUV PREFLIGHT FAIL: policy status incompatible with DB constraint';
+  END IF;
   SELECT count(*) INTO version_count FROM public.ouv_versions;
   SELECT count(*) INTO receipt_count FROM public.vice_ouv_execution_receipts;
   IF version_count <> receipt_count THEN
@@ -47,6 +58,7 @@ BEGIN
     RAISE EXCEPTION 'OUV PREFLIGHT FAIL: orphan execution receipt';
   END IF;
   RAISE NOTICE 'PASS: supply, ledger, audit events, ratio, baseline, modeled ratio, receipt linkage';
+  RAISE NOTICE 'POLICY STATUS CONSTRAINT: %',policy_check;
   RAISE NOTICE 'POLICY STATUS: %, official VICE: %, official V4X: %, versions: %, receipts: %',
     p.status,c.vice_price,c.v4x_price,version_count,receipt_count;
   IF p.status='AUTO_ACTIVE' THEN
