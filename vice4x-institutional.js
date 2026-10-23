@@ -109,9 +109,9 @@ const ViceInstitutional=(()=>{
    const blockers=[];
    if(signedCount!==2)blockers.push('Executive approvals '+signedCount+'/2');
    if(reviewOpen)blockers.push('Public review still open');
-   if(!quorumReady)blockers.push('Independent on-chain quorum not verified');
-   if(!timelockReady)blockers.push('Execution timelock not completed');
-   if(!executorReady)blockers.push('Atomic governance executor unavailable');
+   // Do not substitute obsolete stored quorum/deadline fields for the current
+   // issuer-approved governance rule; the server gate checker is authoritative.
+   blockers.push('Verify the currently effective governance policy and database execution gates');
    const stageLabel=proposalApplied?'EFFECTIVE':signedCount===2?'EXECUTIVE APPROVED — NOT EFFECTIVE':'PENDING EXECUTIVE APPROVAL';
    return `<section class="band"><div class="band-head"><h2>${esc(p.id)}</h2><span class="bdg gd">${esc(p.status)}</span></div>
     <p><strong>${esc(stageLabel)}</strong></p>
@@ -120,7 +120,7 @@ const ViceInstitutional=(()=>{
     <p class="meta">${esc(issueText)} · Public review through ${p.validation_until?esc(new Date(p.validation_until).toLocaleString()):'—'}.</p>
     ${!proposalApplied?'<p class="note warn">Holder holdings and official reference values have NOT been repriced. Remaining gates: '+esc(blockers.join(' · '))+'. Existing IRU unit balances must not be multiplied or replaced.</p>':'<p class="note">Reference revision is recorded as effective; IRU unit balances remain unchanged.</p>'}
     <p class="meta">Executive authorizations: ${signedCount}/2 · CEO: ${esc(execAuthorizerLabel(a,'CEO'))} · CFO: ${esc(execAuthorizerLabel(a,'CFO'))}.</p>
-    <p class="meta">On-chain quorum: ${p.quorum_verified_at?'verified':'awaiting configured verifier'} · Execution timelock: ${p.execute_after?esc(p.execute_after):'not started'}.</p>
+    <p class="meta">Governance conditions and timelocks are evaluated by the authenticated server. Historical on-chain quorum/deadline fields may not apply to an approved executive-only OUV policy.</p>
     <p class="inst-hash">Payload SHA-256: ${esc(p.payload_hash)}</p>
     <details><summary>Submitted payload · claims are independently checked</summary><pre class="inst-preview">${esc(JSON.stringify(p.payload,null,2))}</pre></details>
     <div class="actions">${button('gates','Check execution gates',`data-id="${esc(p.id)}"`)}
