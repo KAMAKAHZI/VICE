@@ -1,7 +1,7 @@
 -- Canonical, read-only effective issuer reference snapshot.
 -- Never substitutes modeled prices for official published references.
 CREATE OR REPLACE FUNCTION public.vice_ouv_effective_reference()
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY INVOKER
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER
 SET search_path=pg_catalog
 AS $$
 DECLARE c record; p record; v record;
