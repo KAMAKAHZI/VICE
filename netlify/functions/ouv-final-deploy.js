@@ -36,25 +36,43 @@ const row = async (base, key, path) => requestJSON(base + '/rest/v1/' + path, {
 const sameNumber = (a, b) => Number.isFinite(Number(a)) && Math.abs(Number(a) - b) < 0.00000001;
 async function checkPublished(base, secret) {
   const id = encodeURIComponent(PROPOSAL);
-  const [receipts, versions, config, proposals] = await Promise.all([
+  // The initial approved version is immutable. Subsequent automatic,
+  // ledger-backed reference changes may legitimately supersede its values.
+  const [receipts, versions, latestRows, config, proposals] = await Promise.all([
     row(base, secret, 'vice_ouv_execution_receipts?select=proposal_id,payload_hash,ouv_version_id,executed_at&proposal_id=eq.' + id + '&limit=2'),
     row(base, secret, 'ouv_versions?select=id,version,vice_ouv,v4x_ouv&version=eq.' + id + '&limit=2'),
+    row(base, secret, 'ouv_versions?select=id,version,vice_ouv,v4x_ouv,effective_at&order=effective_at.desc&limit=1'),
     row(base, secret, 'vice_dao_config?select=vice_price,v4x_price&id=eq.1&limit=1'),
     row(base, secret, 'vice_sovereign_proposals?select=id,status,payload_hash&id=eq.' + id + '&limit=1')
   ]);
-  if (![receipts, versions, config, proposals].every(Array.isArray)) throw new Error('Invalid reconciliation records');
-  const receipt = receipts[0], version = versions[0], official = config[0], proposal = proposals[0];
-  if (!receipt && !version) return { executed: false };
-  const sound = receipts.length === 1 && versions.length === 1 && receipt &&
+  if (![receipts, versions, latestRows, config, proposals].every(Array.isArray))
+    throw new Error('Invalid reconciliation records');
+  const receipt = receipts[0], version = versions[0], latest = latestRows[0],
+    official = config[0], proposal = proposals[0];
+  if (!receipt && !version && !latest) return { executed: false };
+  const initialValid = receipts.length === 1 && versions.length === 1 && receipt &&
     receipt.payload_hash === HASH && version.id === receipt.ouv_version_id &&
     version.version === PROPOSAL && proposal?.status === 'EXECUTED' &&
-    proposal.payload_hash === HASH && official &&
-    sameNumber(version.vice_ouv, TARGET.VICE) && sameNumber(version.v4x_ouv, TARGET.V4X) &&
-    sameNumber(official.vice_price, TARGET.VICE) && sameNumber(official.v4x_price, TARGET.V4X);
-  return { executed: true, verified: Boolean(sound),
-    receipt_id: receipt?.ouv_version_id || null, executed_at: receipt?.executed_at || null,
-    ouv_version: sound ? TARGET : null,
-    issues: sound ? [] : ['Execution records or authoritative prices do not reconcile'] };
+    proposal.payload_hash === HASH &&
+    sameNumber(version.vice_ouv, TARGET.VICE) &&
+    sameNumber(version.v4x_ouv, TARGET.V4X);
+  const currentValid = latestRows.length === 1 && latest && official &&
+    sameNumber(latest.vice_ouv, official.vice_price) &&
+    sameNumber(latest.v4x_ouv, official.v4x_price) &&
+    Number(official.vice_price) >= TARGET.VICE &&
+    Number(official.v4x_price) >= TARGET.V4X &&
+    sameNumber(Number(official.v4x_price), Number(official.vice_price) * 160);
+  const verified = Boolean(initialValid && currentValid);
+  return {
+    executed: true, verified,
+    receipt_id: receipt?.ouv_version_id || null,
+    executed_at: receipt?.executed_at || null,
+    ouv_version: verified ? {
+      VICE: Number(official.vice_price), V4X: Number(official.v4x_price),
+      effective_at: latest.effective_at, version: latest.version
+    } : null,
+    issues: verified ? [] : ['Initial execution receipt or current authoritative OUV version does not reconcile']
+  };
 }
 async function readiness(base, anon, bearer) {
   const s = await rpc(base, anon, bearer, 'vice_ouv_activation_readiness', { p_proposal_id: PROPOSAL });
