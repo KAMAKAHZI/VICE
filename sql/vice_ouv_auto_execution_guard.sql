@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION vice_private.ouv_auto_execution_guard()
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER
 SET search_path=pg_catalog
 AS $$
-DECLARE p record; c record; reconciled jsonb; pending_count bigint;
+DECLARE p record; c record;
 BEGIN
   SELECT status,activation_proposal_id,activation_evidence_hash,activated_at
     INTO STRICT p FROM public.vice_ouv_release_policy WHERE id=1;
