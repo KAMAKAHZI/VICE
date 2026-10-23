@@ -3,9 +3,15 @@ on:
   push:
     paths:
       - 'index.html'
+      - 'vice4x-institutional.js'
+      - 'vice4x-institutional-core.js'
+      - 'supabase/functions/**'
+      - 'scripts/**'
       - 'version.json'
       - 'supabase/functions/vice-mt5-cloud/index.ts'
       - 'tests/**'
+      - 'scripts/vice-publish-netlify.sh'
+      - '_headers'
       - 'netlify/functions/**'
       - 'tests/vice-1369-integrity.cjs'
       - 'tests/vice-1378-audit-turn.cjs'
@@ -13,12 +19,19 @@ on:
       - 'netlify/functions/turn-credentials.mjs'
       - 'supabase/migrations/**'
       - '.github/workflows/vice-os-release-guard.yml'
+      - '.github/workflows/**'
   pull_request:
     paths:
       - 'index.html'
+      - 'vice4x-institutional.js'
+      - 'vice4x-institutional-core.js'
+      - 'supabase/functions/**'
+      - 'scripts/**'
       - 'version.json'
       - 'supabase/functions/vice-mt5-cloud/index.ts'
       - 'tests/**'
+      - 'scripts/vice-publish-netlify.sh'
+      - '_headers'
       - 'netlify/functions/**'
       - 'tests/vice-1369-integrity.cjs'
       - 'tests/vice-1378-audit-turn.cjs'
@@ -26,6 +39,7 @@ on:
       - 'netlify/functions/turn-credentials.mjs'
       - 'supabase/migrations/**'
       - '.github/workflows/vice-os-release-guard.yml'
+      - '.github/workflows/**'
 permissions:
   contents: read
 jobs:
@@ -33,13 +47,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
       - run: |
           node --test tests/vice-production-repairs.cjs
           node tests/vice-release-safety.cjs
+          node tests/vice-institutional-boundaries.cjs
+          node tests/vice-source-secret-gates.cjs
           node tests/vice-1369-integrity.cjs
           node tests/vice-1378-audit-turn.cjs
           node tests/vice-1379-membership-signature.cjs
