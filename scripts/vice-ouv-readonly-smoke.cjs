@@ -5,9 +5,8 @@
 // Does not approve proposals, alter policy, or update balances.
 const assert = require('node:assert/strict');
 const { env } = process;
-for (const key of ['SUPABASE_URL','SUPABASE_ANON_KEY','SUPABASE_USER_JWT']) {
-  if (!env[key]) { console.error('Missing '+key); process.exitCode=2; return; }
-}
+const missing = ['SUPABASE_URL','SUPABASE_ANON_KEY','SUPABASE_USER_JWT'].filter(key => !env[key]);
+if (missing.length) { console.error('Missing '+missing.join(', ')); process.exit(2); }
 (async () => {
  const url=new URL('/rest/v1/rpc/vice_ouv_effective_reference',env.SUPABASE_URL);
  const res=await fetch(url,{method:'POST',headers:{
