@@ -22,6 +22,10 @@ test('public certificate verification does not expose scores or digests',()=>{
   assert.doesNotMatch(cert,/rec\.(?:scores|overall_score|digest|revoked_reason)/);
   assert.match(cert,/SET search_path TO ''/);
 });
+test('expired certificates must be rejected before public verification succeeds',()=>{
+  assert.match(cert,/rec\.expires_at IS NOT NULL AND rec\.expires_at <= now\(\)/);
+  assert.match(cert,/jsonb_build_object\('valid',false,'reason','EXPIRED'\)/);
+});
 test('defensive workflow pins every external GitHub action',()=>{
   for(const line of workflow.split('\n')){
     const m=line.match(/^\s*-?\s*uses:\s*[^@]+@([^\s#]+)/);
