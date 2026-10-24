@@ -8,7 +8,7 @@ SET search_path TO ''
 AS $fn$
 DECLARE rec record;
 BEGIN
-  IF p_cert_id IS NULL OR length(btrim(p_cert_id)) NOT BETWEEN 8 AND 128 THEN
+  IF p_cert_id IS NULL OR length(btrim(p_cert_id)) NOT BETWEEN 1 AND 128 THEN
     RETURN jsonb_build_object('valid',false,'reason','INVALID_ID');
   END IF;
   SELECT cert_id, holder_name, course_title, issued_at, expires_at, revoked
