@@ -2257,7 +2257,7 @@ async function login(){
     let email = identifier;
     if(!identifier.includes('@')){
       const { data, error } = await sb.rpc('lookup_email_for_login', { p_identifier: identifier });
-      if(error || !data){ toast('Username not found','error'); authBusy=false; return; }
+      if(error || !data){ toast('Invalid sign-in credentials','error'); authBusy=false; return; }
       email = normalizeLoginIdentifier(data);
     }
     const btn = $('loginBtn');
