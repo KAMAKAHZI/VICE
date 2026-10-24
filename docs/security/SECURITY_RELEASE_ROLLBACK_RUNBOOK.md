@@ -27,3 +27,9 @@
 
 ## Exit criteria
 All required CI checks pass, staging security tests pass, release approval recorded, production deployment verified, Supabase advisors reviewed and no new high-risk disclosure introduced.
+
+## Reproducibility gap — foundation inventory
+- Production read-only metadata inventory confirms 73 public tables/views and 93 public functions; staging currently has only isolated security fixtures, not the full application schema.
+- Initial dependency inventory identified `profiles` (UUID auth.users foreign key, unique email and username) and `invites` (unique code), neither of which is represented by the retired bootstrap.
+- Do not mistake isolated fixture migration history for a reproducible full-schema baseline. Reconstruct dependencies, policies, triggers, and function ownership from reviewed schema-only exports before full acceptance.
+- Never copy production users, invite codes, passwords, financial transactions, or authentication secrets to staging.
