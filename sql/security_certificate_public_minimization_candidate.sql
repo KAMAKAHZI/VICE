@@ -20,6 +20,9 @@ BEGIN
   IF rec.revoked THEN
     RETURN jsonb_build_object('valid',false,'reason','REVOKED');
   END IF;
+  IF rec.expires_at IS NOT NULL AND rec.expires_at <= now() THEN
+    RETURN jsonb_build_object('valid',false,'reason','EXPIRED');
+  END IF;
   RETURN jsonb_build_object('valid',true,'cert_id',rec.cert_id,
     'name',rec.holder_name,'course',rec.course_title,
     'issued_at',rec.issued_at,'expires_at',rec.expires_at);
