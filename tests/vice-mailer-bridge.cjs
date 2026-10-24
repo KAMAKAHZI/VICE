@@ -51,3 +51,17 @@ test('mailer is disabled absent transport and production-only credentials',()=>{
   assert.equal(m.enabled,false);
  assert.equal(m.maxPerHour,100);
 });
+
+test('Supabase Auth invitation renders a complete branded message with a valid action token',()=>{
+ const fs=require('node:fs');
+ const html=fs.readFileSync(require('node:path').join(__dirname,'../supabase/email-templates/invite.html'),'utf8');
+ assert.match(html,/<html lang="en">/i);
+ assert.match(html,/VICE CAPITAL INC\./);
+ assert.match(html,/ACCEPT SECURE INVITATION/);
+ assert.match(html,/\{\{\s*\.ConfirmationURL\s*\}\}/);
+ assert((html.match(/\{\{\s*\.ConfirmationURL\s*\}\}/g)||[]).length>=2);
+ const rendered=html.replaceAll('{{ .ConfirmationURL }}','https://vice4x.example.test/auth/confirm?token=synthetic');
+ assert.match(rendered,/<a href="https:\/\/vice4x\.example\.test\/auth\/confirm\?token=synthetic"/);
+ assert(!rendered.includes('{{ .ConfirmationURL }}'));
+ assert(rendered.length>2500,'Invitation must not be an empty body');
+});

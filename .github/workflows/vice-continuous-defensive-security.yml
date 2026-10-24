@@ -1,0 +1,73 @@
+name: VICE Continuous Defensive Security
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: vice-defensive-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  dependency-and-secret-hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Scan tracked files for dangerous embedded credentials
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib,re,subprocess,sys
+          tracked=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          patterns=[
+            re.compile(r'-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----'),
+            re.compile(r'(?i)(?:SUPABASE_SERVICE_ROLE_KEY|NETLIFY_AUTH_TOKEN|GITHUB_TOKEN)\s*[:=]\s*["\x27]?[A-Za-z0-9_\-]{24,}'),
+          ]
+          findings=[]
+          for name in tracked:
+            if not name:continue
+            path=pathlib.Path(name)
+            if not path.is_file() or path.stat().st_size>2_000_000:continue
+            try: data=path.read_text(encoding='utf-8')
+            except (UnicodeError,OSError):continue
+            for i,line in enumerate(data.splitlines(),1):
+              if any(p.search(line) for p in patterns):findings.append((name,i))
+          for name,line in findings:print(f'::error file={name},line={line}::Potential embedded secret; rotate if real')
+          sys.exit(1 if findings else 0)
+          PY
+      - name: Verify security remediation regression tests
+        run: node --test tests/vice-security-remediation.cjs
+      - name: Audit npm dependency vulnerabilities when lockfile exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' locks < <(find . -name package-lock.json -not -path '*/node_modules/*' -print0)
+          if (( ${#locks[@]} == 0 )); then
+            echo '::warning::No npm lockfiles detected; dependency coverage incomplete.'
+          fi
+          for lock in "${locks[@]}"; do
+            dir=$(dirname "$lock")
+            echo "Auditing npm lockfile in $dir"
+            (cd "$dir" && npm audit --omit=dev --audit-level=high)
+          done
+  security-policy-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Confirm OUV execution is not silently enabled by policy draft
+        shell: bash
+        run: |
+          test -f sql/vice_ouv_auto_execution_guard.sql
+          test -f sql/vice_ouv_auto_policy_draft.sql
+          test -f sql/security_advisor_readonly_inventory.sql
+          echo 'Guard files present; this does NOT validate deployed database policy.'
