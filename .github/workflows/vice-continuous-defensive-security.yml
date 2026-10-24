@@ -42,6 +42,8 @@ jobs:
           for name,line in findings:print(f'::error file={name},line={line}::Potential embedded secret; rotate if real')
           sys.exit(1 if findings else 0)
           PY
+      - name: Verify security remediation regression tests
+        run: node --test tests/vice-security-remediation.cjs
       - name: Audit npm dependency vulnerabilities when lockfile exists
         shell: bash
         run: |
