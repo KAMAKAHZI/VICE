@@ -2254,12 +2254,16 @@ async function login(){
     const identifier = normalizeLoginIdentifier($('lIdentifier').value);
     const pw = $('lPass').value;
     if(!identifier || !pw){ toast('Email/username + password required','error'); authBusy=false; return; }
-    let email = identifier;
+    // Privacy: do not resolve usernames to private email addresses in the browser.
+    // Supabase password authentication requires an email address; existing users
+    // signing in by username must use their account email until a vetted server-side
+    // identifier-authentication flow is deployed.
     if(!identifier.includes('@')){
-      const { data, error } = await sb.rpc('lookup_email_for_login', { p_identifier: identifier });
-      if(error || !data){ toast('Invalid sign-in credentials','error'); authBusy=false; return; }
-      email = normalizeLoginIdentifier(data);
+      toast('For account security, sign in using your registered email address.','warn');
+      authBusy=false;
+      return;
     }
+    const email = identifier;
     const btn = $('loginBtn');
     if(btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
