@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group:
   schedule:
     - cron: '17 5 * * *'
   workflow_dispatch:
@@ -44,11 +45,16 @@ jobs:
       - name: Audit npm dependency vulnerabilities when lockfile exists
         shell: bash
         run: |
-          if test -f package-lock.json; then
-            npm audit --omit=dev --audit-level=high
-          else
-            echo 'No root package-lock.json; dependency audit requires per-project coverage.'
+          set -euo pipefail
+          mapfile -d '' locks < <(find . -name package-lock.json -not -path '*/node_modules/*' -print0)
+          if (( ${#locks[@]} == 0 )); then
+            echo '::warning::No npm lockfiles detected; dependency coverage incomplete.'
           fi
+          for lock in "${locks[@]}"; do
+            dir=$(dirname "$lock")
+            echo "Auditing npm lockfile in $dir"
+            (cd "$dir" && npm audit --omit=dev --audit-level=high)
+          done
   security-policy-check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -61,4 +67,5 @@ jobs:
         run: |
           test -f sql/vice_ouv_auto_execution_guard.sql
           test -f sql/vice_ouv_auto_policy_draft.sql
+          test -f sql/security_advisor_readonly_inventory.sql
           echo 'Guard files present; this does NOT validate deployed database policy.'
