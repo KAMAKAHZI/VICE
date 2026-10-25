@@ -52,7 +52,14 @@ async function checkPublished(base, secret) {
   // A latest version may belong to an unrelated proposal; it is not proof
   // that THIS proposal executed. Missing receipt/version must not be labeled
   // as a completed execution. The authoritative readiness gate will decide.
-  if (!receipt && !version) return { executed: false };
+  if (!receipt && !version) {
+    // No receipt/version is safe to retry only if proposal state is also unexecuted.
+    if (proposals.length !== 1 || proposal?.status === 'EXECUTED') return {
+      executed: true, verified: false,
+      issues: ['Proposal missing or marked executed without a publication receipt']
+    };
+    return { executed: false };
+  }
   // A partially published proposal is never a successful or retryable execution.
   // Missing either record must be escalated rather than sent to the executor again.
   if (!receipt || !version) return {

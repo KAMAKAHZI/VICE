@@ -15,6 +15,7 @@ const {handler}=require('../netlify/functions/ouv-final-deploy.js');
  for(const key of ['status','management_reference_only','holder_units_changed'])assert.ok(Object.hasOwn(JSON.parse(r.body),key));
  const source=require('node:fs').readFileSync(require('node:path').join(__dirname,'../netlify/functions/ouv-final-deploy.js'),'utf8');
  assert.match(source,/if \(!receipt \|\| !version\) return \{/,'partial publication must fail closed');
+ assert.match(source,/proposal\?\.status === 'EXECUTED'/,'executed proposal without receipt must fail closed');
  assert.match(source,/executed: true, verified: false/,'partial publication must never be treated as unexecuted');
  console.log('PASS: governance endpoint rejects invalid actions and partial publication retries');
 })().catch(e=>{console.error(e);process.exitCode=1});
