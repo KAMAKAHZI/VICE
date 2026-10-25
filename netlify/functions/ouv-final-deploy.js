@@ -53,6 +53,12 @@ async function checkPublished(base, secret) {
   // that THIS proposal executed. Missing receipt/version must not be labeled
   // as a completed execution. The authoritative readiness gate will decide.
   if (!receipt && !version) return { executed: false };
+  // A partially published proposal is never a successful or retryable execution.
+  // Missing either record must be escalated rather than sent to the executor again.
+  if (!receipt || !version) return {
+    executed: true, verified: false, receipt_id: receipt?.ouv_version_id || null,
+    issues: ['Incomplete OUV publication: version or receipt missing']
+  };
   const initialValid = receipts.length === 1 && versions.length === 1 && receipt &&
     receipt.payload_hash === HASH && version.id === receipt.ouv_version_id &&
     version.version === PROPOSAL && proposal?.status === 'EXECUTED' &&
