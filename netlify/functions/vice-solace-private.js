@@ -27,6 +27,15 @@ exports.handler = async (event) => {
   const privateToken = process.env.VICE_SOLACE_ENGINE_TOKEN;
   if (!supabaseUrl || !publicKey || !privateEngine || !privateToken)
     return json(503, { error: 'Private SOLACE service not configured' });
+  let endpoint;
+  try {
+    endpoint = new URL(privateEngine);
+    if (endpoint.protocol !== 'https:' || endpoint.username || endpoint.password ||
+        /^(localhost|127\\.|0\\.|10\\.|192\\.168\\.|169\\.254\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|\\[::1\\])/.test(endpoint.hostname))
+      return json(503, { error: 'Private SOLACE service configuration invalid' });
+  } catch {
+    return json(503, { error: 'Private SOLACE service configuration invalid' });
+  }
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { return json(400, { error: 'Invalid JSON' }); }
   if (!Array.isArray(body.bars) || body.bars.length < 30 || body.bars.length > 5000 ||
@@ -43,7 +52,7 @@ exports.handler = async (event) => {
     if (!user?.id) return json(401, { error: 'Invalid session' });
     // A private engine must independently authorize the user; never trust a
     // client-provided user ID. No secrets or algorithm source return to browser.
-    const result = await fetch(privateEngine, {
+    const result = await fetch(endpoint.href, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
