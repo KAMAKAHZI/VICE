@@ -9387,7 +9387,10 @@ function healthStrip(){
   const live = Link.state.status === 'live';
   const items = [
     { name:'Market data', state:S.ch.candles.length
-      ? (S.ch.live ? 'OPERATIONAL' : (S.ch.source === 'SIM' ? 'PRACTICE' : 'LOCAL FILE'))
+      ? (S.ch.feedFreshness === 'DELAYED' ? 'DELAYED / MARKET CLOSED' :
+         S.ch.feedFreshness === 'SIMULATED' || S.ch.source === 'SIM' ? 'PRACTICE' :
+         S.ch.source === 'FILE' ? 'IMPORTED FILE' :
+         S.ch.live ? 'CONNECTED' : 'PROVIDER DATA')
       : 'NO DATA' },
     { name:'Broker bridge', state:live ? 'OPERATIONAL' : 'NOT CONNECTED' },
     { name:'Ledger', state:S.holders.length ? 'OPERATIONAL' : 'EMPTY' },
