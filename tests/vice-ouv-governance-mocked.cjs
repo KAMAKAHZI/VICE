@@ -15,7 +15,8 @@ const json=(data,status=200)=>({ok:status>=200&&status<300,status,json:async()=>
 global.fetch=async(url,opts={})=>{
  const path=new URL(url).pathname;
  if(path==='/auth/v1/user')return json({id:'executive-user'});
- if(path.includes('/vice_exec_signers'))return json([{user_id:'executive-user',role:'CEO'}]);
+ if(path.includes('/vice_exec_signers'))return json(path.includes('user_id=eq.')?[{user_id:'executive-user',role:'CEO'}]:[{user_id:'executive-user',role:'CEO'},{user_id:'test-independent-cfo',role:'CFO'}]);
+ if(path.includes('/vice_exec_mfa_authorizations'))return json([]);
  if(path.includes('/vice_ouv_execution_receipts'))return json([]);
  if(path.includes('/ouv_versions'))return json([]);
  if(path.includes('/vice_dao_config'))return json([{vice_price:2,v4x_price:320}]);
