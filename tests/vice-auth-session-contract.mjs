@@ -19,4 +19,7 @@ const profile=section('async function completeAuthenticatedSetup(user,epoch=auth
 assert.match(profile,/viceRequireSecondFactor\(user,epoch\)/,'MFA is mandatory before member data');
 assert.match(profile,/if\(!prof\)\{[\s\S]*?your session is preserved/,'Missing profile must preserve Supabase session');
 assert.match(profile,/catch\(e\)[\s\S]*?showApp\(\)/,'Optional module errors must not blank valid member UI');
+const access=section('async function checkMemberAccess(epoch=authEpoch){','// Refresh the active member');
+assert.match(access,/if\(!data\.revoked && !data\.suspended\)\{[\s\S]*?throw new Error/,'Ambiguous denial must fail closed without destroying login');
+assert.match(access,/if\(!data\.revoked && !data\.suspended\)\{[\s\S]*?\}\s*const message=[\s\S]*?signOut\(\{scope:'local'\}\)/,'Explicit suspension or revocation retains signout');
 console.log('PASS auth session regression contracts (static; live desktop sign-in remains unverified)');
