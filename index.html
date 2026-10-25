@@ -2813,8 +2813,14 @@ async function checkMemberAccess(epoch=authEpoch){
   if(error)throw error;
   if(!data||typeof data.allowed!=='boolean')throw new Error('Account access could not be verified');
   if(data.allowed)return true;
+  // An ambiguous denial is not proof of revocation or suspension. Fail closed
+  // (no member UI/data), but preserve auth so transient provisioning or an
+  // unclassified server response cannot cause repeated login/rate-limit loops.
+  if(!data.revoked && !data.suspended){
+    throw new Error('Membership access was not authorized; your login session was preserved. Contact an administrator if this continues.');
+  }
   const message=data.revoked?'Membership access has been revoked. Contact the Reserve administrator.':
-    data.suspended?'Account access is suspended. Contact an administrator.':'Your session has expired. Please sign in again.';
+    'Account access is suspended. Contact an administrator.';
   clearMemberSession();
   try{await sb.auth.signOut({scope:'local'});}catch(e){console.warn('Restricted session cleanup:',e.message);}
   toast(message,'error');
