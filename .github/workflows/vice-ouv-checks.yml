@@ -11,6 +11,7 @@ on:
       - 'tests/vice-ouv-*.cjs'
       - 'scripts/vice-ouv-readonly-smoke.cjs'
       - 'sql/vice_ouv_executive_forensic_gate.sql'
+      - 'sql/vice_ouv_atomic_staging_preflight.sql'
       - 'tests/vice-ouv-forensic-gate.cjs'
       - '.github/workflows/vice-ouv-checks.yml'
   workflow_dispatch:
@@ -40,6 +41,7 @@ jobs:
           node tests/vice-ouv-executive-endpoint.cjs
           node tests/vice-ouv-governance-mocked.cjs
           node tests/vice-ouv-forensic-gate.cjs
+          node tests/vice-ouv-staging-preflight.cjs
       - name: Confirm production financial writes remain gated
         run: |
           test -f sql/vice_ouv_auto_execution_guard.sql

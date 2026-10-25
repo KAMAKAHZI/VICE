@@ -39,6 +39,8 @@ SELECT p.id,p.status,
  (SELECT count(*) FROM public.vice_ouv_execution_receipts WHERE proposal_id=p.id) AS execution_receipts,
  (SELECT count(*) FROM public.ouv_versions) =
  (SELECT count(*) FROM public.vice_ouv_execution_receipts) AS version_receipt_counts_match,
+ (SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='public.vice_sovereign_proposals'::regclass AND conname='vice_sovereign_proposals_check') AS quorum_constraint,
+ (SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='public.vice_sovereign_proposals'::regclass AND conname='vice_sovereign_proposals_status_check') AS status_constraint,
  false AS executor_activation_authorized
 FROM proposal p;
 ROLLBACK;
