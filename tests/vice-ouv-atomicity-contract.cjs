@@ -7,7 +7,11 @@ const path=require('node:path');
 const dir=path.join(__dirname,'../supabase/migrations');
 const migration=fs.readdirSync(dir).filter(x=>x.includes('ouv_atomic_executor')&&x.endsWith('.sql'));
 if(!migration.length){
- console.log('PENDING: audited atomic OUV executor migration not yet deployed; release stays disabled');
+ if(process.env.VICE_OUV_EXECUTION_ENABLED==='true'){
+  console.error('BLOCKED: execution flag enabled without audited atomic executor migration');
+  process.exit(1);
+ }
+ console.log('PENDING: audited atomic OUV executor migration absent; activation must remain disabled');
  process.exit(0);
 }
 const sql=migration.map(x=>fs.readFileSync(path.join(dir,x),'utf8')).join('\n');
