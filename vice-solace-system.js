@@ -10,13 +10,13 @@
   exhOn:true,exhSrc:'Stochastic',oscMirror:true,exhLen:14,oscIntLen:14,exhSmooth:1,exhUpper:95,exhLower:5,intUpper:90,intLower:10,
   exhWindow:3,zoneArmMacro:true,fracDimCloses:1,fracBrightCloses:2,engulfCounts:true,flipConfirmBars:2,useVolFilter:false,volMult:1.5,
   intArmMode:'Zone exit or retest held',intPlace:true,sweepRequireClose:true,mtfEnabled:true,chochDetect:true,macroNeckPct:5,chochNeckPct:5,
-  intNeckBase:'Internal',stopATR:.5,minRR:10,autoBuffer:true,hideThinRR:true,extendBars:40,tfSeconds:3600});
+  intNeckBase:'Internal',stopATR:.5,minRR:10,autoBuffer:true,hideThinRR:true,extendBars:40,tfSeconds:3600,originExpiryBars:60});
  const numeric=(v,d,min,max)=>Number.isFinite(Number(v))?Math.max(min,Math.min(max,Number(v))):d;
  function options(input={}){
   const o={...defaults,...input};
   for(const k of ['structuralLookback','lbScalp','lbIntraday','lbSwing'])o[k]=Math.round(numeric(o[k],defaults[k],50,5000));
   for(const k of ['accCloses','breakCloses','fracDimCloses','fracBrightCloses','flipConfirmBars'])o[k]=Math.round(numeric(o[k],defaults[k],1,10));
-  o.exhSmooth=Math.round(numeric(o.exhSmooth,1,1,50));o.dtMinBars=Math.round(numeric(o.dtMinBars,5,1,500));
+  o.exhSmooth=Math.round(numeric(o.exhSmooth,1,1,50));o.dtMinBars=Math.round(numeric(o.dtMinBars,5,1,500));o.originExpiryBars=Math.round(numeric(o.originExpiryBars,60,3,500));
   o.accATR=numeric(o.accATR,.5,0,5);o.stopATR=numeric(o.stopATR,.5,.1,20);o.minRR=numeric(o.minRR,10,1,100);
   o.exhLen=Math.round(numeric(o.exhLen,14,2,5000));o.oscIntLen=Math.round(numeric(o.oscIntLen,14,2,5000));
   o.lookback=o.modeLookback?({Scalp:o.lbScalp,Intraday:o.lbIntraday,Swing:o.lbSwing}[o.mode]||o.structuralLookback):o.structuralLookback;
@@ -91,7 +91,7 @@
   const fTouch=(fPrev!=null&&bar.l<=fPrev)||(floor!=null&&bar.l<=floor);
   const rTouch=(rPrev!=null&&bar.h>=rPrev)||(roof!=null&&bar.h>=roof);
   const age=origin?index-origin.bar:0;
-  if(origin&&(age>Math.max(3,o.exhWindow,12)||(origin.side==='LONG'?
+  if(origin&&(age>o.originExpiryBars||(origin.side==='LONG'?
      bar.c<origin.level-o.accATR*atr:bar.c>origin.level+o.accATR*atr))){
     events.push({i:index,type:'MACRO_ORIGIN_INVALIDATED',side:origin.side,price:origin.level,serial:origin.serial});
     origin=null;
@@ -103,9 +103,9 @@
     serial++;
     origin={side,pole:side==='LONG'?'F0':'F100',targetPole:side==='LONG'?'F100':'F0',
       level:side==='LONG'?floor:roof,wick:side==='LONG'?bar.l:bar.h,
-      target:side==='LONG'?roof:floor,bar:index,time:bar.t,
+      target:side==='LONG'?roof:floor,stop:side==='LONG'?bar.l-o.stopATR*atr:bar.h+o.stopATR*atr,bar:index,time:bar.t,
       structuralVersion:serial,serial,stage:'TOUCHED',armedAt:null,confirmedAt:null,
-      expiresAt:index+Math.max(3,o.exhWindow,12),entryEligible:false,rr:null};
+      expiresAt:index+o.originExpiryBars,entryEligible:false,rr:null};
     events.push({i:index,type:'MACRO_ORIGIN_TOUCHED',side,price:origin.level,serial});
   }
   if(origin&&origin.stage==='TOUCHED'){
@@ -124,7 +124,7 @@
     }
   }
   if(origin){
-    const stop=origin.side==='LONG'?origin.wick-o.stopATR*atr:origin.wick+o.stopATR*atr;
+    const stop=origin.stop; // immutable risk geometry; changing ATR never rewrites the originating stop
     const entry=origin.level, target=origin.target;
     const risk=origin.side==='LONG'?entry-stop:stop-entry;
     const reward=origin.side==='LONG'?target-entry:entry-target;
