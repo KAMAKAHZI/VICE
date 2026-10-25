@@ -3,8 +3,10 @@ on:
   pull_request:
     paths:
       - 'vice-iru-reclaim-policy.js'
+      - 'vice-iru-reclaim-batch.js'
       - 'vice-market-data-integrity.js'
       - 'tests/vice-iru-reclaim-policy.test.cjs'
+      - 'tests/vice-iru-reclaim-batch.test.cjs'
       - 'tests/vice-market-data-integrity.test.cjs'
       - '.github/workflows/vice-iru-reclaim-integrity.yml'
   workflow_dispatch:
@@ -19,5 +21,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate reclaim preflight and market-data integrity
-        run: node --test tests/vice-iru-reclaim-policy.test.cjs tests/vice-market-data-integrity.test.cjs
+      - name: Validate reclaim policy, batch planner and market-data integrity
+        run: node --test tests/vice-iru-reclaim-policy.test.cjs tests/vice-iru-reclaim-batch.test.cjs tests/vice-market-data-integrity.test.cjs
