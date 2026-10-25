@@ -41,9 +41,21 @@ function mount(){
   root.dataset.ready='';setBusy(true);details.hidden=true;
   status.textContent=kind==='execute_ouv'?'Submitting authorized execution…':'Checking authoritative governance readiness…';
   try{
-   const session=await client()?.auth.getSession();
-   const token=session?.data?.session?.access_token;
-   if(!token)throw Error('Executive sign-in required');
+   const auth=client()?.auth;
+   if(!auth)throw Error('Authentication client unavailable — reload the application and sign in.');
+   let {data:sessionData,error:sessionError}=await auth.getSession();
+   if(sessionError)throw Error('Unable to restore your session — sign in again.');
+   let token=sessionData?.session?.access_token;
+   if(!token&&typeof auth.refreshSession==='function'){
+    const refreshed=await auth.refreshSession();
+    if(!refreshed.error)token=refreshed.data?.session?.access_token;
+   }
+   if(!token){
+    status.textContent='SESSION EXPIRED — Sign in to recheck governance readiness. Previously recorded executive approvals remain unchanged.';
+    details.textContent='Sign in using the normal VICE OS login, then select VERIFY OUV READINESS. No new executive approval is requested.';
+    details.hidden=false;
+    return;
+   }
    const request_id=crypto.randomUUID();
    const response=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token,'Idempotency-Key':request_id},body:JSON.stringify({action:kind,proposal_id:PROPOSAL,request_id,...(kind==='execute_ouv'?{confirm:'EXECUTE APPROVED OUV'}:{})})});
    const data=await response.json();
