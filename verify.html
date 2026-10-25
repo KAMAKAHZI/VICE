@@ -177,10 +177,9 @@ async function verify(id){
     if(course){
       host.innerHTML=`<div class="verdict valid">✓ Course certificate verified</div><div class="stamp"><table>
         ${row('Certificate ID',data.cert_id)}${row('Recipient',data.name)}${row('Course',data.course)}
-        ${row('Issued',issued)}${row('Overall score',`${data.overall_score}%`)}
-        ${row('SHA-256 digest',data.digest)}</table>
+        ${row('Issued',issued)}</table>
         ${qr?`<div class="qr" aria-label="QR linking to certificate verification">${qr}</div>`:''}</div>
-        <p class="muted">Verified against the issuer's course certificate registry. Completion is not a professional license.</p>`;
+        <p class="muted">Registry validity and certificate integrity have been checked. Private academic scores and underlying digests are not exposed publicly. Completion is not a professional license.</p>`;
       return;
     }
     if(data.private_details===false){
