@@ -63,7 +63,7 @@ jobs:
           }
           const user = await probe('token_identity', 'https://api.netlify.com/api/v1/user');
           const site = await probe('site_access', 'https://api.netlify.com/api/v1/sites/' + encodeURIComponent(siteId));
-          if (!user && site) { console.log('token_identity_note: user endpoint rejected token; site authorization checked independently'); process.exitCode = 0; }
+          if (!user && site) { console.log('token_identity_note: user endpoint rejected token; site endpoint may be publicly readable; CLI deploy remains authoritative'); process.exitCode = 0; }
           if (site) {
             const domain = String(site.ssl_url || site.url || '');
             const matches = (() => { try { return new URL(domain).hostname === 'vice4x.netlify.app'; } catch { return false; } })() || site.name === 'vice4x';
