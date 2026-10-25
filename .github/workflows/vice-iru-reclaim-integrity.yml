@@ -1,0 +1,23 @@
+name: IRU reclaim and market-data integrity
+on:
+  pull_request:
+    paths:
+      - 'vice-iru-reclaim-policy.js'
+      - 'vice-market-data-integrity.js'
+      - 'tests/vice-iru-reclaim-policy.test.cjs'
+      - 'tests/vice-market-data-integrity.test.cjs'
+      - '.github/workflows/vice-iru-reclaim-integrity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate reclaim preflight and market-data integrity
+        run: node --test tests/vice-iru-reclaim-policy.test.cjs tests/vice-market-data-integrity.test.cjs
