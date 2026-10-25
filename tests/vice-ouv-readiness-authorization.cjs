@@ -7,12 +7,15 @@ const originalFetch = global.fetch;
 const originalEnv = { SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY, VICE_OUV_EXECUTION_ENABLED: process.env.VICE_OUV_EXECUTION_ENABLED };
 const response = (value, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => value });
 const event = (action = 'reconcile_ouv') => ({ httpMethod: 'POST', headers: { authorization: 'Bearer test-session' }, body: JSON.stringify({ action, proposal_id: PROPOSAL }) });
-function mock(readiness) {
+function mock(readiness, evidence = {}) {
   let executions = 0;
   global.fetch = async (url, options) => {
     const path = String(url);
     if (path.endsWith('/auth/v1/user')) return response({ id: 'test-executive' });
-    if (path.includes('/rest/v1/vice_exec_signers')) return response([{ user_id: 'test-executive', role: 'CEO' }]);
+    if (path.includes('/rest/v1/vice_exec_signers'))
+      return response(path.includes('user_id=eq.') ? [{ user_id: 'test-executive', role: 'CEO' }] :
+        (evidence.signers || [{ user_id: 'test-executive', role: 'CEO' }, { user_id: 'test-cfo', role: 'CFO' }]));
+    if (path.includes('/rest/v1/vice_exec_mfa_authorizations')) return response(evidence.mfa || []);
     if (path.includes('/rest/v1/rpc/vice_ouv_activation_readiness')) return response(readiness);
     if (path.includes('/rest/v1/rpc/vice_ouv_execute_approved')) { executions++; return response({ status: 'executed' }); }
     if (path.includes('/rest/v1/')) return response([]);
@@ -27,8 +30,8 @@ const valid = () => ({
   baseline_compatible: true, can_apply: true, next_unmet_gates: [],
   proposed_ouv: { VICE: 2.82645403, V4X: 452.2326448 }
 });
-async function runReadiness(input) {
-  const calls = mock(input);
+async function runReadiness(input, evidence = {}) {
+  const calls = mock(input, evidence);
   const result = await handler(event());
   return { result: JSON.parse(result.body), status: result.statusCode, executions: calls() };
 }
@@ -105,4 +108,53 @@ test('readiness does not claim production execution is enabled when switch is un
   } finally {
     process.env.VICE_OUV_EXECUTION_ENABLED = 'false';
   }
+});
+
+test('existing CEO verified TOTP remains visible while CFO device-only attestation is NOT labeled TOTP', async () => {
+  const input = valid();
+  delete input.ceo_authorization_verified;
+  delete input.cfo_authorization_verified;
+  input.cryptographic_signatures_verified = false;
+  const {result,status,executions} = await runReadiness(input,{
+    mfa:[{user_id:'test-executive',role:'CEO',auth_method:'SUPABASE_TOTP',
+      action:'APPROVE',payload_hash:'3f108d0483466f24b62efce207086110a3b76e70d8198dc7135ec0f2068742ae',
+      verified_at:'2026-10-20T20:00:00Z'}]
+  });
+  assert.equal(status,409);
+  assert.equal(result.checks.ceo_authorization_verified,true,'Preserve recorded CEO MFA');
+  assert.equal(result.checks.ceo_totp_record_verified,true);
+  assert.equal(result.checks.cfo_authorization_verified,false,'Never manufacture CFO MFA');
+  assert.equal(result.checks.cfo_totp_record_verified,false);
+  assert.equal(result.checks.cryptographic_signatures_verified,false);
+  assert.equal(executions,0);
+});
+test('forged signer or mismatched proposal hash never counts as independent CEO TOTP', async () => {
+  const input=valid();
+  delete input.ceo_authorization_verified;
+  delete input.cfo_authorization_verified;
+  input.cryptographic_signatures_verified=false;
+  const {result,status}=await runReadiness(input,{
+    mfa:[{user_id:'unregistered-user',role:'CEO',auth_method:'SUPABASE_TOTP',
+      action:'APPROVE',payload_hash:'deliberately-wrong-hash',verified_at:'2026-10-20T20:00:00Z'}]
+  });
+  assert.equal(status,409);
+  assert.equal(result.checks.ceo_totp_record_verified,false);
+  assert.equal(result.checks.ceo_authorization_verified,false);
+});
+test('two valid TOTP approvals still cannot claim independent device-signature evidence', async () => {
+  const input=valid();
+  delete input.ceo_authorization_verified;
+  delete input.cfo_authorization_verified;
+  input.cryptographic_signatures_verified=false;
+  const hash='3f108d0483466f24b62efce207086110a3b76e70d8198dc7135ec0f2068742ae';
+  const {result,status}=await runReadiness(input,{
+    mfa:['CEO','CFO'].map(role=>({user_id:role==='CEO'?'test-executive':'test-cfo',
+      role,auth_method:'SUPABASE_TOTP',action:'APPROVE',payload_hash:hash,
+      verified_at:'2026-10-20T20:00:00Z'}))
+  });
+  assert.equal(status,409);
+  assert.equal(result.checks.ceo_totp_record_verified,true);
+  assert.equal(result.checks.cfo_totp_record_verified,true);
+  assert.equal(result.checks.cryptographic_signatures_verified,false);
+  assert.equal(result.ready,false);
 });
