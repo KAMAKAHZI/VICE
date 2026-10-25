@@ -2444,14 +2444,24 @@ function onAuthenticated(user){
   if(S.user?.id === user.id && $('login')?.hidden === true) return Promise.resolve(true); // periodic access verification runs separately; auth events must not trigger duplicate RPCs
   if(authSetupTask){
     if(authSetupOwner===user.id&&authSetupEpoch===authEpoch)return authSetupTask;
+    // Different account arrived while a prior setup is pending. Invalidate the
+    // old epoch, then wait for that setup to settle before starting the new one.
+    // Do not let the old task's finally erase the new owner's setup state.
     clearMemberSession();
     const requestedEpoch=authEpoch;
-    return authSetupTask.then(()=>requestedEpoch===authEpoch?onAuthenticated(user):undefined);
+    const previousSetup=authSetupTask;
+    return previousSetup.catch(e=>{console.warn('Previous auth setup ended:',e);}).then(()=>
+      requestedEpoch===authEpoch?onAuthenticated(user):undefined);
   }
   clearMemberSession();
   authSetupOwner=user.id;authSetupEpoch=authEpoch;
   const epoch=authEpoch;
-  authSetupTask = completeAuthenticatedSetup(user,epoch).finally(() => { authSetupTask = null;authSetupOwner=null; });
+  const task=completeAuthenticatedSetup(user,epoch);
+  authSetupTask=task.finally(() => {
+    if(authSetupEpoch===epoch && authSetupOwner===user.id){
+      authSetupTask=null;authSetupOwner=null;
+    }
+  });
   return authSetupTask;
 }
 // An enrolled authenticator must complete an AAL2 challenge before member data loads.

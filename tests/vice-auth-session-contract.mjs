@@ -11,6 +11,9 @@ assert.match(signedIn,/authSetupTask&&authSetupOwner===session\.user\.id/,'Dupli
 assert.match(listener,/event === 'SIGNED_OUT'/,'SIGNED_OUT must clear state');
 const setup=section('function onAuthenticated(user){','// An enrolled authenticator');
 assert.match(setup,/authSetupOwner===user\.id&&authSetupEpoch===authEpoch/,'Same user/epoch must share initialization');
+assert.match(setup,/const previousSetup=authSetupTask;/,'Account switching must await the prior setup');
+assert.match(setup,/previousSetup\.catch\([\s\S]*?\.then\(/,'Previous setup errors must not strand the next account');
+assert.match(setup,/if\(authSetupEpoch===epoch && authSetupOwner===user\.id\)/,'Only the owning epoch may clear setup state');
 assert.match(setup,/S\.user\?\.id === user\.id && \$\('login'\)\?\.hidden === true/,'Already signed-in member must not reinitialize');
 const profile=section('async function completeAuthenticatedSetup(user,epoch=authEpoch){','async function ensureHolderForCurrentUser()');
 assert.match(profile,/viceRequireSecondFactor\(user,epoch\)/,'MFA is mandatory before member data');
