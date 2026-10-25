@@ -44,6 +44,33 @@ jobs:
             echo "::error::Netlify deployment not authorized yet. Create GitHub repository secrets NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID in repository Settings > Secrets and variables > Actions. Never put these values in chat, SQL, source, or public artifacts."
             exit 1
           fi
+      - name: Diagnose Netlify authorization without exposing credentials
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          node --input-type=module <<'NODE'
+          const token = process.env.NETLIFY_AUTH_TOKEN;
+          const siteId = process.env.NETLIFY_SITE_ID;
+          const headers = { Authorization: 'Bearer ' + token, Accept: 'application/json' };
+          async function probe(label, url) {
+            let response;
+            try { response = await fetch(url, { headers, signal: AbortSignal.timeout(15000) }); }
+            catch (e) { console.error(label + ': NETWORK_ERROR (' + e.name + ')'); process.exitCode = 1; return null; }
+            console.log(label + ': HTTP ' + response.status);
+            if (!response.ok) { process.exitCode = 1; return null; }
+            try { return await response.json(); } catch { console.error(label + ': INVALID_JSON'); process.exitCode = 1; return null; }
+          }
+          const user = await probe('token_identity', 'https://api.netlify.com/api/v1/user');
+          const site = await probe('site_access', 'https://api.netlify.com/api/v1/sites/' + encodeURIComponent(siteId));
+          if (user && site) {
+            const domain = String(site.ssl_url || site.url || '');
+            const matches = domain.includes('vice4x.netlify.app') || site.name === 'vice4x';
+            console.log('expected_production_site: ' + (matches ? 'PASS' : 'FAIL'));
+            console.log('site_build_settings_present: ' + (site.build_settings ? 'YES' : 'NO'));
+            if (!matches) process.exitCode = 1;
+          }
+          NODE
       - name: Publish validated VICE OS to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
