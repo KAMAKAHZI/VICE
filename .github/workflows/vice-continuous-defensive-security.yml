@@ -44,6 +44,10 @@ jobs:
           PY
       - name: Verify security remediation regression tests
         run: node --test tests/vice-security-remediation.cjs
+      - name: Validate read-only staging schema parity gate
+        run: |
+          node --check scripts/vice-staging-schema-parity.cjs
+          node --test tests/vice-staging-schema-parity.cjs
       - name: Audit npm dependency vulnerabilities when lockfile exists
         shell: bash
         run: |
