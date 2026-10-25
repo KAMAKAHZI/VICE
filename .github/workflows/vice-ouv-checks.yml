@@ -33,12 +33,14 @@ jobs:
           node --check tests/vice-ouv-executive-endpoint.cjs
           node --check tests/vice-ouv-governance-mocked.cjs
           node --check tests/vice-ouv-readiness-authorization.cjs
+          node --check tests/vice-ouv-ui-execution-gates.cjs
       - name: Run financial and governance contract tests
         run: |
           node tests/vice-ouv-reference.cjs
           node tests/vice-ouv-executive-endpoint.cjs
           node tests/vice-ouv-governance-mocked.cjs
           node --test tests/vice-ouv-readiness-authorization.cjs
+          node --test tests/vice-ouv-ui-execution-gates.cjs
       - name: Confirm production financial writes remain gated
         run: |
           test -f sql/vice_ouv_auto_execution_guard.sql
