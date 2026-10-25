@@ -15,10 +15,10 @@
 
 ## Restore the transactional mail worker
 1. Deploy `server/` as a **persistent Node service** using `npm ci --omit=dev`; Netlify's static site alone does not run its interval worker.
-2. Configure server-side-only environment variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Never commit or expose their values.
+2. Keep `VICE_MAILER_DELIVERY_ENABLED` unset (or `false`) until historical outbox messages have been reviewed; setting SMTP credentials alone must not start sending. Configure server-side-only environment variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Never commit or expose their values.
 3. Keep VICE LINK bound to loopback behind an authenticated reverse proxy; do not expose service-role credentials or unauthenticated health/metrics externally.
 4. Verify the server health output shows `email: SMTP_CONFIGURED`, then inspect worker logs for `mailer_db_error` and `mail_retry`.
-5. Test a **single newly created synthetic outbox record to a controlled test inbox**, verify SENT and actual receipt, and confirm no duplicate delivery.
+5. In an isolated staging environment with an empty or controlled outbox, set `VICE_MAILER_DELIVERY_ENABLED=true` and test a **single newly created synthetic outbox record to a controlled test inbox**; verify SENT and actual receipt, and confirm no duplicate delivery. Do not enable production delivery before the backlog has been reviewed and approved.
 6. Before releasing historical messages, classify them by age and event type; prioritize current revocation notices, suppress superseded certificate notices where legally appropriate, and get an explicit approval for bulk delivery.
 7. Monitor pending/failed/sent counts and sender bounce reports. Do not mark messages SENT without SMTP confirmation.
 
