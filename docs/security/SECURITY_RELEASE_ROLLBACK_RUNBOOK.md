@@ -10,6 +10,14 @@
 - Verify database backups and restore in a separate environment; document restoration evidence and incident contact.
 - Independent CEO/CFO authorization is required for governance or financial operations. This security PR does not grant it.
 
+## Candidate certificate integrity and compatibility gate (2026-10-25)
+- The pending public Academy verifier now recomputes the stored issuer SHA-256 digest before reporting `valid=true`, using the same fields as `issue_certificate`. This is an integrity comparison against the database, **not an independent digital signature or appraisal**.
+- Disposable PostgreSQL tests exercise a valid synthetic award, mutated digest, changed scores, missing legacy salt, expired/revoked records, and private JSON-field minimization. These tests do **not** establish compatibility with older production awards.
+- Before any production migration, run an authorized **read-only compatibility inventory** of Academy awards by schema version/issuance method. Compare digest verification outcomes without logging names, scores, salts or digests; approve an explicit remediation path for legacy awards that fail validation. Do not automatically reissue or mark them authentic.
+- `verify.html` must never display `undefined%` or private Academy digest placeholders. Public success displays only ID, optional recipient name, course and issuance date. Confirm whether recipient name is consented for public verification; withhold that field in a separately reviewed design if not.
+- The email-only login revocation candidate is exercised against synthetic `anon` and `authenticated` roles in disposable PostgreSQL. Production execute-grant removal still requires staged account recovery and controlled change approval.
+- Both candidates remain **review-only SQL files**; committing them or passing CI does not apply them to Supabase. Current staging is not a full production-schema replica.
+
 ## Safe rollout sequence
 1. Publish and verify the email-only login frontend with representative test users; ensure access recovery and support process works.
 2. Apply the certificate response-minimization migration in staging; verify positive/negative test vectors, no sensitive fields and frontend compatibility.
