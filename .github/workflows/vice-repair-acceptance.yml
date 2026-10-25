@@ -79,6 +79,7 @@ jobs:
           node tests/vice-registry-controls.mjs
           node tests/vice-comms-db.mjs
           node tests/vice-institutional-db.mjs
+          node tests/vice-public-verifier-registry-baseline.mjs
       - run: |
           bash scripts/vice-publish-netlify.sh
           for f in tests/*.cjs; do
