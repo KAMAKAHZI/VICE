@@ -18,8 +18,14 @@ test('lookup revocation explicitly removes public and anon access',()=>{
   assert.match(sql,/REVOKE EXECUTE ON FUNCTION public\.lookup_email_for_login\(text\) FROM PUBLIC;/);
   assert.match(sql,/FROM anon;/);
 });
-test('public certificate verification does not expose scores or digests',()=>{
-  assert.doesNotMatch(cert,/rec\.(?:scores|overall_score|digest|revoked_reason)/);
+test('public certificate validation can inspect a digest but never returns private fields',()=>{
+  // Digest verification must read private stored fields; public RETURN data must
+  // not include them. The disposable PostgreSQL suite checks actual JSON output.
+  const success=cert.match(/RETURN jsonb_build_object\('valid',true,[\s\S]*?\);/);
+  assert(success,'Public success response must be explicitly defined');
+  assert.doesNotMatch(success[0],/'(?:scores|overall_score|digest|salt|revoked_reason|holder_email|profile_id)'/);
+  assert.match(cert,/rec\.digest IS DISTINCT FROM expected_digest/);
+  assert.match(cert,/INTEGRITY_FAILURE/);
   assert.match(cert,/SET search_path TO ''/);
 });
 test('expired certificates must be rejected before public verification succeeds',()=>{
