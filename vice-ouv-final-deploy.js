@@ -64,7 +64,9 @@ function mount(){
    const checks=data.checks||{};
    const gates=[
     ['CEO AUTHORIZATION',checks.ceo_authorization_verified],
+    ['CEO SUPABASE TOTP RECEIPT',checks.ceo_totp_record_verified],
     ['CFO AUTHORIZATION',checks.cfo_authorization_verified],
+    ['CFO SUPABASE TOTP RECEIPT',checks.cfo_totp_record_verified],
     ['SIGNATURE VERIFICATION',checks.cryptographic_signatures_verified],
     ['PUBLIC REVIEW',checks.review_complete],
     ['LEDGER RECONCILIATION',checks.ledger_reconciled],
