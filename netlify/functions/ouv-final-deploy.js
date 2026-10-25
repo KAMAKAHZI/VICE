@@ -102,7 +102,8 @@ async function readiness(base, anon, bearer) {
     ledger_reconciled: s.ledger_reconciled,
     baseline_compatible: s.baseline_compatible,
     proposed_ouv: s.proposed_ouv,
-    database_can_apply: s.can_apply
+    database_can_apply: s.can_apply,
+    server_execution_enabled: process.env.VICE_OUV_EXECUTION_ENABLED === 'true'
   } };
 }
 exports.handler = async (event) => {
