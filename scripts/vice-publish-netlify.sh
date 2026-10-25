@@ -10,7 +10,7 @@ mkdir -p "$target"
 assets=(
   index.html guide.html verify.html governance.html version.json
   vice4x-icon.svg vice4x-icon-192.png vice4x-icon-512.png apple-touch-icon.png
-  manifest.json manifest.webmanifest sw.js vice-mega.js vice-mega.css vice4x-operations.js vice4x-operations.css vice-solace-system.js vice4x-comms.js vice4x-comms.css vice4x-institutional-core.js vice4x-institutional.js vice4x-institutional.css
+  manifest.json manifest.webmanifest sw.js vice-mega.js vice-mega.css vice4x-operations.js vice4x-operations.css vice-solace-system.js vice-market-data-integrity.js vice4x-comms.js vice4x-comms.css vice4x-institutional-core.js vice4x-institutional.js vice4x-institutional.css
   vice-ouv-final-deploy.js vice-ouv-reference.js
   _headers _redirects
 )
