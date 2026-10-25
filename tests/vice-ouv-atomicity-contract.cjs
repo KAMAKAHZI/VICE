@@ -6,6 +6,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const dir=path.join(__dirname,'../supabase/migrations');
 const migration=fs.readdirSync(dir).filter(x=>x.includes('ouv_atomic_executor')&&x.endsWith('.sql'));
+const proof=path.join(__dirname,'../docs/audit/OUV_ATOMIC_EXECUTOR_STAGING_PROOF.json');
 if(!migration.length){
  if(process.env.VICE_OUV_EXECUTION_ENABLED==='true'){
   console.error('BLOCKED: execution flag enabled without audited atomic executor migration');
@@ -13,6 +14,16 @@ if(!migration.length){
  }
  console.log('PENDING: audited atomic OUV executor migration absent; activation must remain disabled');
  process.exit(0);
+}
+if(process.env.VICE_OUV_EXECUTION_ENABLED==='true'){
+ if(!fs.existsSync(proof)) throw new Error('OUV activation blocked: independent staging proof absent');
+ const evidence=JSON.parse(fs.readFileSync(proof,'utf8'));
+ for(const k of ['migration_sha256','staging_project','transaction_rollback_passed','concurrent_idempotency_passed','quorum_signature_verification_passed','reviewer_approval']){
+  assert.ok(evidence[k], 'OUV activation blocked: missing independent proof '+k);
+ }
+ assert.equal(evidence.transaction_rollback_passed,true);
+ assert.equal(evidence.concurrent_idempotency_passed,true);
+ assert.equal(evidence.quorum_signature_verification_passed,true);
 }
 const sql=migration.map(x=>fs.readFileSync(path.join(dir,x),'utf8')).join('\n');
 for(const [name,pattern] of Object.entries({
