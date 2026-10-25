@@ -88,3 +88,25 @@ test('same existing origin does not duplicate arming even across extra touches',
  assert.equal(x.events.filter(e=>e.type==='MACRO_ORIGIN_TOUCHED').length,1);
  assert.equal(x.events.filter(e=>e.type==='MACRO_ORIGIN_ARMED').length,1);
 });
+
+test('origin stop is immutable after arm even if subsequent ATR surges',()=>{
+ const touch=solace.originStep({origin:null,serial:0},b(100,100,102,99,101),null,100,
+  {loPrev:100,hiPrev:120,lo:99,hi:120},1,o);
+ const stop=touch.origin.stop;
+ const next=solace.originStep(touch,b(101,101,106,100,105),b(100,100,102,99,101),101,
+  {loPrev:99,hiPrev:120,lo:99,hi:120},5,o);
+ assert.equal(next.origin.stop,stop,'Volatility must not rewrite originating risk');
+ assert.equal(next.origin.target,touch.origin.target);
+ assert.equal(next.origin.bar,touch.origin.bar);
+});
+test('configurable origin expiry prevents infinite setup carry without a new touch',()=>{
+ const cfg=solace.options({...o,originExpiryBars:3});
+ let state=solace.originStep({origin:null,serial:0},b(100,101,102,99,101),null,100,
+  {loPrev:100,hiPrev:120,lo:99,hi:120},1,cfg);
+ for(let i=101;i<=104;i++){
+  state=solace.originStep(state,b(i,108,111,105,109),b(i-1,108,111,105,109),i,
+   {loPrev:99,hiPrev:120,lo:99,hi:120},1,cfg);
+ }
+ assert.equal(state.origin,null);
+ assert(state.events.some(e=>e.type==='MACRO_ORIGIN_INVALIDATED'));
+});
