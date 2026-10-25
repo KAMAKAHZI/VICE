@@ -60,8 +60,8 @@ function mount(){
    const response=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token,'Idempotency-Key':request_id},body:JSON.stringify({action:kind,proposal_id:PROPOSAL,request_id,...(kind==='execute_ouv'?{confirm:'EXECUTE APPROVED OUV'}:{})})});
    const data=await response.json();
    if(!data||typeof data.status!=='string')throw Error('Invalid server response');
-   root.dataset.ready=response.ok&&data.status==='ready'?'true':'';
-   status.textContent=data.status==='verified'?'OUV PUBLISHED AND RECONCILED — issuer management reference only.':data.status==='ready'?'Governance gates report ready; execution requires an explicit click.':'EXECUTION BLOCKED — '+(data.message||'Review conditions');
+   root.dataset.ready=response.ok&&data.status==='ready'&&data.checks?.server_execution_enabled===true?'true':'';
+   status.textContent=data.status==='verified'?'OUV PUBLISHED AND RECONCILED — issuer management reference only.':data.status==='ready'?(data.checks?.server_execution_enabled===true?'Governance gates report ready; execution requires an explicit click.':'Governance checks passed; production execution remains disabled pending release authorization.'):'EXECUTION BLOCKED — '+(data.message||'Review conditions');
    const checks=data.checks||{};
    const gates=[
     ['CEO AUTHORIZATION',checks.ceo_authorization_verified],
@@ -70,7 +70,8 @@ function mount(){
     ['PUBLIC REVIEW',checks.review_complete],
     ['LEDGER RECONCILIATION',checks.ledger_reconciled],
     ['OUV BASELINE',checks.baseline_compatible],
-    ['DATABASE EXECUTION',checks.database_can_apply]
+    ['DATABASE EXECUTION',checks.database_can_apply],
+    ['PRODUCTION EXECUTION SWITCH',checks.server_execution_enabled]
    ];
    const label=value=>value===true?'VERIFIED':value===false?'NOT VERIFIED':'NOT REPORTED';
    const lines=gates.map(([name,value])=>name+': '+label(value));
@@ -79,7 +80,7 @@ function mount(){
    if(issues.length)lines.push('OUTSTANDING REQUIREMENTS:',...issues.map(issue=>'• '+String(issue)));
    if(data.receipt_id)lines.push('EXECUTION RECEIPT: '+data.receipt_id);
    if(data.ouv_version)lines.push('OFFICIAL VERSION: '+JSON.stringify(data.ouv_version));
-   details.textContent=lines.join('\\n');
+   details.textContent=lines.join('\n');
    details.hidden=false;
   }catch(e){root.dataset.ready='';status.textContent='ACTION REQUIRED — '+(e?.message||'Verification failed');}
   finally{setBusy(false);}
