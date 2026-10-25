@@ -35,49 +35,49 @@ jobs:
           bash scripts/vice-publish-netlify.sh
           node tests/vice-deploy-privacy.cjs
           node -e "const x=require('./dist/site/deployment.json');if(x.commit!==process.env.COMMIT_REF||x.context!=='production')process.exit(1)"
-      - name: Confirm deployment authorization
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: |
-          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
-            echo "::error::Netlify deployment not authorized yet. Create GitHub repository secrets NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID in repository Settings > Secrets and variables > Actions. Never put these values in chat, SQL, source, or public artifacts."
-            exit 1
-          fi
-      - name: Diagnose Netlify authorization without exposing credentials
+      - name: Verify Netlify token and project without printing secrets
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
           node --input-type=module <<'NODE'
-          const token = process.env.NETLIFY_AUTH_TOKEN;
-          const siteId = process.env.NETLIFY_SITE_ID;
+          const token = process.env.NETLIFY_AUTH_TOKEN || '';
+          const siteId = process.env.NETLIFY_SITE_ID || '';
+          const fail = message => { console.error('::error::' + message); process.exit(1); };
+          if (!token.trim() || !siteId.trim()) fail('Missing NETLIFY_AUTH_TOKEN or NETLIFY_SITE_ID repository secret.');
+          if (token !== token.trim() || siteId !== siteId.trim()) fail('Netlify secrets contain leading/trailing whitespace; correct the stored secrets instead of silently changing credentials.');
+          if (/[\r\n]/.test(token + siteId)) fail('Netlify secrets contain newline characters; correct repository secrets.');
+          console.log('::add-mask::' + token);
           const headers = { Authorization: 'Bearer ' + token, Accept: 'application/json' };
-          async function probe(label, url) {
+          async function probe(label, path) {
             let response;
-            try { response = await fetch(url, { headers, signal: AbortSignal.timeout(15000) }); }
-            catch (e) { console.error(label + ': NETWORK_ERROR (' + e.name + ')'); process.exitCode = 1; return null; }
+            try { response = await fetch('https://api.netlify.com/api/v1' + path, { headers, signal: AbortSignal.timeout(15000) }); }
+            catch (error) { fail(label + ': Netlify API request failed (' + error.name + ')'); }
             console.log(label + ': HTTP ' + response.status);
-            if (!response.ok) { process.exitCode = 1; return null; }
-            try { return await response.json(); } catch { console.error(label + ': INVALID_JSON'); process.exitCode = 1; return null; }
+            return response;
           }
-          const user = await probe('token_identity', 'https://api.netlify.com/api/v1/user');
-          const site = await probe('site_access', 'https://api.netlify.com/api/v1/sites/' + encodeURIComponent(siteId));
-          if (!user && site) { console.log('token_identity_note: user endpoint rejected token; site endpoint may be publicly readable; CLI deploy remains authoritative'); process.exitCode = 0; }
-          if (site) {
-            const domain = String(site.ssl_url || site.url || '');
-            const matches = (() => { try { return new URL(domain).hostname === 'vice4x.netlify.app'; } catch { return false; } })() || site.name === 'vice4x';
-            console.log('expected_production_site: ' + (matches ? 'PASS' : 'FAIL'));
-            console.log('site_build_settings_present: ' + (site.build_settings ? 'YES' : 'NO'));
-            if (!matches) process.exitCode = 1;
-          }
+          const user = await probe('token_identity', '/user');
+          if (user.status === 401 || user.status === 403) fail('Netlify rejected token identity. Check NETLIFY_AUTH_TOKEN validity and project team access; site metadata HTTP 200 does not prove deployment permission.');
+          if (!user.ok) fail('Netlify token identity check returned HTTP ' + user.status);
+          const siteResponse = await probe('site_access', '/sites/' + encodeURIComponent(siteId));
+          if (!siteResponse.ok) fail('Netlify token cannot access configured project: HTTP ' + siteResponse.status);
+          let site;
+          try { site = await siteResponse.json(); } catch { fail('Netlify project returned invalid JSON.'); }
+          const hostname = value => { try { return new URL(value).hostname; } catch { return ''; } };
+          const expected = [site.ssl_url, site.url].some(value => hostname(String(value || '')) === 'vice4x.netlify.app') || site.name === 'vice4x';
+          if (!expected) fail('NETLIFY_SITE_ID does not identify expected VICE4X production site.');
+          console.log('expected_production_site: PASS');
           NODE
       - name: Publish validated VICE OS to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          npx --yes netlify-cli@23.12.0 deploy --prod --no-build --dir=dist/site --functions=netlify/functions --site="$NETLIFY_SITE_ID" --message="VICE OS ${{ github.sha }} — verified frontend + cloud functions"
+          npx --yes netlify-cli@23.12.0 deploy --prod --no-build \
+            --dir=dist/site \
+            --functions=netlify/functions \
+            --site="$NETLIFY_SITE_ID" \
+            --message="VICE OS ${{ github.sha }} — verified frontend + cloud functions"
       - name: Run independent live smoke
         run: |
           node tests/vice-production-smoke.mjs
