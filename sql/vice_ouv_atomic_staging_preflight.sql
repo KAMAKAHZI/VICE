@@ -35,8 +35,9 @@ BEGIN
   RAISE EXCEPTION 'OUV_GATE: proposal target or rounding mismatch'; END IF;
  IF receipt_count<>0 THEN RAISE EXCEPTION 'OUV_GATE: proposal already executed'; END IF;
  IF p.quorum_verified_at IS NULL OR p.execute_after IS NULL OR now()<p.execute_after THEN
-  RAISE NOTICE 'BLOCKED: quorum or timelock not satisfied; do not remove database protections';
- ELSE RAISE NOTICE 'Read-only preliminary evidence passes; independently verify governance policy and signatures'; END IF;
+  RAISE EXCEPTION 'OUV_GATE: quorum or timelock not satisfied; database protections must remain';
+ END IF;
+ RAISE NOTICE 'Read-only preliminary evidence passes; independently verify governance policy and signatures';
  RAISE NOTICE 'STAGING CHECK ONLY: no proposal, official value, holder units or receipt modified';
 END $gate$;
 ROLLBACK;
