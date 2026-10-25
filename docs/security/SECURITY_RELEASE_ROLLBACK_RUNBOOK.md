@@ -36,6 +36,14 @@
 ## Exit criteria
 All required CI checks pass, staging security tests pass, release approval recorded, production deployment verified, Supabase advisors reviewed and no new high-risk disclosure introduced.
 
+## Connected Supabase metadata parity check — 2026-10-25
+Read-only project metadata was checked through the connected Supabase project tools, **without accessing member rows or changing either database**:
+- Production `sdsaewumabzjjvsmqqsl`: **73 public tables/views and 72 recorded migrations**. `public.certificates` includes `profile_id`, `salt`, `scores`, `digest`, `revoked_at` and other full award fields.
+- Separate staging project `mzdybvxvmbigaylleqbt`: **4 public tables and 6 recorded migrations**. Its `public.certificates` is a reduced fixture and lacks **`profile_id` and `salt`**, which are necessary to recompute the current issuer's certificate digest. It also lacks the production OUV governance/receipt tables.
+- Therefore, a successful disposable PostgreSQL test **does not imply** the current Supabase staging environment can execute the full issuer certificate-verification candidate. **Hard release blocker:** reconstruct a production-equivalent, schema-only staging baseline under review, without copying user data, tokens, account secrets, or financial records.
+- The Academy verifier candidate must not be applied to this reduced staging fixture or production until schema compatibility, legacy digest formats, public-name disclosure consent, and role-level permissions have been independently reviewed.
+- The OUV execution switch and structural governance gates remain closed. A green GitHub CI result is evidence of isolated behavior only, not authorization to publish an OUV proposal.
+
 ## Reproducibility gap — foundation inventory
 - Production read-only metadata inventory confirms 73 public tables/views and 93 public functions; staging currently has only isolated security fixtures, not the full application schema.
 - Initial dependency inventory identified `profiles` (UUID auth.users foreign key, unique email and username) and `invites` (unique code), neither of which is represented by the retired bootstrap.
