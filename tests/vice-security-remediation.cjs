@@ -42,3 +42,13 @@ test('continuous defense runs on pull requests and a daily schedule',()=>{
   assert.match(workflow,/pull_request:/);
   assert.match(workflow,/schedule:/);
 });
+
+test('public Academy verification page never renders redacted scores or digests',()=>{
+  const verifyPage=fs.readFileSync('verify.html','utf8');
+  const start=verifyPage.indexOf('if(course){');
+  const end=verifyPage.indexOf('if(data.private_details===false)',start);
+  assert(start>=0 && end>start,'Academy public verification branch must be present');
+  const publicCourseView=verifyPage.slice(start,end);
+  assert.doesNotMatch(publicCourseView,/data\\.(?:overall_score|scores|digest)/);
+  assert.match(publicCourseView,/Private academic scores and underlying digests are not exposed publicly/);
+});
