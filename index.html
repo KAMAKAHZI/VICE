@@ -4353,15 +4353,19 @@ async function loadCandles() {
     const cs=await fetchCandlesUnified(pair,tf,Math.min(5000,ViceSolaceSystem.options(S.engine).lookback+100));
     if(!current())return;
     if(!Array.isArray(cs)||!cs.length)throw Error('Provider returned no candles');
+    let validated=cs;
     if(APP_MODE!=='SIM'&&pair!==PRACTICE){
       const ms=(TF_SEC[tf]||60)*1000;
       const verified=ViceMarketDataIntegrity.validateCandles(cs,ms);
-      if(verified.stale)throw Error('Market feed stale: '+Math.round(verified.lagMs/1000)+' seconds since latest candle');
-    }
-    S.ch.candles=cs;S.ch.error=null;
+      validated=verified.candles;
+      // Closed-market and delayed-provider history remains visible, never labeled live.
+      S.ch.feedFreshness=verified.stale?'DELAYED':'CURRENT';
+      S.ch.feedAsOf=verified.asOf;
+    }else{S.ch.feedFreshness='SIMULATED';S.ch.feedAsOf=null;}
+    S.ch.candles=validated;S.ch.error=null;
     S.ch.source=APP_MODE==='SIM'||pair===PRACTICE?'SIM':parseSymbol(pair).source;
     computeATR();await loadLtfCandles(current);if(!current())return;
-    S.res=ViceSolaceSystem.run(cs,{...S.engine,timeframe:tf,tfSeconds:TF_SEC[tf]||3600,ltfSeconds:TF_SEC[S.ch.ltfTf]||60},S.ch.ltfCandles);drawAll();
+    S.res=ViceSolaceSystem.run(validated,{...S.engine,timeframe:tf,tfSeconds:TF_SEC[tf]||3600,ltfSeconds:TF_SEC[S.ch.ltfTf]||60},S.ch.ltfCandles);drawAll();
   }catch(e){
     if(!current())return;
     S.ch.candles=[];S.ch.ltfCandles=[];S.ch.source='UNAVAILABLE';S.ch.error=e.message||'Provider unavailable';S.res=null;
