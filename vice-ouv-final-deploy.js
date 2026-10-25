@@ -45,11 +45,10 @@ function mount(){
    if(!auth)throw Error('Authentication client unavailable — reload the application and sign in.');
    let {data:sessionData,error:sessionError}=await auth.getSession();
    if(sessionError)throw Error('Unable to restore your session — sign in again.');
-   let token=sessionData?.session?.access_token;
-   if(!token&&typeof auth.refreshSession==='function'){
-    const refreshed=await auth.refreshSession();
-    if(!refreshed.error)token=refreshed.data?.session?.access_token;
-   }
+   // Supabase getSession handles its own refresh lifecycle. Do not invoke
+   // refreshSession again on a missing session: repeat refresh attempts can
+   // amplify authentication rate limits on desktop and mobile.
+   const token=sessionData?.session?.access_token;
    if(!token){
     status.textContent='SESSION EXPIRED — Sign in to recheck governance readiness. Previously recorded executive approvals remain unchanged.';
     details.textContent='Sign in using the normal VICE OS login, then select VERIFY OUV READINESS. No new executive approval is requested.';
@@ -61,7 +60,7 @@ function mount(){
    const data=await response.json();
    if(!data||typeof data.status!=='string')throw Error('Invalid server response');
    root.dataset.ready=response.ok&&data.status==='ready'&&data.checks?.server_execution_enabled===true?'true':'';
-   status.textContent=data.status==='verified'?'OUV PUBLISHED AND RECONCILED — issuer management reference only.':data.status==='ready'?(data.checks?.server_execution_enabled===true?'Governance gates report ready; execution requires an explicit click.':'Governance checks passed; production execution remains disabled pending release authorization.'):'EXECUTION BLOCKED — '+(data.message||'Review conditions');
+   status.textContent=response.status===401?'SESSION EXPIRED — Sign in normally to recheck readiness. Previously recorded executive approvals remain unchanged.':data.status==='verified'?'OUV PUBLISHED AND RECONCILED — issuer management reference only.':data.status==='ready'?(data.checks?.server_execution_enabled===true?'Governance gates report ready; execution requires an explicit click.':'Governance checks passed; production execution remains disabled pending release authorization.'):'EXECUTION BLOCKED — '+(data.message||'Review conditions');
    const checks=data.checks||{};
    const gates=[
     ['CEO AUTHORIZATION',checks.ceo_authorization_verified],
