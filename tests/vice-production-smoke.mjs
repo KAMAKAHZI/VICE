@@ -52,7 +52,8 @@ for(let attempt=1;attempt<=attempts;attempt++){
    const response=await request('/'+file+'?release='+Date.now());
    const bytes=Buffer.from(await response.arrayBuffer());
    const builtFile='dist/site/'+file;
-   const expectedBytes=readFileSync(existsSync(builtFile)?builtFile:file);
+   if(!existsSync(builtFile))throw Error('Missing deterministic published build artifact '+builtFile);
+   const expectedBytes=readFileSync(builtFile);
    if(!response.ok||!matchesPublishedAsset(file,bytes,expectedBytes))mismatches.push(file);
   }catch(e){mismatches.push(file+': '+e.message)}
  }
