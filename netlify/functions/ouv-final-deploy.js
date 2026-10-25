@@ -95,6 +95,8 @@ async function readiness(base, anon, bearer) {
     issues.push('CRYPTOGRAPHIC_SIGNATURE_VERIFICATION_REQUIRED');
   return { ready, issues, checks: {
     cryptographic_signatures_verified: signaturesVerified,
+    ceo_authorization_verified: s.ceo_authorization_verified === true,
+    cfo_authorization_verified: s.cfo_authorization_verified === true,
     executive_authorizations: s.executive_authorizations,
     review_complete: s.review_complete,
     ledger_reconciled: s.ledger_reconciled,
