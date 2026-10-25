@@ -51,6 +51,7 @@ test('separately reports verified CEO and CFO when both are independently verifi
   assert.equal(result.checks.ceo_authorization_verified, true);
   assert.equal(result.checks.cfo_authorization_verified, true);
   assert.equal(result.checks.cryptographic_signatures_verified, true);
+  assert.equal(result.checks.server_execution_enabled, false);
   assert.equal(executions, 0);
 });
 test('CFO device attestation without verification cannot unlock execution', async () => {
@@ -91,4 +92,17 @@ test('execute remains disabled even when all readiness checks pass', async () =>
   assert.equal(result.statusCode, 409);
   assert.ok(JSON.parse(result.body).issues.includes('SERVER_EXECUTION_DISABLED'));
   assert.equal(calls(), 0);
+});
+
+test('readiness does not claim production execution is enabled when switch is unset', async () => {
+  delete process.env.VICE_OUV_EXECUTION_ENABLED;
+  try {
+    const { result, status, executions } = await runReadiness(valid());
+    assert.equal(status, 200);
+    assert.equal(result.ready, true);
+    assert.equal(result.checks.server_execution_enabled, false);
+    assert.equal(executions, 0);
+  } finally {
+    process.env.VICE_OUV_EXECUTION_ENABLED = 'false';
+  }
 });
