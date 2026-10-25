@@ -168,7 +168,7 @@ async function verify(id){
       const revoked=reason==='REVOKED';
       host.innerHTML=`<div class="verdict invalid">✕ ${revoked?'Certificate revoked':'Certificate not verified'}</div>
         <p class="muted">${esc(reason)}. ${revoked?'This identifier is no longer an active certificate.':'Do not rely on this document as authentic.'}</p>
-        ${revoked?`<p class="muted">Revoked ${esc(data.revoked_at||'')} · ${esc(data.revoked_reason||'')}</p>`:''}`;
+        ${revoked?`<p class="muted">Revocation recorded in the issuer registry. Supporting rationale is maintained privately.</p>`:''}`;
       return;
     }
     const issued=new Date(data.issued_at).toLocaleString('en-US',{timeZone:'UTC',dateStyle:'long',timeStyle:'short'})+' UTC';
