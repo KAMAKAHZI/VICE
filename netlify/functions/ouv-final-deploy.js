@@ -52,7 +52,20 @@ async function checkPublished(base, secret) {
   // A latest version may belong to an unrelated proposal; it is not proof
   // that THIS proposal executed. Missing receipt/version must not be labeled
   // as a completed execution. The authoritative readiness gate will decide.
-  if (!receipt && !version) return { executed: false };
+  if (!receipt && !version) {
+    // No receipt/version is safe to retry only if proposal state is also unexecuted.
+    if (proposals.length !== 1 || proposal?.status === 'EXECUTED') return {
+      executed: true, verified: false,
+      issues: ['Proposal missing or marked executed without a publication receipt']
+    };
+    return { executed: false };
+  }
+  // A partially published proposal is never a successful or retryable execution.
+  // Missing either record must be escalated rather than sent to the executor again.
+  if (!receipt || !version) return {
+    executed: true, verified: false, receipt_id: receipt?.ouv_version_id || null,
+    issues: ['Incomplete OUV publication: version or receipt missing']
+  };
   const initialValid = receipts.length === 1 && versions.length === 1 && receipt &&
     receipt.payload_hash === HASH && version.id === receipt.ouv_version_id &&
     version.version === PROPOSAL && proposal?.status === 'EXECUTED' &&
@@ -102,9 +115,8 @@ async function verifiedExecutiveTotp(base, secret) {
 async function readiness(base, anon, bearer, secret) {
   const s = await rpc(base, anon, bearer, 'vice_ouv_activation_readiness', { p_proposal_id: PROPOSAL });
   if (!s || s.proposal_id !== PROPOSAL) throw new Error('Governance readiness response invalid');
-  // A signed-in CEO's recorded Supabase TOTP receipt remains valid without
-  // re-signing. CFO device attestation is NOT equivalent to TOTP or verified
-  // cryptography, and a timestamp alone never satisfies the signature gate.
+  // Preserve verified CEO TOTP while treating CFO device attestations separately.
+  // Independently verified cryptographic signatures remain mandatory for execution.
   const totp = await verifiedExecutiveTotp(base, secret);
   const ceoVerified = s.ceo_authorization_verified === true || totp.ceo;
   const cfoVerified = s.cfo_authorization_verified === true || totp.cfo;

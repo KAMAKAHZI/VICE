@@ -3,7 +3,7 @@
  * Runs from GitHub's cloud runner against published Netlify origin.
  * Never obtains credentials, modifies records, makes trades, or charges provider accounts.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { matchesPublishedAsset } from './vice-published-assets.mjs';
 
@@ -51,11 +51,18 @@ for(let attempt=1;attempt<=attempts;attempt++){
   try{
    const response=await request('/'+file+'?release='+Date.now());
    const bytes=Buffer.from(await response.arrayBuffer());
-   const expectedBytes=readFileSync(file);
-   if(!response.ok||!matchesPublishedAsset(file,bytes,expectedBytes))mismatches.push(file);
+   const builtFile='dist/site/'+file;
+   if(!existsSync(builtFile))throw Error('Missing deterministic published build artifact '+builtFile);
+   const expectedBytes=readFileSync(builtFile);
+   if(!response.ok){mismatches.push(`${file}: HTTP ${response.status} (${response.url})`);continue;}
+   if(!matchesPublishedAsset(file,bytes,expectedBytes)){
+    const liveHash=createHash('sha256').update(bytes).digest('hex').slice(0,16);
+    const builtHash=createHash('sha256').update(expectedBytes).digest('hex').slice(0,16);
+    mismatches.push(`${file}: SHA256 live=${liveHash} expected=${builtHash} live_bytes=${bytes.length} expected_bytes=${expectedBytes.length}`);
+   }
   }catch(e){mismatches.push(file+': '+e.message)}
  }
- if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Twenty-two public assets match source; only the verified Netlify guide-link rewrite is permitted');break;}
+ if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Twenty-two public assets match deterministic published build; only the verified Netlify guide-link rewrite is permitted');break;}
  if(attempt===attempts)record('exact_public_assets','FAIL','Mismatched or unavailable: '+mismatches.join(', '));
  else await pause(delayMs);
 }

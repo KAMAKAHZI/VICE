@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {prepareSocIncidents} from '../security/ai-soc/incidents.mjs';
+const now=Date.parse('2026-10-25T12:00:00Z');
+const ctx={trustedSource:true,serverAuthenticated:true};
+const a={type:'MFA_REPLAY',actorId:'actor-1',at:new Date(now).toISOString(),token:'secret'};
+const b={type:'ROLE_CHANGE_DENIED',actorId:'actor-1',at:new Date(now-1000).toISOString()};
+const first=prepareSocIncidents([a,b],ctx,{now});
+const second=prepareSocIncidents([b,a],ctx,{now});
+assert.equal(first.length,1);
+assert.equal(first[0].source_event_key,second[0].source_event_key,'Order-independent deduplication');
+assert.equal(first[0].severity,'critical');
+assert.equal(first[0].risk_score,100);
+assert.ok(!JSON.stringify(first).includes('secret'),'Do not persist token values');
+assert.equal(prepareSocIncidents([{...a,type:'UNRECOGNIZED'}],ctx,{now}).length,0);
+assert.throws(()=>prepareSocIncidents([a],{}, {now}),/Authenticated server/);
+assert.deepEqual(prepareSocIncidents([],ctx,{now}),[]);
+console.log('PASS SOC incident materialization contracts (offline only)');

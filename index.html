@@ -1371,6 +1371,7 @@ body.chart-fullscreen-fallback{overflow:hidden!important}
   }
 </script>
 <script src="vice-solace-system.js?v=20261018"></script>
+<script src="vice-market-data-integrity.js?v=20261025"></script>
 <script>
 'use strict';
 
@@ -2447,14 +2448,24 @@ function onAuthenticated(user){
   if(S.user?.id === user.id && $('login')?.hidden === true) return Promise.resolve(true); // periodic access verification runs separately; auth events must not trigger duplicate RPCs
   if(authSetupTask){
     if(authSetupOwner===user.id&&authSetupEpoch===authEpoch)return authSetupTask;
+    // Different account arrived while a prior setup is pending. Invalidate the
+    // old epoch, then wait for that setup to settle before starting the new one.
+    // Do not let the old task's finally erase the new owner's setup state.
     clearMemberSession();
     const requestedEpoch=authEpoch;
-    return authSetupTask.then(()=>requestedEpoch===authEpoch?onAuthenticated(user):undefined);
+    const previousSetup=authSetupTask;
+    return previousSetup.catch(e=>{console.warn('Previous auth setup ended:',e);}).then(()=>
+      requestedEpoch===authEpoch?onAuthenticated(user):undefined);
   }
   clearMemberSession();
   authSetupOwner=user.id;authSetupEpoch=authEpoch;
   const epoch=authEpoch;
-  authSetupTask = completeAuthenticatedSetup(user,epoch).finally(() => { authSetupTask = null;authSetupOwner=null; });
+  const task=completeAuthenticatedSetup(user,epoch);
+  authSetupTask=task.finally(() => {
+    if(authSetupEpoch===epoch && authSetupOwner===user.id){
+      authSetupTask=null;authSetupOwner=null;
+    }
+  });
   return authSetupTask;
 }
 // An enrolled authenticator must complete an AAL2 challenge before member data loads.
@@ -2806,8 +2817,14 @@ async function checkMemberAccess(epoch=authEpoch){
   if(error)throw error;
   if(!data||typeof data.allowed!=='boolean')throw new Error('Account access could not be verified');
   if(data.allowed)return true;
+  // An ambiguous denial is not proof of revocation or suspension. Fail closed
+  // (no member UI/data), but preserve auth so transient provisioning or an
+  // unclassified server response cannot cause repeated login/rate-limit loops.
+  if(!data.revoked && !data.suspended){
+    throw new Error('Membership access was not authorized; your login session was preserved. Contact an administrator if this continues.');
+  }
   const message=data.revoked?'Membership access has been revoked. Contact the Reserve administrator.':
-    data.suspended?'Account access is suspended. Contact an administrator.':'Your session has expired. Please sign in again.';
+    'Account access is suspended. Contact an administrator.';
   clearMemberSession();
   try{await sb.auth.signOut({scope:'local'});}catch(e){console.warn('Restricted session cleanup:',e.message);}
   toast(message,'error');
@@ -4356,10 +4373,19 @@ async function loadCandles() {
     const cs=await fetchCandlesUnified(pair,tf,Math.min(5000,ViceSolaceSystem.options(S.engine).lookback+100));
     if(!current())return;
     if(!Array.isArray(cs)||!cs.length)throw Error('Provider returned no candles');
-    S.ch.candles=cs;S.ch.error=null;
+    let validated=cs;
+    if(APP_MODE!=='SIM'&&pair!==PRACTICE){
+      const ms=(TF_SEC[tf]||60)*1000;
+      const verified=ViceMarketDataIntegrity.validateCandles(cs,ms);
+      validated=verified.candles;
+      // Closed-market and delayed-provider history remains visible, never labeled live.
+      S.ch.feedFreshness=verified.stale?'DELAYED':'CURRENT';
+      S.ch.feedAsOf=verified.asOf;
+    }else{S.ch.feedFreshness='SIMULATED';S.ch.feedAsOf=null;}
+    S.ch.candles=validated;S.ch.error=null;
     S.ch.source=APP_MODE==='SIM'||pair===PRACTICE?'SIM':parseSymbol(pair).source;
     computeATR();await loadLtfCandles(current);if(!current())return;
-    S.res=ViceSolaceSystem.run(cs,{...S.engine,timeframe:tf,tfSeconds:TF_SEC[tf]||3600,ltfSeconds:TF_SEC[S.ch.ltfTf]||60},S.ch.ltfCandles);drawAll();
+    S.res=ViceSolaceSystem.run(validated,{...S.engine,timeframe:tf,tfSeconds:TF_SEC[tf]||3600,ltfSeconds:TF_SEC[S.ch.ltfTf]||60},S.ch.ltfCandles);drawAll();
   }catch(e){
     if(!current())return;
     S.ch.candles=[];S.ch.ltfCandles=[];S.ch.source='UNAVAILABLE';S.ch.error=e.message||'Provider unavailable';S.res=null;
@@ -9381,7 +9407,10 @@ function healthStrip(){
   const live = Link.state.status === 'live';
   const items = [
     { name:'Market data', state:S.ch.candles.length
-      ? (S.ch.live ? 'OPERATIONAL' : (S.ch.source === 'SIM' ? 'PRACTICE' : 'LOCAL FILE'))
+      ? (S.ch.feedFreshness === 'DELAYED' ? 'DELAYED / MARKET CLOSED' :
+         S.ch.feedFreshness === 'SIMULATED' || S.ch.source === 'SIM' ? 'PRACTICE' :
+         S.ch.source === 'FILE' ? 'IMPORTED FILE' :
+         S.ch.live ? 'CONNECTED' : 'PROVIDER DATA')
       : 'NO DATA' },
     { name:'Broker bridge', state:live ? 'OPERATIONAL' : 'NOT CONNECTED' },
     { name:'Ledger', state:S.holders.length ? 'OPERATIONAL' : 'EMPTY' },
