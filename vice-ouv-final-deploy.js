@@ -41,16 +41,47 @@ function mount(){
   root.dataset.ready='';setBusy(true);details.hidden=true;
   status.textContent=kind==='execute_ouv'?'Submitting authorized execution…':'Checking authoritative governance readiness…';
   try{
-   const session=await client()?.auth.getSession();
-   const token=session?.data?.session?.access_token;
-   if(!token)throw Error('Executive sign-in required');
+   const auth=client()?.auth;
+   if(!auth)throw Error('Authentication client unavailable — reload the application and sign in.');
+   let {data:sessionData,error:sessionError}=await auth.getSession();
+   if(sessionError)throw Error('Unable to restore your session — sign in again.');
+   // Supabase getSession handles its own refresh lifecycle. Do not invoke
+   // refreshSession again on a missing session: repeat refresh attempts can
+   // amplify authentication rate limits on desktop and mobile.
+   const token=sessionData?.session?.access_token;
+   if(!token){
+    status.textContent='SESSION EXPIRED — Sign in to recheck governance readiness. Previously recorded executive approvals remain unchanged.';
+    details.textContent='Sign in using the normal VICE OS login, then select VERIFY OUV READINESS. No new executive approval is requested.';
+    details.hidden=false;
+    return;
+   }
    const request_id=crypto.randomUUID();
    const response=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token,'Idempotency-Key':request_id},body:JSON.stringify({action:kind,proposal_id:PROPOSAL,request_id,...(kind==='execute_ouv'?{confirm:'EXECUTE APPROVED OUV'}:{})})});
    const data=await response.json();
    if(!data||typeof data.status!=='string')throw Error('Invalid server response');
-   root.dataset.ready=response.ok&&data.status==='ready'?'true':'';
-   status.textContent=data.status==='verified'?'OUV PUBLISHED AND RECONCILED — issuer management reference only.':data.status==='ready'?'Governance gates report ready; execution requires an explicit click.':'EXECUTION BLOCKED — '+(data.message||'Review conditions');
-   details.textContent=JSON.stringify({status:data.status,proposal_id:data.proposal_id||PROPOSAL,issues:data.issues||[],checks:data.checks||null,ouv_version:data.ouv_version||null,receipt_id:data.receipt_id||null},null,2);
+   root.dataset.ready=response.ok&&data.status==='ready'&&data.checks?.server_execution_enabled===true?'true':'';
+   status.textContent=response.status===401?'SESSION EXPIRED — Sign in normally to recheck readiness. Previously recorded executive approvals remain unchanged.':data.status==='verified'?'OUV PUBLISHED AND RECONCILED — issuer management reference only.':data.status==='ready'?(data.checks?.server_execution_enabled===true?'Governance gates report ready; execution requires an explicit click.':'Governance checks passed; production execution remains disabled pending release authorization.'):'EXECUTION BLOCKED — '+(data.message||'Review conditions');
+   const checks=data.checks||{};
+   const gates=[
+    ['CEO AUTHORIZATION',checks.ceo_authorization_verified],
+    ['CEO SUPABASE TOTP RECEIPT',checks.ceo_totp_record_verified],
+    ['CFO AUTHORIZATION',checks.cfo_authorization_verified],
+    ['CFO SUPABASE TOTP RECEIPT',checks.cfo_totp_record_verified],
+    ['SIGNATURE VERIFICATION',checks.cryptographic_signatures_verified],
+    ['PUBLIC REVIEW',checks.review_complete],
+    ['LEDGER RECONCILIATION',checks.ledger_reconciled],
+    ['OUV BASELINE',checks.baseline_compatible],
+    ['DATABASE EXECUTION',checks.database_can_apply],
+    ['PRODUCTION EXECUTION SWITCH',checks.server_execution_enabled]
+   ];
+   const label=value=>value===true?'VERIFIED':value===false?'NOT VERIFIED':'NOT REPORTED';
+   const lines=gates.map(([name,value])=>name+': '+label(value));
+   if(checks.executive_authorizations!==undefined)lines.unshift('RECORDED EXECUTIVE AUTHORIZATIONS: '+checks.executive_authorizations+'/2 (recorded is not necessarily verified)');
+   const issues=Array.isArray(data.issues)?data.issues:[];
+   if(issues.length)lines.push('OUTSTANDING REQUIREMENTS:',...issues.map(issue=>'• '+String(issue)));
+   if(data.receipt_id)lines.push('EXECUTION RECEIPT: '+data.receipt_id);
+   if(data.ouv_version)lines.push('OFFICIAL VERSION: '+JSON.stringify(data.ouv_version));
+   details.textContent=lines.join('\n');
    details.hidden=false;
   }catch(e){root.dataset.ready='';status.textContent='ACTION REQUIRED — '+(e?.message||'Verification failed');}
   finally{setBusy(false);}
