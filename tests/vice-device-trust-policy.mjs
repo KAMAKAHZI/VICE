@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import { evaluateDeviceTrust as evaluate } from '../security/auth/device-trust-policy.mjs';
+const now=1800000000000;
+const valid={now,verifiedAt:now-1000,expiresAt:now+10000,revoked:false,passkeyVerified:true};
+assert.equal(evaluate(valid),'allowed');
+assert.equal(evaluate({...valid,passkeyVerified:false}),'passkey_required');
+assert.equal(evaluate({...valid,privileged:true}),'action_proof_required');
+assert.equal(evaluate({...valid,privileged:true,actionProofVerified:true}),'allowed');
+assert.equal(evaluate({...valid,revoked:true}),'mfa_required');
+assert.equal(evaluate({...valid,expiresAt:now}),'mfa_required');
+assert.equal(evaluate({...valid,expiresAt:now+86400001}),'mfa_required');
+assert.equal(evaluate({...valid,verifiedAt:now+1}),'mfa_required');
+assert.equal(evaluate({...valid,verifiedAt:NaN}),'mfa_required');
+assert.equal(evaluate({...valid,verifiedAt:-1}),'mfa_required');
+assert.equal(evaluate({...valid,expiresAt:valid.verifiedAt}),'mfa_required');
+assert.equal(evaluate({...valid,expiresAt:-1}),'mfa_required');
+console.log('PASS device trust policy decisions');
