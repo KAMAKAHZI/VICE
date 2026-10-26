@@ -54,7 +54,12 @@ for(let attempt=1;attempt<=attempts;attempt++){
    const builtFile='dist/site/'+file;
    if(!existsSync(builtFile))throw Error('Missing deterministic published build artifact '+builtFile);
    const expectedBytes=readFileSync(builtFile);
-   if(!response.ok){mismatches.push(`${file}: HTTP ${response.status} (${response.url})`);continue;}\n   if(!matchesPublishedAsset(file,bytes,expectedBytes)){\n    const liveHash=createHash('sha256').update(bytes).digest('hex').slice(0,16);\n    const builtHash=createHash('sha256').update(expectedBytes).digest('hex').slice(0,16);\n    mismatches.push(`${file}: SHA256 live=${liveHash} expected=${builtHash} live_bytes=${bytes.length} expected_bytes=${expectedBytes.length}`);\n   }
+   if(!response.ok){mismatches.push(`${file}: HTTP ${response.status} (${response.url})`);continue;}
+   if(!matchesPublishedAsset(file,bytes,expectedBytes)){
+    const liveHash=createHash('sha256').update(bytes).digest('hex').slice(0,16);
+    const builtHash=createHash('sha256').update(expectedBytes).digest('hex').slice(0,16);
+    mismatches.push(`${file}: SHA256 live=${liveHash} expected=${builtHash} live_bytes=${bytes.length} expected_bytes=${expectedBytes.length}`);
+   }
   }catch(e){mismatches.push(file+': '+e.message)}
  }
  if(!mismatches.length){assetsMatch=true;record('exact_public_assets','PASS','Twenty-two public assets match deterministic published build; only the verified Netlify guide-link rewrite is permitted');break;}
