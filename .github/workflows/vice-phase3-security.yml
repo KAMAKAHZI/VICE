@@ -33,3 +33,4 @@ jobs:
           node tests/vice-ai-soc-webhook-auth.mjs
           node tests/vice-ai-soc-pg-nonce.mjs
           node tests/vice-ai-soc-ingress.mjs
+          node tests/vice-ai-soc-pg-incident-writer.mjs
