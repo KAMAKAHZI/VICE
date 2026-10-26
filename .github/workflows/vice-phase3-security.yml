@@ -14,6 +14,8 @@ on:
       - 'tests/vice-solace-private-gateway.test.cjs'
       - 'tests/vice-ai-soc-*.mjs'
       - 'tests/vice-phase3-role-gate.mjs'
+      - 'tests/ouv-offchain-gateway-contract.test.cjs'
+      - 'netlify/functions/ouv-final-deploy.js'
       - 'supabase/migrations/20261025_phase3_*.sql'
       - '.github/workflows/vice-phase3-security.yml'
   workflow_dispatch:
@@ -47,3 +49,4 @@ jobs:
           node tests/vice-ai-soc-pg-ingress.mjs
           node --test tests/ouv-governance-evidence-verifier.test.cjs
           node --test tests/vice-solace-private-gateway.test.cjs
+          node --test tests/ouv-offchain-gateway-contract.test.cjs
