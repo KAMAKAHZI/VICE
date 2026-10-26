@@ -24,7 +24,7 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
       - name: Validate recipient policy in disposable PostgreSQL
@@ -57,6 +57,20 @@ jobs:
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-staging.sql
           psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f supabase/migrations/20261015193846_vice_academy_progress_receipts.sql
           psql -h localhost -U postgres -d vice_staging -f tests/sql/vice-academy-assertions.sql
+      - name: Validate public Academy certificate privacy and issuer digest in disposable PostgreSQL
+        env:
+          PGPASSWORD: isolated-test-only
+        run: |
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f tests/sql/vice-academy-public-verifier-fixture.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f sql/security_certificate_public_minimization_candidate.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f tests/sql/vice-academy-public-verifier-assertions.sql
+      - name: Validate legacy username lookup revocation in disposable PostgreSQL
+        env:
+          PGPASSWORD: isolated-test-only
+        run: |
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f tests/sql/vice-username-lookup-revocation-fixture.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f sql/security_disable_public_username_lookup_candidate.sql
+          psql -h localhost -U postgres -d vice_staging -v ON_ERROR_STOP=1 -f tests/sql/vice-username-lookup-revocation-assertions.sql
       - run: npm ci --prefix tests --ignore-scripts
       - run: npm ci --prefix server --ignore-scripts
       - run: npm run check --prefix server
@@ -65,6 +79,7 @@ jobs:
           node tests/vice-registry-controls.mjs
           node tests/vice-comms-db.mjs
           node tests/vice-institutional-db.mjs
+          node tests/vice-public-verifier-registry-baseline.mjs
       - run: |
           bash scripts/vice-publish-netlify.sh
           for f in tests/*.cjs; do

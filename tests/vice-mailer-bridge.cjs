@@ -51,3 +51,47 @@ test('mailer is disabled absent transport and production-only credentials',()=>{
   assert.equal(m.enabled,false);
  assert.equal(m.maxPerHour,100);
 });
+
+test('Supabase Auth invitation renders a complete branded message with a valid action token',()=>{
+ const fs=require('node:fs');
+ const html=fs.readFileSync(require('node:path').join(__dirname,'../supabase/email-templates/invite.html'),'utf8');
+ assert.match(html,/<html lang="en">/i);
+ assert.match(html,/VICE CAPITAL INC\./);
+ assert.match(html,/ACCEPT SECURE INVITATION/);
+ assert.match(html,/\{\{\s*\.ConfirmationURL\s*\}\}/);
+ assert((html.match(/\{\{\s*\.ConfirmationURL\s*\}\}/g)||[]).length>=2);
+ const rendered=html.replaceAll('{{ .ConfirmationURL }}','https://vice4x.example.test/auth/confirm?token=synthetic');
+ assert.match(rendered,/<a href="https:\/\/vice4x\.example\.test\/auth\/confirm\?token=synthetic"/);
+ assert(!rendered.includes('{{ .ConfirmationURL }}'));
+ assert(rendered.length>2500,'Invitation must not be an empty body');
+});
+
+test('historical outbox remains untouched until delivery is explicitly enabled',async()=>{
+ const keys=['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','SMTP_FROM','SUPABASE_URL',
+   'SUPABASE_SERVICE_ROLE_KEY','VICE_MAILER_DELIVERY_ENABLED'];
+ const previous=Object.fromEntries(keys.map(k=>[k,process.env[k]]));
+ try{
+  Object.assign(process.env,{
+   SMTP_HOST:'smtp.example.invalid',SMTP_USER:'synthetic-user',
+   SMTP_PASSWORD:'synthetic-password',SMTP_FROM:'issuer@example.invalid',
+   SUPABASE_URL:'https://synthetic.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'synthetic-secret-key'
+  });
+  delete process.env.VICE_MAILER_DELIVERY_ENABLED;
+  const mailer=new Mailer({email_rate_per_hour:100});
+  let calls=0;
+  mailer.api=async()=>{calls++;throw new Error('Outbox must not be accessed with delivery disabled');};
+  assert.equal(mailer.enabled,false,'Complete SMTP credentials do not authorize a backlog replay');
+  await mailer.run();
+  assert.equal(calls,0,'No outbox API read or state mutation when disabled');
+  for(const value of ['false','FALSE','1','TRUE','yes']){
+   process.env.VICE_MAILER_DELIVERY_ENABLED=value;
+   assert.equal(mailer.enabled,false,'Only the exact approved literal true can enable delivery');
+  }
+  process.env.VICE_MAILER_DELIVERY_ENABLED='true';
+  assert.equal(mailer.enabled,true,'Explicit true is required in addition to all credentials');
+ }finally{
+  for(const [key,value] of Object.entries(previous)){
+   if(value===undefined)delete process.env[key];else process.env[key]=value;
+  }
+ }
+});
