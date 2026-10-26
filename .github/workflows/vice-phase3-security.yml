@@ -1,5 +1,8 @@
 name: VICE Phase 3 Security Contracts
 on:
+  push:
+    branches:
+      - 'integration/institutional-release-gates-20261026'
   pull_request:
     paths:
       - 'security/ai-soc/**'
