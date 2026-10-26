@@ -43,18 +43,24 @@ export function mountOuvFinalDeploy({ container, getAccessToken, endpoint = '/.n
       const result = await response.json();
       if (!result || !['verified', 'ready', 'action_required'].includes(result.status))
         throw new Error('Invalid server verification response');
-      ready = result.status === 'ready';
+      // A governance-ready response never overrides the independent
+      // deployment kill switch. Missing fields fail closed.
+      ready = response.ok && result.status === 'ready' &&
+        result.checks?.server_execution_enabled === true;
       status.textContent = result.status === 'verified'
         ? '✓ Published and reconciled: management reference values only'
-        : result.status === 'ready' ? '✓ Ready for explicit authorized execution'
-        : '⚠ ' + (result.message || 'Governance requirements not satisfied');
+        : result.status === 'ready'
+          ? (ready ? '✓ Ready for explicit authorized execution'
+            : 'Governance checks passed; production execution remains disabled pending release authorization.')
+          : response.status === 401
+            ? 'SESSION EXPIRED — Sign in normally to recheck readiness; recorded executive approvals are unchanged.'
+            : '⚠ ' + (result.message || 'Governance requirements not satisfied');
       receipt.textContent = JSON.stringify({
         proposal_id, status: result.status, issues: result.issues || [],
         checks: result.checks || null, ouv_version: result.ouv_version || null,
         receipt_id: result.receipt_id || null, management_reference_only: true
       }, null, 2);
       receipt.hidden = false;
-      if (!response.ok && result.status !== 'action_required') ready = false;
     } catch (error) {
       ready = false;
       status.textContent = '⚠ ACTION REQUIRED — ' + (error?.message || 'Unexpected verification error');

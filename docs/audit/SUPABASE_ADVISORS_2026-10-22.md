@@ -64,3 +64,14 @@ These may correctly enforce deny-by-default access and be operated only through 
 - Foreign-key indexing: https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys
 
 **Write boundary:** No Supabase migrations, grants, functions, Auth settings, holder units, valuations, or production deployments were changed during this evidence collection.
+
+
+## Follow-up triage — 2026-10-23 (read-only)
+
+The connected Supabase advisor now reports **9** RLS-enabled tables with no policies, **5** anonymously executable SECURITY DEFINER functions, **74** authenticated-executable SECURITY DEFINER functions, **8** foreign-key index gaps, and **27** unused-index observations. Counts changed since the October 22 snapshot and must not be mistaken for newly proven vulnerabilities.
+
+New RLS-no-policy tables relative to the prior report: `public.vice_ouv_auto_execution_receipts` and `public.vice_ouv_execution_receipts`. New foreign-key gap: `vice_ouv_auto_execution_receipts_effective_version_id_fkey`. Privileged function count increased by two; identify and inspect them before changing grants.
+
+The direct connected SQL catalog-inspection request was blocked by a safety control. No grants, policies, functions, index definitions, production data, or Auth settings were changed. Do not use a blanket REVOKE or add broad RLS policies: review the precise caller contract and test in isolated PostgreSQL first.
+
+**Release gate:** keep OUV execution fail-closed; require independent CFO signature provenance and server-side proposal/quorum checks. Run read-only catalog inventory through an authorized reviewed database administration workflow, test role-denial and legitimate use cases, then deploy narrowly scoped migration changes with rollback plans and rerun both advisors.

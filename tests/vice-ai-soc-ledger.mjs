@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const sql=readFileSync(new URL('../supabase/migrations/20261025_phase3_soc_incident_ledger.sql',import.meta.url),'utf8');
+assert.match(sql,/CREATE TABLE IF NOT EXISTS public\.vice_soc_incidents/i);
+assert.match(sql,/source_event_key text NOT NULL UNIQUE/i,'Idempotency key required');
+assert.match(sql,/ENABLE ROW LEVEL SECURITY/i);
+assert.match(sql,/FORCE ROW LEVEL SECURITY/i);
+assert.match(sql,/REVOKE ALL ON TABLE public\.vice_soc_incidents FROM PUBLIC, anon, authenticated/i);
+assert.doesNotMatch(sql,/CREATE POLICY|GRANT\s+(?:ALL|INSERT|UPDATE|DELETE|SELECT)/i,'No client access allowed');
+assert.doesNotMatch(sql,/\b(?:UPDATE|DELETE|TRUNCATE)\s+(?:public\.)?(?:profiles|iru_events|holders|allocations)\b/i,'No financial or profile mutations');
+console.log('PASS SOC incident ledger fail-closed SQL contracts (static only)');

@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {makePgNonceConsumer} from '../security/ai-soc/pg-nonce-store.mjs';
+const seen=new Set();
+const calls=[];
+const db={async query(sql,params){
+ calls.push({sql,params});
+ assert.match(sql,/ON CONFLICT \(nonce\) DO NOTHING RETURNING nonce/);
+ assert.match(sql,/VALUES \(\$1,to_timestamp\(\$2/);
+ if(seen.has(params[0]))return {rowCount:0};
+ seen.add(params[0]);return {rowCount:1};
+}};
+const consume=makePgNonceConsumer(db);
+const nonce='nonce_12345678901234567890';
+assert.equal(await consume(nonce,'1792929600000'),true);
+assert.equal(await consume(nonce,'1792929600000'),false);
+assert.equal(await consume('invalid','1792929600000'),false);
+assert.equal(calls.length,2);
+const broken=makePgNonceConsumer({query:async()=>{throw new Error('database offline')}});
+await assert.rejects(()=>broken('nonce_12345678901234567890','1792929600000'),/database offline/);
+console.log('PASS SOC nonce consumer contracts (offline only)');
