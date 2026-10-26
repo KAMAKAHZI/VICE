@@ -9,11 +9,11 @@ on:
       - 'vice-ouv-final-deploy.js'
       - 'netlify/functions/ouv-final-deploy.js'
       - 'tests/vice-ouv-*.cjs'
+      - 'tests/vice-ouv-forensic-gate.cjs'
+      - 'tests/vice-ouv-atomicity-contract.cjs'
       - 'scripts/vice-ouv-readonly-smoke.cjs'
       - 'sql/vice_ouv_executive_forensic_gate.sql'
       - 'sql/vice_ouv_atomic_staging_preflight.sql'
-      - 'tests/vice-ouv-forensic-gate.cjs'
-      - 'tests/vice-ouv-atomicity-contract.cjs'
       - 'supabase/migrations/*ouv_atomic_executor*.sql'
       - '.github/workflows/vice-ouv-checks.yml'
   workflow_dispatch:
@@ -37,11 +37,18 @@ jobs:
           node --check tests/vice-ouv-reference.cjs
           node --check tests/vice-ouv-executive-endpoint.cjs
           node --check tests/vice-ouv-governance-mocked.cjs
+          node --check tests/vice-ouv-readiness-authorization.cjs
+          node --check tests/vice-ouv-ui-execution-gates.cjs
+          node --check tests/vice-ouv-forensic-gate.cjs
+          node --check tests/vice-ouv-staging-preflight.cjs
+          node --check tests/vice-ouv-atomicity-contract.cjs
       - name: Run financial and governance contract tests
         run: |
           node tests/vice-ouv-reference.cjs
           node tests/vice-ouv-executive-endpoint.cjs
           node tests/vice-ouv-governance-mocked.cjs
+          node --test tests/vice-ouv-readiness-authorization.cjs
+          node --test tests/vice-ouv-ui-execution-gates.cjs
           node tests/vice-ouv-forensic-gate.cjs
           node tests/vice-ouv-staging-preflight.cjs
           node tests/vice-ouv-atomicity-contract.cjs

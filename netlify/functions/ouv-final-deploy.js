@@ -90,13 +90,38 @@ async function checkPublished(base, secret) {
     issues: verified ? [] : ['Initial execution receipt or current authoritative OUV version does not reconcile']
   };
 }
-async function readiness(base, anon, bearer) {
+// Read-only independent evidence for the existing CEO/CFO MFA approvals.
+// A device attestation's verified_at is not a Supabase TOTP receipt.
+// No signer identifiers, factors or tokens are returned to the browser.
+async function verifiedExecutiveTotp(base, secret) {
+  const proposal = encodeURIComponent(PROPOSAL);
+  const [signers, approvals] = await Promise.all([
+    row(base, secret, 'vice_exec_signers?select=user_id,role&role=in.(CEO,CFO)&limit=5'),
+    row(base, secret, 'vice_exec_mfa_authorizations?select=user_id,role,auth_method,action,payload_hash,verified_at&proposal_id=eq.' +
+      proposal + '&action=eq.APPROVE&auth_method=eq.SUPABASE_TOTP&limit=20')
+  ]);
+  if (!Array.isArray(signers) || !Array.isArray(approvals))
+    throw new Error('Executive verification records invalid');
+  const ceoIds = new Set(signers.filter(s => s.role === 'CEO' && s.user_id).map(s => s.user_id));
+  const cfoIds = new Set(signers.filter(s => s.role === 'CFO' && s.user_id).map(s => s.user_id));
+  const distinct = ceoIds.size === 1 && cfoIds.size === 1 &&
+    !cfoIds.has([...ceoIds][0]);
+  const matches = role => approvals.some(a =>
+    a.role === role && a.auth_method === 'SUPABASE_TOTP' &&
+    a.action === 'APPROVE' && a.payload_hash === HASH &&
+    a.verified_at != null && (role === 'CEO' ? ceoIds : cfoIds).has(a.user_id));
+  return { ceo: distinct && matches('CEO'), cfo: distinct && matches('CFO') };
+}
+async function readiness(base, anon, bearer, secret) {
   const s = await rpc(base, anon, bearer, 'vice_ouv_activation_readiness', { p_proposal_id: PROPOSAL });
   if (!s || s.proposal_id !== PROPOSAL) throw new Error('Governance readiness response invalid');
-  // Two recorded authorizations are not equivalent to two independently
-  // verified signatures. Require explicit verification evidence before ready.
+  // Preserve verified CEO TOTP while treating CFO device attestations separately.
+  // Independently verified cryptographic signatures remain mandatory for execution.
+  const totp = await verifiedExecutiveTotp(base, secret);
+  const ceoVerified = s.ceo_authorization_verified === true || totp.ceo;
+  const cfoVerified = s.cfo_authorization_verified === true || totp.cfo;
   const signaturesVerified = s.cryptographic_signatures_verified === true &&
-    s.ceo_authorization_verified === true && s.cfo_authorization_verified === true;
+    ceoVerified && cfoVerified;
   const issues = Array.isArray(s.next_unmet_gates) ? s.next_unmet_gates : ['UNVERIFIED_GOVERNANCE_READINESS'];
   // Solely the database authorization engine can unlock execution.
   const ready = signaturesVerified && s.can_apply === true && issues.length === 0 &&
@@ -108,12 +133,17 @@ async function readiness(base, anon, bearer) {
     issues.push('CRYPTOGRAPHIC_SIGNATURE_VERIFICATION_REQUIRED');
   return { ready, issues, checks: {
     cryptographic_signatures_verified: signaturesVerified,
+    ceo_authorization_verified: ceoVerified,
+    cfo_authorization_verified: cfoVerified,
+    ceo_totp_record_verified: totp.ceo,
+    cfo_totp_record_verified: totp.cfo,
     executive_authorizations: s.executive_authorizations,
     review_complete: s.review_complete,
     ledger_reconciled: s.ledger_reconciled,
     baseline_compatible: s.baseline_compatible,
     proposed_ouv: s.proposed_ouv,
-    database_can_apply: s.can_apply
+    database_can_apply: s.can_apply,
+    server_execution_enabled: process.env.VICE_OUV_EXECUTION_ENABLED === 'true'
   } };
 }
 exports.handler = async (event) => {
@@ -151,7 +181,7 @@ exports.handler = async (event) => {
       message: publication.verified ? 'OUV published and independently reconciled' : 'Execution reconciliation requires investigation',
       proposal_id: PROPOSAL, ...publication, ...SAFE
     });
-    const gate = await readiness(base, anon, bearer);
+    const gate = await readiness(base, anon, bearer, secret);
     if (request.action === 'reconcile_ouv') return reply(gate.ready ? 200 : 409, {
       status: gate.ready ? 'ready' : 'action_required', proposal_id: PROPOSAL,
       message: gate.ready ? 'Eligible for explicit executive execution' : 'Execution blocked by authoritative governance checks',
