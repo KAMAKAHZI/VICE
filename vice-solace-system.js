@@ -10,13 +10,13 @@
   exhOn:true,exhSrc:'Stochastic',oscMirror:true,exhLen:14,oscIntLen:14,exhSmooth:1,exhUpper:95,exhLower:5,intUpper:90,intLower:10,
   exhWindow:3,zoneArmMacro:true,fracDimCloses:1,fracBrightCloses:2,engulfCounts:true,flipConfirmBars:2,useVolFilter:false,volMult:1.5,
   intArmMode:'Zone exit or retest held',intPlace:true,sweepRequireClose:true,mtfEnabled:true,chochDetect:true,macroNeckPct:5,chochNeckPct:5,
-  intNeckBase:'Internal',stopATR:.5,minRR:10,autoBuffer:true,hideThinRR:true,extendBars:40,tfSeconds:3600});
+  intNeckBase:'Internal',stopATR:.5,minRR:10,autoBuffer:true,hideThinRR:true,extendBars:40,tfSeconds:3600,originExpiryBars:60});
  const numeric=(v,d,min,max)=>Number.isFinite(Number(v))?Math.max(min,Math.min(max,Number(v))):d;
  function options(input={}){
   const o={...defaults,...input};
   for(const k of ['structuralLookback','lbScalp','lbIntraday','lbSwing'])o[k]=Math.round(numeric(o[k],defaults[k],50,5000));
   for(const k of ['accCloses','breakCloses','fracDimCloses','fracBrightCloses','flipConfirmBars'])o[k]=Math.round(numeric(o[k],defaults[k],1,10));
-  o.exhSmooth=Math.round(numeric(o.exhSmooth,1,1,50));o.dtMinBars=Math.round(numeric(o.dtMinBars,5,1,500));
+  o.exhSmooth=Math.round(numeric(o.exhSmooth,1,1,50));o.dtMinBars=Math.round(numeric(o.dtMinBars,5,1,500));o.originExpiryBars=Math.round(numeric(o.originExpiryBars,60,3,500));
   o.accATR=numeric(o.accATR,.5,0,5);o.stopATR=numeric(o.stopATR,.5,.1,20);o.minRR=numeric(o.minRR,10,1,100);
   o.exhLen=Math.round(numeric(o.exhLen,14,2,5000));o.oscIntLen=Math.round(numeric(o.oscIntLen,14,2,5000));
   o.lookback=o.modeLookback?({Scalp:o.lbScalp,Intraday:o.lbIntraday,Swing:o.lbSwing}[o.mode]||o.structuralLookback):o.structuralLookback;
@@ -75,6 +75,67 @@
    return {top,bottom,from:i-q,bull};
   }return null;
  }
+ // Confirmed-close, wick-origin authority. The pivot/CHOCH engine below remains intact.
+ // Origin side may change ONLY after an independently qualified opposite pole
+ // touch, explicit structural invalidation or expiry; candle position is not a side.
+ function originStep(prior,bar,prev,index,poles,atr,o){
+  const events=[],touchTol=Number.isFinite(atr)&&atr>0?o.touchTol*atr:0;
+  let origin=prior.origin,serial=prior.serial||0;
+  const floor=Number.isFinite(poles.lo)?poles.lo:null;
+  const roof=Number.isFinite(poles.hi)?poles.hi:null;
+  const fPrev=Number.isFinite(poles.loPrev)?poles.loPrev:null;
+  const rPrev=Number.isFinite(poles.hiPrev)?poles.hiPrev:null;
+  const valid=floor!=null&&roof!=null&&roof>floor&&atr>0;
+  if(!valid)return {origin:null,serial,events};
+  // Touch is exact, not merely proximity to a broad zone.
+  const fTouch=(fPrev!=null&&bar.l<=fPrev)||(floor!=null&&bar.l<=floor);
+  const rTouch=(rPrev!=null&&bar.h>=rPrev)||(roof!=null&&bar.h>=roof);
+  const age=origin?index-origin.bar:0;
+  if(origin&&(age>o.originExpiryBars||(origin.side==='LONG'?
+     bar.c<origin.level-o.accATR*atr:bar.c>origin.level+o.accATR*atr))){
+    events.push({i:index,type:'MACRO_ORIGIN_INVALIDATED',side:origin.side,price:origin.level,serial:origin.serial});
+    origin=null;
+  }
+  // Intrabar ordering is unknowable on a double-touch candle. Do not invent it.
+  const unambiguous=fTouch!==rTouch;
+  const side=fTouch?'LONG':'SHORT';
+  if(unambiguous&&(!origin||origin.side!==side)){
+    serial++;
+    origin={side,pole:side==='LONG'?'F0':'F100',targetPole:side==='LONG'?'F100':'F0',
+      level:side==='LONG'?floor:roof,wick:side==='LONG'?bar.l:bar.h,
+      target:side==='LONG'?roof:floor,stop:side==='LONG'?bar.l-o.stopATR*atr:bar.h+o.stopATR*atr,bar:index,time:bar.t,
+      structuralVersion:serial,serial,stage:'TOUCHED',armedAt:null,confirmedAt:null,
+      expiresAt:index+o.originExpiryBars,entryEligible:false,rr:null};
+    events.push({i:index,type:'MACRO_ORIGIN_TOUCHED',side,price:origin.level,serial});
+  }
+  if(origin&&origin.stage==='TOUCHED'){
+    // The first 2-3 completed candles can ARM; no forward-looking right bars.
+    // Stochastic 99/1 and 2/3 LWMA remain downstream confirmation tools.
+    const offset=index-origin.bar;
+    const favorable=origin.side==='LONG'?bar.c>origin.level:bar.c<origin.level;
+    const directional=origin.side==='LONG'?
+      bar.c>bar.o&&(!prev||bar.c>=prev.c):
+      bar.c<bar.o&&(!prev||bar.c<=prev.c);
+    const lowerWick=Math.min(bar.o,bar.c)-bar.l,upperWick=bar.h-Math.max(bar.o,bar.c);
+    const wickReject=origin.side==='LONG'?lowerWick>=Math.max(atr*.15,Math.abs(bar.c-bar.o)*.5):upperWick>=Math.max(atr*.15,Math.abs(bar.c-bar.o)*.5);
+    if(offset<=3&&favorable&&(directional||wickReject&&(!prev||(origin.side==='LONG'?bar.c>=prev.c:bar.c<=prev.c)))){
+      origin={...origin,stage:'ARMED',armedAt:index};
+      events.push({i:index,type:'MACRO_ORIGIN_ARMED',side:origin.side,price:origin.level,serial:origin.serial});
+    }
+  }
+  if(origin){
+    const stop=origin.stop; // immutable risk geometry; changing ATR never rewrites the originating stop
+    const entry=origin.level, target=origin.target;
+    const risk=origin.side==='LONG'?entry-stop:stop-entry;
+    const reward=origin.side==='LONG'?target-entry:entry-target;
+    const rr=risk>0&&reward>0?reward/risk:0;
+    const inZone=origin.side==='LONG'?bar.l<=entry+touchTol&&bar.c>=origin.level:
+      bar.h>=entry-touchTol&&bar.c<=origin.level;
+    // ARM is information, not an entry or broker order.
+    origin={...origin,stop,entry,target,rr,entryEligible:origin.stage==='ARMED'&&inZone&&rr>=o.minRR};
+  }
+  return {origin,serial,events};
+ }
  function run(input,config={},ltf=[]){
   const o=options(config),now=config.now??Date.now(),duration=o.tfSeconds*1000;
   const closes=b=>config.timeframe==='1mo'?Date.UTC(new Date(b.t).getUTCFullYear(),new Date(b.t).getUTCMonth()+1,1):b.t+duration;
@@ -83,6 +144,7 @@
   const A=[],vol=[],trs=[],hiSide=new Accepted(true),loSide=new Accepted(false),rHi=new Extreme(true),rLo=new Extreme(false),snapshots=[],events=[],fractals=[],f0=[],f100=[],f0History=[],f100History=[],fractalKeys=new Set();
   let hi=null,lo=null,hOrigin=0,lOrigin=0,hiBrk=0,loBrk=0,hFrom=0,lFrom=0,prevOsc=null,prevInt=null,zTop=null,zBot=null,hTouch=-Infinity,lTouch=-Infinity,hExh=-Infinity,lExh=-Infinity,zoneArm=0,hiSweep=-Infinity,loSweep=-Infinity;
   let pivot=null,visitLo=null,visitHi=null,armSeq=0,ichDone=-1,mch={given:false,sell:false,level:null};
+  let macroOriginState={origin:null,serial:0};
   const ht={},lt={},it={},macroValues=[],intValues=[],cciM=[],cciI=[],vols=[],ltfHi=new Extreme(true),ltfLo=new Extreme(false);let ltfIndex=0,lh=null,ll=null;
   for(let i=0;i<bars.length;i++){
    const b=bars[i],previous=bars[i-1],hiPrev=hi,loPrev=lo;const tr=previous?Math.max(b.h-b.l,Math.abs(b.h-previous.c),Math.abs(b.l-previous.c)):b.h-b.l;trs.push(tr);
@@ -110,6 +172,11 @@
    zTop=lo+(hi-lo)*o.exhUpper/100;zBot=lo+(hi-lo)*o.exhLower/100;
    const hBack=rejection(bars,i,hi,true,hOrigin,a,o,vol),lBack=rejection(bars,i,lo,false,lOrigin,a,o,vol),hf=fractal(bars,i,hi,true,hBack,o),lf=fractal(bars,i,lo,false,lBack,o);
    let sell=hBack<=lBack;if(hf>=2&&lf<2)sell=true;if(lf>=2&&hf<2)sell=false;if(o.zoneArmMacro&&zoneArm)sell=zoneArm===1;
+   macroOriginState=originStep(macroOriginState,b,previous,i,{loPrev,hiPrev,lo,hi},a,o);
+   events.push(...macroOriginState.events);
+   // Confirmed originating structural pole outranks later displacement/fractals.
+   // It cannot be relabeled TOP on a bullish advance without an F100 touch.
+   if(macroOriginState.origin)sell=macroOriginState.origin.side==='SHORT';
    const rollH=rHi.add(i,b.h,i,Math.min(100,Math.max(1,i))),rollL=rLo.add(i,b.l,i,Math.min(100,Math.max(1,i)));
    const oldPivot=pivot?{...pivot}:null,irLo=o.wickProof&&pivot?.type===-1?pivot.level:rollL.v,irHi=o.wickProof&&pivot?.type===1?pivot.level:rollH.v;
    const io=oscillator(bars,i,o.oscMirror?100:o.oscIntLen,irLo,irHi,o,intValues,cciI),inLo=io!=null&&io<=o.intLower,inHi=io!=null&&io>=o.intUpper,wasLo=prevInt!=null&&prevInt<=o.intLower,wasHi=prevInt!=null&&prevInt>=o.intUpper,upX=io!=null&&wasLo&&io>o.intLower,dnX=io!=null&&wasHi&&io<o.intUpper;
@@ -160,7 +227,7 @@
    add(hRetest,'RETEST','F100',hi);add(lRetest,'RETEST','F0',lo);add(iRetest,'INTERNAL_RETEST',high?'HIGH':'LOW',p.level);add(armedNow,'INTERNAL_ARMED',high?'HIGH':'LOW',p.level);add(disarm,'INTERNAL_DISARMED',oldPivot?.type===1?'HIGH':'LOW',oldPivot?.level);add(exhShort,'EXHAUSTION','F100',hi);add(exhLong,'EXHAUSTION','F0',lo);add(confirmedHigh,'CONFIRMED_SWEEP','F100',hi);add(confirmedLow,'CONFIRMED_SWEEP','F0',lo);add(intCh,'INTERNAL_CHOCH',high?'BEAR':'BULL',neck);add(macroCh,'MACRO_CHOCH',sell?'BEAR':'BULL',macroNeck);
    const currentFractals=[];if(hf)currentFractals.push({bar:hOrigin,confirmedAt:i,side:'HIGH',price:hi,confirmed:hf===2});if(lf)currentFractals.push({bar:lOrigin,confirmedAt:i,side:'LOW',price:lo,confirmed:lf===2});
    for(const f of currentFractals){const key=f.bar+':'+f.side+':'+f.price;if(f.confirmed&&!fractalKeys.has(key)){fractals.push({...f});fractalKeys.add(key);}}
-   const snapshot={index:i,time:b.t,params:o,atrValue:a,sellArmed:sell,osc,internalOsc:io,zone:{top:zTop,bottom:zBot},pivot:{...p},
+   const snapshot={index:i,time:b.t,params:o,atrValue:a,sellArmed:sell,macroOrigin:macroOriginState.origin?{...macroOriginState.origin}:null,osc,internalOsc:io,zone:{top:zTop,bottom:zBot},pivot:{...p},
     last:{F0:lo,F100:hi,b0:lOrigin,b100:hOrigin,f0From:lFrom,f100From:hFrom,src0:'system',src100:'system',zTol:tol,close:b.c,atHigh:b.h>=hi-tol,atLow:b.l<=lo+tol,position:hi>lo?100*(b.c-lo)/(hi-lo):null,hiTests:ht.count,loTests:lt.count,hiPending:H.pending,loPending:L.pending},
     internal:{hi:high?p.level:null,lo:high?null:p.level,hiBar:high?p.origin:-1,loBar:high?-1:p.origin,from:p.from},internalArmed:{hi:high&&p.armed,lo:!high&&p.armed},
     choch:{dir:p.armed?(high?-1:1):0,level:p.armed?neck:null,bar:p.armed?Math.max(p.from,p.armedAt):-1,confirmed:p.armed&&ichDone===armSeq},macroChoch:{dir:sell?-1:1,level:macroNeck,bar:sell?hFrom:lFrom,confirmed:mch.given&&mch.sell===sell&&mch.level===(sell?hi:lo)},trade:{macro,internal:inside},fractals:currentFractals};
@@ -173,5 +240,5 @@
  }
  function at(result,end){const s=result.snapshots[Math.min(end,result.snapshots.length)-1];if(!s)return {...result,last:null,internal:{},trade:{},choch:{dir:0},fractals:[]};const r={...result,...s};r.gap=gapAt(result.closedBars,s.index,s,s.atrValue,result.params);return r;}
  function rayStart(from,start,end,xAt){return !Number.isFinite(from)||from>=end?null:xAt(Math.max(start,from));}
- const api={defaults,options,run,at,rayStart,Accepted};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.ViceSolaceSystem=api;
+ const api={defaults,options,run,at,rayStart,Accepted,originStep};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.ViceSolaceSystem=api;
 })(typeof window==='undefined'?globalThis:window);

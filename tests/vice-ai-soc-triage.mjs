@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {triageSecurityEvents,RULE_VERSION} from '../security/ai-soc/triage.mjs';
+const now=Date.parse('2026-10-25T12:00:00Z');
+const event=(type,verified=true,actorId='actor-1',at=new Date(now).toISOString())=>({type,serverVerified:verified,actorId,at});
+assert.deepEqual(triageSecurityEvents([], {now}),[]);
+assert.deepEqual(triageSecurityEvents([event('MFA_REPLAY',false)],{now}),[],'Unverified claims must not create incidents');
+assert.deepEqual(triageSecurityEvents([event('UNSUPPORTED')],{now}),[],'Unknown signals must not affect score');
+assert.deepEqual(triageSecurityEvents([event('MFA_REPLAY',true,'actor-1','2026-10-24T00:00:00Z')],{now}),[],'Old events must be excluded');
+const [incident]=triageSecurityEvents([event('MFA_REPLAY'),event('ROLE_CHANGE_DENIED')],{now});
+assert.equal(incident.severity,'critical');
+assert.equal(incident.score,100);
+assert.equal(incident.automaticFinancialAction,false);
+assert.equal(incident.automaticRoleChange,false);
+assert.equal(incident.ruleVersion,RULE_VERSION);
+assert.deepEqual(incident.signals,['MFA_REPLAY','ROLE_CHANGE_DENIED']);
+assert.throws(()=>triageSecurityEvents(Array(1001).fill(event('LOGIN_FAILURE')),{now}),TypeError);
+console.log('PASS deterministic AI-SOC event triage contracts (offline only)');

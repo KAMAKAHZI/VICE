@@ -1,0 +1,73 @@
+## Production release decision — 2026-10-26
+
+**Decision: HOLD — do not merge or publish as an institutionally certified release yet.** The executive's deployment request is acknowledged, but authorization to ship does not itself establish verified staging parity, independent code review, or successful end-to-end production acceptance.
+
+Evidence from connected GitHub and Supabase:
+- Security PR #17 is open, all five checks on its latest inspected head `cab8c49d8de8ba2769af30b28b92cc4b3fa84ca4` passed, but no independent GitHub review submission was present at inspection.
+- SOLACE browser PR #22 is open, clean and green on its latest inspected head `0d49ef94a988ed4204f1bbdfb50a9e40ab376724`, but no independent review submission was present; native Pine/MQL5 compilation is not established by browser tests.
+- Connected staging has 4 public tables/views against production's 73, so it cannot validate production governance, Academy and communications integrations as-is.
+- The public Netlify login page was reachable but displayed the legacy **Email or Username** field during the inspected page fetch; this does not prove the updated security branch has been deployed or that sign-in succeeds.
+- No current, independently verified release commit/version, successful production login, multi-user messaging/WebRTC, full market feed, executive TOTP acceptance, certificate issuance/download, OUV execution readiness, or tested production rollback was established.
+- The official OUV is **not** authorized to move from VICE 2 / V4X 320 merely because application CI passes. Proposed VICE 2.82645403 / V4X 452.23264480 remain management references pending actual governance checks and transactional executor proof.
+
+**Go/no-go acceptance:** establish schema-equivalent staging without copying private production data; obtain independent review for both PRs; demonstrate the exact deployed SHA and required release configuration; run role/MFA and holder-account browser tests plus mobile/Electron and WebRTC checks; verify certificate privacy and legacy digest compatibility; prove backup/rollback; then merge/deploy only the reviewed release. Keep OUV execution and historical mail backlog disabled unless separately authorized and validated.
+
+# VICE OS — Security release / rollback runbook
+
+**Status:** Draft PR #17. Do not apply production database DDL before release approval.
+
+## Preconditions
+- All PR checks pass, including browser acceptance, release integrity, security regression tests and the production-safe publication check.
+- Inventory every frontend/backend reference to `lookup_email_for_login`; communicate email-only sign-in and confirm executive and member access in staging.
+- Validate certificate public response against privacy policy and certificate display expectations; assess if exposing holder names is appropriate.
+- Test staged migration with anonymous, authenticated and privileged identities; record effective EXECUTE grants.
+- Verify database backups and restore in a separate environment; document restoration evidence and incident contact.
+- Independent CEO/CFO authorization is required for governance or financial operations. This security PR does not grant it.
+
+## Candidate certificate integrity and compatibility gate (2026-10-25)
+- The pending public Academy verifier now recomputes the stored issuer SHA-256 digest before reporting `valid=true`, using the same fields as `issue_certificate`. This is an integrity comparison against the database, **not an independent digital signature or appraisal**.
+- Disposable PostgreSQL tests exercise a valid synthetic award, mutated digest, changed scores, missing legacy salt, expired/revoked records, and private JSON-field minimization. These tests do **not** establish compatibility with older production awards.
+- Before any production migration, run an authorized **read-only compatibility inventory** of Academy awards by schema version/issuance method. Compare digest verification outcomes without logging names, scores, salts or digests; approve an explicit remediation path for legacy awards that fail validation. Do not automatically reissue or mark them authentic.
+- `verify.html` must never display `undefined%` or private Academy digest placeholders. Public success displays only ID, optional recipient name, course and issuance date. Confirm whether recipient name is consented for public verification; withhold that field in a separately reviewed design if not.
+- The email-only login revocation candidate is exercised against synthetic `anon` and `authenticated` roles in disposable PostgreSQL. Production execute-grant removal still requires staged account recovery and controlled change approval.
+- Both candidates remain **review-only SQL files**; committing them or passing CI does not apply them to Supabase. Current staging is not a full production-schema replica.
+
+## Safe rollout sequence
+1. Publish and verify the email-only login frontend with representative test users; ensure access recovery and support process works.
+2. Apply the certificate response-minimization migration in staging; verify positive/negative test vectors, no sensitive fields and frontend compatibility.
+3. Apply the username-lookup REVOKE migration in staging; verify anonymous and authenticated callers cannot invoke it.
+4. Obtain reviewed release approval and an operational rollback window.
+5. Deploy the tested frontend, then apply the reviewed migrations to production; re-run grant checks and smoke tests.
+6. Monitor authentication failure rate, 429 responses, certificate validation, security audit logs and executive account access.
+7. Do not change OUV, unit balances, supply or executive governance gates as part of this release.
+
+## Rollback
+- Frontend: revert to a known-good build only if compatible with the database permission state.
+- Database: revert certificate response only after privacy/legal approval; restoring sensitive fields is **not** an automatic rollback.
+- Username lookup: do **not** automatically re-grant anonymous access, since doing so reopens enumeration. Prefer support-assisted email recovery.
+- Preserve logs and forensic evidence. Escalate to a security incident if unexpected privilege changes or data disclosures occur.
+
+## Exit criteria
+All required CI checks pass, staging security tests pass, release approval recorded, production deployment verified, Supabase advisors reviewed and no new high-risk disclosure introduced.
+
+## Connected Supabase metadata parity check — 2026-10-25
+Read-only project metadata was checked through the connected Supabase project tools, **without accessing member rows or changing either database**:
+- Production `sdsaewumabzjjvsmqqsl`: **73 public tables/views and 72 recorded migrations**. `public.certificates` includes `profile_id`, `salt`, `scores`, `digest`, `revoked_at` and other full award fields.
+- Separate staging project `mzdybvxvmbigaylleqbt`: **4 public tables and 6 recorded migrations**. Its `public.certificates` is a reduced fixture and lacks **`profile_id` and `salt`**, which are necessary to recompute the current issuer's certificate digest. It also lacks the production OUV governance/receipt tables.
+- Therefore, a successful disposable PostgreSQL test **does not imply** the current Supabase staging environment can execute the full issuer certificate-verification candidate. **Hard release blocker:** reconstruct a production-equivalent, schema-only staging baseline under review, without copying user data, tokens, account secrets, or financial records.
+- The Academy verifier candidate must not be applied to this reduced staging fixture or production until schema compatibility, legacy digest formats, public-name disclosure consent, and role-level permissions have been independently reviewed.
+- The OUV execution switch and structural governance gates remain closed. A green GitHub CI result is evidence of isolated behavior only, not authorization to publish an OUV proposal.
+
+### Structural table parity — instrumented release gate (2026-10-25)
+- Latest connected read-only metadata inspection found **69 of 73 production public tables/views missing from staging**, with **4 tables shared**. All 73 production tables/views and all 4 staging tables currently report RLS enabled; presence of RLS does **not** prove that policies or EXECUTE grants are equivalent.
+- The production Academy certificate table has **7 columns absent in staging**: `course_version`, `metadata`, `created_at`, `salt`, `profile_id`, `holder_email`, `revoked_at`. Without `profile_id` and `salt`, the production issuer digest cannot be recomputed using the same schema.
+- Staging `email_outbox` has **4 additional delivery-lease columns** absent in production: `claim_token`, `claimed_by`, `lease_until`, `provider_message_id`. This is nontrivial worker-schema drift; do not assume that a staging-approved atomic mailer worker can be deployed against production without its reviewed migration and rollback.
+- Use `scripts/vice-staging-schema-parity.cjs` with two **schema-only** metadata JSON inputs from an authorized read-only Supabase `list_tables(verbose=true)` inspection. Run `node scripts/vice-staging-schema-parity.cjs <production-schema.json> <staging-schema.json>`; exit code **2** means known table/column/RLS parity failures. Exit code **0** means **only** that those structural checks passed. Missing tables, incompatible column formats or missing RLS block; staging-only columns are separately reported for review.
+- Never commit the full raw metadata exports to the public repository, since they may contain sensitive schema design. Never include user records, secret environment variables or authentication tokens in the parity inputs. The script intentionally accesses **no** databases and performs no migrations.
+- An independent review of functions, grants, RLS policies, triggers, migration history, certificate compatibility, backups, and executive release authority is required regardless of structural result. A green CI job for the **synthetic parity script** does not mean staging itself passed.
+
+## Reproducibility gap — foundation inventory
+- Production read-only metadata inventory confirms 73 public tables/views and 93 public functions; staging currently has only isolated security fixtures, not the full application schema.
+- Initial dependency inventory identified `profiles` (UUID auth.users foreign key, unique email and username) and `invites` (unique code), neither of which is represented by the retired bootstrap.
+- Do not mistake isolated fixture migration history for a reproducible full-schema baseline. Reconstruct dependencies, policies, triggers, and function ownership from reviewed schema-only exports before full acceptance.
+- Never copy production users, invite codes, passwords, financial transactions, or authentication secrets to staging.
