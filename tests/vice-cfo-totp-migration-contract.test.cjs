@@ -1,6 +1,6 @@
-import fs from 'node:fs';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const test = require('node:test');
 
 const sql=fs.readFileSync('supabase/migrations/20261026193000_vice_cfo_legacy_attestation_totp_unblock.sql','utf8');
 test('CFO legacy attestation is not mistaken for completed TOTP authorization',()=>{
