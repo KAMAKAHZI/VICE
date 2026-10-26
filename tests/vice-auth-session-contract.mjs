@@ -23,3 +23,9 @@ const access=section('async function checkMemberAccess(epoch=authEpoch){','// Re
 assert.match(access,/if\(!data\.revoked && !data\.suspended\)\{[\s\S]*?throw new Error/,'Ambiguous denial must fail closed without destroying login');
 assert.match(access,/if\(!data\.revoked && !data\.suspended\)\{[\s\S]*?\}\s*const message=[\s\S]*?signOut\(\{scope:'local'\}\)/,'Explicit suspension or revocation retains signout');
 console.log('PASS auth session regression contracts (static; live desktop sign-in remains unverified)');
+
+// Additional fail-closed static contracts; live authentication still requires device tests.
+assert.doesNotMatch(refreshed,/viceRequireSecondFactor\s*\(/,'Refreshing a token must not silently trigger another MFA challenge');
+assert.doesNotMatch(refreshed,/checkMemberAccess\s*\(/,'Refreshing a token must not create an access-check request storm');
+assert.doesNotMatch(signedIn,/signOut\s*\(/,'Repeated sign-in notification must not sign the user out');
+assert.match(profile,/viceRequireSecondFactor\(user,epoch\)/,'Member initialization must keep the second-factor gate');
