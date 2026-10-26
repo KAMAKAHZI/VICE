@@ -15,6 +15,8 @@ on:
       - 'tests/vice-ai-soc-*.mjs'
       - 'tests/vice-phase3-role-gate.mjs'
       - 'tests/ouv-offchain-gateway-contract.test.cjs'
+      - 'tests/vice-cfo-totp-migration-contract.test.cjs'
+      - 'supabase/migrations/20261026193000_vice_cfo_legacy_attestation_totp_unblock.sql'
       - 'netlify/functions/ouv-final-deploy.js'
       - 'supabase/migrations/20261025_phase3_*.sql'
       - '.github/workflows/vice-phase3-security.yml'
@@ -50,3 +52,4 @@ jobs:
           node --test tests/ouv-governance-evidence-verifier.test.cjs
           node --test tests/vice-solace-private-gateway.test.cjs
           node --test tests/ouv-offchain-gateway-contract.test.cjs
+          node --test tests/vice-cfo-totp-migration-contract.test.cjs
