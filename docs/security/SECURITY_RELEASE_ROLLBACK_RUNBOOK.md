@@ -1,3 +1,17 @@
+## Production release decision — 2026-10-26
+
+**Decision: HOLD — do not merge or publish as an institutionally certified release yet.** The executive's deployment request is acknowledged, but authorization to ship does not itself establish verified staging parity, independent code review, or successful end-to-end production acceptance.
+
+Evidence from connected GitHub and Supabase:
+- Security PR #17 is open, all five checks on its latest inspected head `cab8c49d8de8ba2769af30b28b92cc4b3fa84ca4` passed, but no independent GitHub review submission was present at inspection.
+- SOLACE browser PR #22 is open, clean and green on its latest inspected head `0d49ef94a988ed4204f1bbdfb50a9e40ab376724`, but no independent review submission was present; native Pine/MQL5 compilation is not established by browser tests.
+- Connected staging has 4 public tables/views against production's 73, so it cannot validate production governance, Academy and communications integrations as-is.
+- The public Netlify login page was reachable but displayed the legacy **Email or Username** field during the inspected page fetch; this does not prove the updated security branch has been deployed or that sign-in succeeds.
+- No current, independently verified release commit/version, successful production login, multi-user messaging/WebRTC, full market feed, executive TOTP acceptance, certificate issuance/download, OUV execution readiness, or tested production rollback was established.
+- The official OUV is **not** authorized to move from VICE 2 / V4X 320 merely because application CI passes. Proposed VICE 2.82645403 / V4X 452.23264480 remain management references pending actual governance checks and transactional executor proof.
+
+**Go/no-go acceptance:** establish schema-equivalent staging without copying private production data; obtain independent review for both PRs; demonstrate the exact deployed SHA and required release configuration; run role/MFA and holder-account browser tests plus mobile/Electron and WebRTC checks; verify certificate privacy and legacy digest compatibility; prove backup/rollback; then merge/deploy only the reviewed release. Keep OUV execution and historical mail backlog disabled unless separately authorized and validated.
+
 # VICE OS — Security release / rollback runbook
 
 **Status:** Draft PR #17. Do not apply production database DDL before release approval.
