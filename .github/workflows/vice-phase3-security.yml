@@ -3,6 +3,12 @@ on:
   pull_request:
     paths:
       - 'security/ai-soc/**'
+      - 'security/auth/**'
+      - 'scripts/ouv-governance-evidence-verifier.cjs'
+      - 'netlify/functions/vice-solace-private.js'
+      - 'tests/vice-device-trust-policy.mjs'
+      - 'tests/ouv-governance-evidence-verifier.test.cjs'
+      - 'tests/vice-solace-private-gateway.test.cjs'
       - 'tests/vice-ai-soc-*.mjs'
       - 'tests/vice-phase3-role-gate.mjs'
       - 'supabase/migrations/20261025_phase3_*.sql'
@@ -34,3 +40,7 @@ jobs:
           node tests/vice-ai-soc-pg-nonce.mjs
           node tests/vice-ai-soc-ingress.mjs
           node tests/vice-ai-soc-pg-incident-writer.mjs
+          node tests/vice-device-trust-policy.mjs
+          node tests/vice-ai-soc-pg-ingress.mjs
+          node --test tests/ouv-governance-evidence-verifier.test.cjs
+          node --test tests/vice-solace-private-gateway.test.cjs
