@@ -115,24 +115,25 @@ async function verifiedExecutiveTotp(base, secret) {
 async function readiness(base, anon, bearer, secret) {
   const s = await rpc(base, anon, bearer, 'vice_ouv_activation_readiness', { p_proposal_id: PROPOSAL });
   if (!s || s.proposal_id !== PROPOSAL) throw new Error('Governance readiness response invalid');
-  // Preserve verified CEO TOTP while treating CFO device attestations separately.
-  // Independently verified cryptographic signatures remain mandatory for execution.
+  // CFO device attestations are not a substitute for CFO TOTP approval.
+  // Off-chain policy requires two independent proposal-bound TOTP records.
   const totp = await verifiedExecutiveTotp(base, secret);
   const ceoVerified = s.ceo_authorization_verified === true || totp.ceo;
   const cfoVerified = s.cfo_authorization_verified === true || totp.cfo;
-  const signaturesVerified = s.cryptographic_signatures_verified === true &&
-    ceoVerified && cfoVerified;
+  const executiveTotpVerified = totp.ceo && totp.cfo;
   const issues = Array.isArray(s.next_unmet_gates) ? s.next_unmet_gates : ['UNVERIFIED_GOVERNANCE_READINESS'];
   // Solely the database authorization engine can unlock execution.
-  const ready = signaturesVerified && s.can_apply === true && issues.length === 0 &&
+  const ready = executiveTotpVerified && s.governance_mode === 'OFFCHAIN_SUPABASE_TOTP' && s.can_apply === true && issues.length === 0 &&
     s.executive_authorizations === 2 && s.review_complete === true &&
     s.ledger_reconciled === true && s.baseline_compatible === true &&
     sameNumber(s.proposed_ouv?.VICE, TARGET.VICE) &&
     sameNumber(s.proposed_ouv?.V4X, TARGET.V4X);
-  if (!signaturesVerified && !issues.includes('CRYPTOGRAPHIC_SIGNATURE_VERIFICATION_REQUIRED'))
-    issues.push('CRYPTOGRAPHIC_SIGNATURE_VERIFICATION_REQUIRED');
+  if (!executiveTotpVerified && !issues.includes('DUAL_EXECUTIVE_TOTP_REQUIRED'))
+    issues.push('DUAL_EXECUTIVE_TOTP_REQUIRED');
+  if (s.governance_mode !== 'OFFCHAIN_SUPABASE_TOTP' && !issues.includes('OFFCHAIN_GOVERNANCE_POLICY_NOT_DEPLOYED'))
+    issues.push('OFFCHAIN_GOVERNANCE_POLICY_NOT_DEPLOYED');
   return { ready, issues, checks: {
-    cryptographic_signatures_verified: signaturesVerified,
+    executive_totp_verified: executiveTotpVerified,
     ceo_authorization_verified: ceoVerified,
     cfo_authorization_verified: cfoVerified,
     ceo_totp_record_verified: totp.ceo,
