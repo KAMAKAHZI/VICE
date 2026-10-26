@@ -9,6 +9,8 @@ on:
       - 'vice-ouv-final-deploy.js'
       - 'netlify/functions/ouv-final-deploy.js'
       - 'tests/vice-ouv-*.cjs'
+      - 'tests/vice-ouv-forensic-gate.cjs'
+      - 'tests/vice-ouv-atomicity-contract.cjs'
       - 'scripts/vice-ouv-readonly-smoke.cjs'
       - 'sql/vice_ouv_executive_forensic_gate.sql'
       - 'sql/vice_ouv_atomic_staging_preflight.sql'
