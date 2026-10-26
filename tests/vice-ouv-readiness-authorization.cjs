@@ -12,6 +12,10 @@ function mock(readiness, evidence = {}) {
   global.fetch = async (url, options) => {
     const path = String(url);
     if (path.endsWith('/auth/v1/user')) return response({ id: 'test-executive' });
+    // A non-executed proposal must exist for reconciliation to proceed safely.
+    // Production treats missing proposals as suspicious and blocks execution.
+    if (path.includes('/rest/v1/vice_sovereign_proposals'))
+      return response([{ id: PROPOSAL, status: 'REVIEW', payload_hash: '3f108d0483466f24b62efce207086110a3b76e70d8198dc7135ec0f2068742ae' }]);
     if (path.includes('/rest/v1/vice_exec_signers'))
       return response(path.includes('user_id=eq.') ? [{ user_id: 'test-executive', role: 'CEO' }] :
         (evidence.signers || [{ user_id: 'test-executive', role: 'CEO' }, { user_id: 'test-cfo', role: 'CFO' }]));
