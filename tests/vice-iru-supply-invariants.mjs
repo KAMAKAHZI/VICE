@@ -6,6 +6,7 @@ const SCALE = 100_000_000n;
 const SUPPLY = 10_000_000n * SCALE;
 const RESERVE = 7_500_000n * SCALE;
 const HOLDER_POOL = 2_500_000n * SCALE;
+const MAX_POOL = HOLDER_POOL;
 const usd = x => BigInt(x) * SCALE;
 const initial = () => ({reserve: RESERVE, holders: 0n, treasury: 0n, other: 0n, unallocatedHolderPool: HOLDER_POOL});
 function reconcile(a) {
@@ -18,6 +19,8 @@ function transfer(a, from, to, amount) {
   assert.ok(amount > 0n && a[from] >= amount, 'Insufficient balance');
   const next = {...a, [from]: a[from] - amount, [to]: a[to] + amount};
   reconcile(next);
+  assert.ok(next.holders + next.unallocatedHolderPool <= MAX_POOL, 'Holder pool exceeded');
+  assert.equal(next.reserve, RESERVE, 'Reserve may not be reassigned by holder distribution');
   return next;
 }
 for (const symbol of ['VICE', 'V4X']) {
@@ -26,6 +29,7 @@ for (const symbol of ['VICE', 'V4X']) {
   ledger = transfer(ledger, 'unallocatedHolderPool', 'holders', 100_000n * SCALE);
   assert.equal(ledger.holders, 100_000n * SCALE);
   assert.equal(ledger.unallocatedHolderPool, 2_400_000n * SCALE);
+  assert.throws(() => transfer(ledger, 'reserve', 'holders', 1n * SCALE), /Holder pool exceeded|Reserve may not/);
   assert.throws(() => transfer(ledger, 'unallocatedHolderPool', 'holders', 2_500_000n * SCALE), /Insufficient/);
   assert.throws(() => transfer(ledger, 'holders', 'reserve', 0n), /Insufficient/);
   assert.throws(() => transfer(ledger, 'holders', 'reserve', 1.1), /bigint/);
