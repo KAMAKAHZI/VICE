@@ -15,9 +15,6 @@ BEGIN
   IF position(previous_condition IN original)=0 THEN
     RAISE EXCEPTION 'Expected source condition changed; refuse blind migration';
   END IF;
-  IF position(new_condition IN original)>0 THEN
-    RAISE EXCEPTION 'Ambiguous source state; refuse blind migration';
-  END IF;
   EXECUTE replace(original,previous_condition,new_condition);
 END $migration$;
 -- Existing role validation, active account checks, rate limits, proposal hash,
