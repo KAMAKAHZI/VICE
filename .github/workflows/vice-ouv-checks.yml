@@ -2,6 +2,7 @@ name: VICE OUV Security & Reference Checks
 on:
   push:
     branches:
+      - main
       - integration/institutional-ouv-20261023
   pull_request:
     paths:
