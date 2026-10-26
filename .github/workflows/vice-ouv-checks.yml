@@ -2,6 +2,7 @@ name: VICE OUV Security & Reference Checks
 on:
   push:
     branches:
+      - main
       - integration/institutional-ouv-20261023
   pull_request:
     paths:
@@ -9,7 +10,12 @@ on:
       - 'vice-ouv-final-deploy.js'
       - 'netlify/functions/ouv-final-deploy.js'
       - 'tests/vice-ouv-*.cjs'
+      - 'tests/vice-ouv-forensic-gate.cjs'
+      - 'tests/vice-ouv-atomicity-contract.cjs'
       - 'scripts/vice-ouv-readonly-smoke.cjs'
+      - 'sql/vice_ouv_executive_forensic_gate.sql'
+      - 'sql/vice_ouv_atomic_staging_preflight.sql'
+      - 'supabase/migrations/*ouv_atomic_executor*.sql'
       - '.github/workflows/vice-ouv-checks.yml'
   workflow_dispatch:
 permissions:
@@ -32,11 +38,29 @@ jobs:
           node --check tests/vice-ouv-reference.cjs
           node --check tests/vice-ouv-executive-endpoint.cjs
           node --check tests/vice-ouv-governance-mocked.cjs
+          node --check tests/vice-ouv-readiness-authorization.cjs
+          node --check tests/vice-ouv-ui-execution-gates.cjs
+          node --check tests/vice-ouv-forensic-gate.cjs
+          node --check tests/vice-ouv-staging-preflight.cjs
+          node --check tests/vice-ouv-atomicity-contract.cjs
       - name: Run financial and governance contract tests
         run: |
           node tests/vice-ouv-reference.cjs
           node tests/vice-ouv-executive-endpoint.cjs
           node tests/vice-ouv-governance-mocked.cjs
+          node --test tests/vice-ouv-readiness-authorization.cjs
+          node --test tests/vice-ouv-ui-execution-gates.cjs
+          node tests/vice-ouv-forensic-gate.cjs
+          node tests/vice-ouv-staging-preflight.cjs
+          node tests/vice-ouv-atomicity-contract.cjs
+      - name: Prove premature OUV activation fails closed
+        run: |
+          if ! ls supabase/migrations/*ouv_atomic_executor*.sql >/dev/null 2>&1; then
+            if VICE_OUV_EXECUTION_ENABLED=true node tests/vice-ouv-atomicity-contract.cjs; then
+              echo 'Unexpectedly permitted OUV activation without an audited migration'
+              exit 1
+            fi
+          fi
       - name: Confirm production financial writes remain gated
         run: |
           test -f sql/vice_ouv_auto_execution_guard.sql

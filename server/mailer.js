@@ -45,7 +45,9 @@ class Mailer{
     }
     this.from=process.env.SMTP_FROM||'';
   }
-  get enabled(){return !!(this.transport&&this.url&&this.key&&this.from);}
+  // Fail closed: configuring SMTP must not automatically release a historical outbox backlog.
+  // Enable delivery only after queue review and an explicitly approved rollout.
+  get enabled(){return process.env.VICE_MAILER_DELIVERY_ENABLED==='true'&&!!(this.transport&&this.url&&this.key&&this.from);}
   async api(pathname,opts={}){
     const response=await fetch(this.url.replace(/\/$/,'')+'/rest/v1/'+pathname,{
       ...opts,headers:{apikey:this.key,authorization:'Bearer '+this.key,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},signal:AbortSignal.timeout(15000)});
