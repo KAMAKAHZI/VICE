@@ -11064,7 +11064,7 @@ function viewHolders(el){
 function viewGovernance(el){
   const props = S.proposals || [];
   const sovereign = (S.sovereignProposals || []).filter(p=>p.status==='REVIEW' && Array.isArray(p.validation_issues) && p.validation_issues.length===0);
-  const execRole=isOwner()?'CEO':S.profile?.role==='FINANCE_OFFICER'?'CFO':null;
+  const execRole=isOwner()?'CEO':['FINANCE_OFFICER','CFO'].includes(String(S.profile?.role||'').toUpperCase())?'CFO':null;
   const sovereignCards = sovereign.map(p=>{
     const refs=p.payload?.parameters?.target_scaled_tier||{};
     const baseline=p.payload?.parameters?.previous_baseline||{};
@@ -11100,7 +11100,7 @@ function viewGovernance(el){
       <span class="meta"><strong>${esc(executiveStatus)}</strong> · ${authorizations}/2 verified · CEO: ${p.ceo_signed?('AUTHORIZED ('+esc(p.ceo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'} · CFO: ${p.cfo_signed?('AUTHORIZED ('+esc(p.cfo_authorization_method||'CRYPTOGRAPHIC')+')'):'AWAITING'}</span>
       <span class="note warn" role="status" aria-live="polite">${esc(readinessText)}</span>
       <span class="meta">Executive votes approve the proposal only. Official OUV and certificate values remain unchanged until independently authorized server execution.</span></div>
-      <div class="row-r"><span class="bdg ${p.status==='REJECTED'?'rd':'gd'}">${esc(p.status)}</span>${execRole && !(execRole==='CEO'?p.ceo_signed:p.cfo_signed) ? `<button class="btn btn-gd" data-act="exec-mfa-open" data-authorization-action="APPROVE" data-id="${esc(p.id)}">Authorize via 2FA</button>` : ''}</div>
+      <div class="row-r"><span class="bdg ${p.status==='REJECTED'?'rd':'gd'}">${esc(p.status)}</span>${execRole && !(execRole==='CEO'?(p.ceo_signed && ['SUPABASE_TOTP','MFA_TOTP','TOTP'].includes(String(p.ceo_authorization_method||'').toUpperCase())):(p.cfo_signed && ['SUPABASE_TOTP','MFA_TOTP','TOTP'].includes(String(p.cfo_authorization_method||'').toUpperCase()))) ? `<button class="btn btn-gd" data-act="exec-mfa-open" data-authorization-action="APPROVE" data-id="${esc(p.id)}">Authorize via 2FA</button>` : ''}</div>
     </div>`;
   }).join('');
   const live=APP_MODE==='LIVE';
