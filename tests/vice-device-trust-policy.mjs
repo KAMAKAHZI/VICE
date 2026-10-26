@@ -11,4 +11,7 @@ assert.equal(evaluate({...valid,expiresAt:now}),'mfa_required');
 assert.equal(evaluate({...valid,expiresAt:now+86400001}),'mfa_required');
 assert.equal(evaluate({...valid,verifiedAt:now+1}),'mfa_required');
 assert.equal(evaluate({...valid,verifiedAt:NaN}),'mfa_required');
+assert.equal(evaluate({...valid,verifiedAt:-1}),'mfa_required');
+assert.equal(evaluate({...valid,expiresAt:valid.verifiedAt}),'mfa_required');
+assert.equal(evaluate({...valid,expiresAt:-1}),'mfa_required');
 console.log('PASS device trust policy decisions');
