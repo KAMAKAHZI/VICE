@@ -19,7 +19,8 @@ function fakeBackend({ actor = true, ready = false, executedAtStart = false, aut
   let executorCalls = 0;
   const fetch = async url => {
     if (url.endsWith('/auth/v1/user')) return success({ id: uid });
-    if (url.includes('vice_exec_signers')) return success(actor ? [{ role: 'CEO', user_id: uid }] : []);
+    if (url.includes('vice_exec_signers')) return success(actor ? (url.includes('user_id=eq.') ? [{ role: 'CEO', user_id: uid }] : [{ role: 'CEO', user_id: uid }, { role: 'CFO', user_id: '33333333-3333-4333-8333-333333333333' }]) : []);
+    if (url.includes('vice_exec_mfa_authorizations')) return success([]);
     if (url.includes('vice_ouv_execution_receipts')) return success(executed ? [{ proposal_id: proposal, payload_hash: hash, ouv_version_id: vid }] : []);
     if (url.includes('ouv_versions')) {
       if (!executed) return success([]);

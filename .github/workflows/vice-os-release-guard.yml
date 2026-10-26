@@ -52,6 +52,7 @@ jobs:
         with:
           node-version: '22'
       - run: |
+          node tests/vice-auth-session-contract.mjs
           node --test tests/vice-production-repairs.cjs
           node tests/vice-release-safety.cjs
           node tests/vice-institutional-boundaries.cjs

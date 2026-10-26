@@ -14,11 +14,15 @@ test('Privileged broker connector denies suspended, unprovisioned and unverifiab
  access={error:Error('offline')};assert.equal((await c.verifyCloudMemberAccess(client,'member')).status,503);
  access={data:{allowed:true}};profile={data:null};assert.equal((await c.verifyCloudMemberAccess(client,'member')).status,403);
 });
-for(const identifier of ['  MEMBER@EXAMPLE.TEST  ','  MiXeD_UsEr  '])test('Login normalizes identifier without altering password: '+identifier.trim(),async()=>{
- let sent,lookup;const fields={lIdentifier:{value:identifier},lPass:{value:'  MiXeD Password  '},loginBtn:{disabled:false}};
- const c=run(normalize+section('async function login(', '// Read-only connectivity checks.'),{authBusy:false,viceLoginCooldownSeconds:()=>0,viceAuthReady:Promise.resolve(true),$:id=>fields[id],toast(){},onAuthenticated:async()=>{},sb:{rpc:async(n,p)=>{lookup=p.p_identifier;return {data:'MEMBER@EXAMPLE.TEST'}},auth:{signInWithPassword:async p=>{sent=p;return {data:{user:{id:'test'}}}}}}});
+test('Email login normalizes address without altering password',async()=>{
+ let sent;const fields={lIdentifier:{value:'  MEMBER@EXAMPLE.TEST  '},lPass:{value:'  MiXeD Password  '},loginBtn:{disabled:false}};
+ const c=run(normalize+section('async function login(', '// Read-only connectivity checks.'),{authBusy:false,viceLoginCooldownSeconds:()=>0,viceAuthReady:Promise.resolve(true),$:id=>fields[id],toast(){},onAuthenticated:async()=>{},sb:{rpc:async()=>{throw Error('Username lookup must not be called')},auth:{signInWithPassword:async p=>{sent=p;return {data:{user:{id:'test'}}}}}}});
  await c.login();assert.equal(sent.email,'member@example.test');assert.equal(sent.password,'  MiXeD Password  ');assert.equal(fields.loginBtn.disabled,false);
- if(!identifier.includes('@'))assert.equal(lookup,'mixed_user');
+});
+test('Username login is refused without exposing an account email or calling RPC',async()=>{
+ let calls=0;const messages=[];const fields={lIdentifier:{value:'  MiXeD_UsEr  '},lPass:{value:'  MiXeD Password  '},loginBtn:{disabled:false}};
+ const c=run(normalize+section('async function login(', '// Read-only connectivity checks.'),{authBusy:false,viceLoginCooldownSeconds:()=>0,viceAuthReady:Promise.resolve(true),$:id=>fields[id],toast:m=>messages.push(m),onAuthenticated:async()=>{},sb:{rpc:async()=>{calls++;throw Error('Must not resolve username')},auth:{signInWithPassword:async()=>{calls++;throw Error('Must not attempt password sign-in')}}}});
+ await c.login();assert.equal(calls,0);assert.match(messages.join(' '),/registered email address/i);assert.equal(fields.loginBtn.disabled,false);
 });
 test('Only authoritative access denial clears a session; network errors preserve it',async()=>{
  let clears=0,signouts=0,mode='offline';

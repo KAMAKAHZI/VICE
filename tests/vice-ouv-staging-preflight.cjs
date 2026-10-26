@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const sql=fs.readFileSync('sql/vice_ouv_atomic_staging_preflight.sql','utf8');
+assert.match(sql,/BEGIN READ ONLY\s*;/i);
+assert.match(sql,/ROLLBACK\s*;/i);
+assert.doesNotMatch(sql,/\b(?:INSERT|UPDATE|DELETE|ALTER|DROP|TRUNCATE)\s+(?:INTO\s+|TABLE\s+)?(?:public\.|vice_private\.)/i);
+for(const gate of ['payload_hash','roles_count<>2','validation_until','total_vice<>10000000','total_v4x<>10000000','receipt_count<>0','quorum_verified_at IS NULL','execute_after IS NULL','abs(x-v*160)>0.000001']) assert.ok(sql.includes(gate),'Missing release assertion: '+gate);
+assert.match(sql,/RAISE EXCEPTION 'OUV_GATE: quorum or timelock not satisfied/);
+assert.ok(sql.includes('STAGING CHECK ONLY'));
+console.log('PASS: staging preflight cannot write and asserts required financial/governance gates');

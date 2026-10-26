@@ -25,6 +25,13 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
+      - name: Rebuild exact Netlify public artifacts for byte-level comparison
+        env:
+          COMMIT_REF: ${{ github.sha }}
+          CONTEXT: production
+        run: |
+          bash scripts/vice-publish-netlify.sh
+          node tests/vice-deploy-privacy.cjs
       - name: Compare production deployment to GitHub exact release
         run: node tests/vice-production-smoke.mjs
         env:
@@ -40,7 +47,7 @@ jobs:
           VICE_BROWSER_ORIGIN: https://vice4x.netlify.app
       - name: Publish truthful public production report (including failure)
         if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: VICE_OS_PRODUCTION_SMOKE
           path: production-smoke-report.json
