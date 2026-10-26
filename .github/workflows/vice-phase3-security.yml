@@ -1,0 +1,35 @@
+name: VICE Phase 3 Security Contracts
+on:
+  pull_request:
+    paths:
+      - 'security/ai-soc/**'
+      - 'tests/vice-ai-soc-*.mjs'
+      - 'tests/vice-phase3-role-gate.mjs'
+      - 'supabase/migrations/20261025_phase3_*.sql'
+      - '.github/workflows/vice-phase3-security.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  security-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run isolated Phase 3 security contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/vice-phase3-role-gate.mjs
+          node tests/vice-ai-soc-triage.mjs
+          node tests/vice-ai-soc-normalize.mjs
+          node tests/vice-ai-soc-incidents.mjs
+          node tests/vice-ai-soc-ledger.mjs
+          node tests/vice-ai-soc-webhook-auth.mjs
+          node tests/vice-ai-soc-pg-nonce.mjs
+          node tests/vice-ai-soc-ingress.mjs
