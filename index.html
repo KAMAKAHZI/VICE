@@ -13747,6 +13747,15 @@ function buildInviteEmailHtml(inviteUrl, role, forUser, inviterName){
       <div style="color:#3d3532;font-size:10px;font-family:monospace;letter-spacing:.2em;margin-top:20px">VICE CAPITAL INC. · ALL ACTIONS AUDITED</div>
     </td></tr>
   </table>
+<script type="module">
+import {renderOuvRecoveryPanel} from "./web/identity/ouv-recovery-panel.mjs";
+window.VICE_OUV_RECOVERY=Object.freeze({
+ render({container,proposal,attestations,now}){
+  if(!container||!proposal)throw new TypeError("OUV recovery requires a target container and authoritative proposal");
+  return renderOuvRecoveryPanel({container,proposal,attestations,now});
+ }
+});
+</script>
 </body></html>`;
 }
 
