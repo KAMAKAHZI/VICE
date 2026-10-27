@@ -48,7 +48,7 @@ Deno.serve(async(req:Request)=>{
   });
   const {data:challenge,error:saveError}=await admin.from("vice_passkey_challenges").insert({
    user_id:userData.user.id,challenge_hash:await sha256(options.challenge),
-   purpose:"AUTHORIZE",action_digest:canonicalHash,
+   purpose:"AUTHORIZE",proposal_id:proposalId,action_digest:canonicalHash,
    expires_at:new Date(Date.now()+180000).toISOString()
   }).select("id").single();
   if(saveError||!challenge)return reply(503,{error:"CHALLENGE_STORE_FAILED"});
