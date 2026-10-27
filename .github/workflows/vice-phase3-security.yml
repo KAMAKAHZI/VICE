@@ -6,6 +6,7 @@ on:
       - 'security/auth/**'
       - 'tests/vice-ai-soc-*.mjs'
       - 'tests/vice-device-trust-policy.mjs'
+      - 'tests/vice-passkey-gate.mjs'
       - 'tests/vice-phase3-role-gate.mjs'
       - 'supabase/migrations/20261025_phase3_*.sql'
       - '.github/workflows/vice-phase3-security.yml'
@@ -29,6 +30,7 @@ jobs:
           set -euo pipefail
           node tests/vice-phase3-role-gate.mjs
           node tests/vice-device-trust-policy.mjs
+          node tests/vice-passkey-gate.mjs
           node tests/vice-ai-soc-triage.mjs
           node tests/vice-ai-soc-normalize.mjs
           node tests/vice-ai-soc-incidents.mjs
