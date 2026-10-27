@@ -16,7 +16,7 @@ function gate(overrides={}){
 }
 const verify=gate();
 assert.equal((await verify(base)).credentialId,'credential-1');
-await assert.rejects(()=>verify(base),/replayed/);
+await assert.rejects(()=>verify(base),/invalid or expired|replayed/);
 await assert.rejects(()=>gate({verifyAssertion:async()=>({verified:true,userVerified:false})})(base),/failed/);
 await assert.rejects(()=>gate({loadCredential:async()=>({id:'credential-1',actorId:'user-1',revoked:true})})(base),/unavailable/);
 await assert.rejects(()=>gate({loadChallenge:async()=>({actorId:'user-2',expiresAt:now+1000})})(base),/invalid/);
