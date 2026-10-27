@@ -34,6 +34,7 @@ jobs:
           node tests/vice-passkey-gate.mjs
           node tests/vice-passkey-challenge-policy.mjs
           node tests/vice-simplewebauthn-adapter.mjs
+          node tests/vice-pg-passkey-challenges.mjs
           node tests/vice-ai-soc-triage.mjs
           node tests/vice-ai-soc-normalize.mjs
           node tests/vice-ai-soc-incidents.mjs
