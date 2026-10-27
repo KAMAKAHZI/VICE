@@ -30,11 +30,14 @@ Deno.serve(async(req:Request)=>{
   const actionDigest=String(input.actionDigest||"");
   if(!/^PROP-[A-Za-z0-9-]{8,80}$/.test(proposalId)||!/^[a-f0-9]{64}$/.test(actionDigest))
    return reply(400,{error:"INVALID_PROPOSAL_BINDING"});
-  // Never trust a browser-supplied digest as authoritative.
-  // The governance engine must calculate this digest from a locked proposal snapshot.
-  // Until that integration exists, this endpoint must fail closed.
-  return reply(501,{error:"AUTHORITATIVE_PROPOSAL_DIGEST_NOT_WIRED",
-   message:"The server must load the locked proposal and calculate its digest before issuing a transaction-bound WebAuthn challenge."});
+  const {data:records,error:lookupError}=await admin.rpc("vice_passkey_proposal_binding",{p_proposal_id:proposalId});
+  if(lookupError)return reply(503,{error:"PROPOSAL_LOOKUP_UNAVAILABLE"});
+  if(!Array.isArray(records)||records.length!==1)return reply(409,{error:"PROPOSAL_NOT_LOCKED"});
+  const canonicalHash=String(records[0].payload_hash||"").replace(/^0x/,"").toLowerCase();
+  if(!/^[a-f0-9]{64}$/.test(canonicalHash)||canonicalHash!==actionDigest)
+   return reply(409,{error:"PROPOSAL_DIGEST_MISMATCH"});
+  return reply(501,{error:"ACTION_BOUND_CEREMONY_PENDING",proposalId});
+
  }
  if(input.operation==="authenticate_options"){
   const {data:keys,error:keysError}=await admin.from("vice_passkey_credentials")
