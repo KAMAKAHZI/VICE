@@ -2486,7 +2486,7 @@ async function viceRequireSecondFactor(user,epoch){
  if(factors.error)throw factors.error;
  const factor=(factors.data?.totp||[]).find(x=>x.status==='verified');
  if(!factor)throw Error('An enrolled second factor is required but unavailable. Contact support.');
- if(viceMfaPending&&viceMfaPending.userId===user.id)return viceMfaPending.promise;
+ if(viceMfaPending&&viceMfaPending.userId===user.id&&viceMfaPending.epoch===epoch)return viceMfaPending.promise;
  let finish;
  const promise=new Promise(resolve=>{finish=resolve});
  const pending={userId:user.id,epoch,factorId:factor.id,promise,finish};
@@ -2507,7 +2507,7 @@ async function viceCompleteSecondFactor(){
  try{
   const result=await sb.auth.mfa.challengeAndVerify({factorId:pending.factorId,code});
   if(result.error)throw result.error;
-  if(pending.epoch!==authEpoch)throw Error('Session changed; sign in again');
+  if(pending.epoch!==authEpoch||viceMfaPending!==pending)throw Error('Session changed; sign in again');
   viceMfaPending=null;
   clearTimeout(pending.timer);
   closeModal();
