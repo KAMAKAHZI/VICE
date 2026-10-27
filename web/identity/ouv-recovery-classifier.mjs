@@ -6,13 +6,13 @@ export function classifyOuvRecovery({proposal,attestations=[],now=Date.now()}){
  if(!target||!Number.isFinite(Number(target.vice_ouv))||!Number.isFinite(Number(target.v4x_ouv)))
   return {state:"INVALID_PROPOSAL",canExecute:false};
  const expires=proposal.validation_until?Date.parse(proposal.validation_until):null;
- const expired=expires!==null&&Number.isFinite(expires)&&expires<now;
+ const reviewComplete=expires!==null&&Number.isFinite(expires)&&expires<=now;
  const valid=attestations.filter(a=>a.proposal_id===proposal.id&&a.payload_hash===proposal.payload_hash&&a.verified_at);
  const ceo=valid.some(a=>a.role==="CEO");
  const cfo=valid.some(a=>a.role==="CFO");
  const issues=[];
- if(proposal.status!=="LOCKED")issues.push("PROPOSAL_NOT_LOCKED");
- if(expired)issues.push("VALIDATION_EXPIRED");
+ if(!["REVIEW","LOCKED"].includes(proposal.status))issues.push("PROPOSAL_NOT_ACTIVE");
+ if(!reviewComplete)issues.push("PUBLIC_REVIEW_INCOMPLETE");
  if(!ceo)issues.push("CEO_ATTESTATION_REQUIRED");
  if(!cfo)issues.push("CFO_ATTESTATION_REQUIRED");
  if(!proposal.quorum_verified_at)issues.push("QUORUM_NOT_VERIFIED");
