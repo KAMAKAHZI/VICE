@@ -2486,7 +2486,7 @@ async function viceRequireSecondFactor(user,epoch){
  if(factors.error)throw factors.error;
  const factor=(factors.data?.totp||[]).find(x=>x.status==='verified');
  if(!factor)throw Error('An enrolled second factor is required but unavailable. Contact support.');
- if(viceMfaPending&&viceMfaPending.userId===user.id)return viceMfaPending.promise;
+ if(viceMfaPending&&viceMfaPending.userId===user.id&&viceMfaPending.epoch===epoch)return viceMfaPending.promise;
  let finish;
  const promise=new Promise(resolve=>{finish=resolve});
  const pending={userId:user.id,epoch,factorId:factor.id,promise,finish};
@@ -2499,21 +2499,23 @@ async function viceRequireSecondFactor(user,epoch){
 }
 async function viceCompleteSecondFactor(){
  const pending=viceMfaPending;
- if(!pending)return;
+ if(!pending||pending.verifying)return;
+ if(pending.epoch!==authEpoch){toast('Session changed; sign in again','warn');return;}
  const code=String($('viceSignInTotp')?.value||'').trim();
  if(!/^[0-9]{6}$/.test(code)){toast('Enter a 6-digit authenticator code','warn');return;}
  const btn=document.querySelector('[data-act="vice-signin-mfa-confirm"]');
  if(btn)btn.disabled=true;
+ pending.verifying=true;
  try{
   const result=await sb.auth.mfa.challengeAndVerify({factorId:pending.factorId,code});
   if(result.error)throw result.error;
-  if(pending.epoch!==authEpoch)throw Error('Session changed; sign in again');
+  if(pending.epoch!==authEpoch||viceMfaPending!==pending)throw Error('Session changed; sign in again');
   viceMfaPending=null;
   clearTimeout(pending.timer);
   closeModal();
   pending.finish(true);
  }catch(e){toast('Authenticator verification: '+e.message,'error');}
- finally{if(btn)btn.disabled=false;}
+ finally{pending.verifying=false;if(btn)btn.disabled=false;}
 }
 async function completeAuthenticatedSetup(user,epoch=authEpoch){
   const current=()=>epoch===authEpoch;
