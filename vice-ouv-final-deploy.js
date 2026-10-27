@@ -4,7 +4,16 @@
 const PROPOSAL='PROP-20261019-548A9057-34F';
 const endpoint='/.netlify/functions/ouv-final-deploy';
 let busy=false;
-const client=()=>[window.sb,window.supabaseClient,window._supabase].find(c=>c&&c.auth&&c.auth.getSession);
+// The main VICE OS classic script owns a top-level lexical `sb` binding.
+// It is not a window property. Reuse that exact instance instead of creating
+// a second auth client (which could cause refresh races and rate limits).
+const client=()=>{
+ const valid=c=>c&&c.auth&&typeof c.auth.getSession==='function';
+ try{
+  if(typeof sb!=='undefined'&&valid(sb))return sb;
+ }catch(_ignored){}
+ return [window.sb,window.supabaseClient,window._supabase].find(valid)||null;
+};
 function mount(){
  if(document.getElementById('vice-ouv-final-deploy'))return;
  const nodes=document.querySelectorAll('div,section,article');
