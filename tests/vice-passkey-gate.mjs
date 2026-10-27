@@ -6,7 +6,7 @@ function gate(overrides={}){
  let used=false;
  const opts={
   clock:()=>now,
-  loadChallenge:async()=>({actorId:'user-1',challenge:'opaque-challenge',expiresAt:now+1000,used}),
+  loadChallenge:async()=>({actorId:'user-1',challenge:'opaque-challenge',createdAt:now-1000,expiresAt:now+1000,used}),
   loadCredential:async()=>({id:'credential-1',actorId:'user-1',revoked:false}),
   verifyAssertion:async()=>({verified:true,userVerified:true}),
   consumeChallenge:async()=>{if(used)return false;used=true;return true;},
@@ -19,6 +19,6 @@ assert.equal((await verify(base)).credentialId,'credential-1');
 await assert.rejects(()=>verify(base),/invalid or expired|replayed/);
 await assert.rejects(()=>gate({verifyAssertion:async()=>({verified:true,userVerified:false})})(base),/failed/);
 await assert.rejects(()=>gate({loadCredential:async()=>({id:'credential-1',actorId:'user-1',revoked:true})})(base),/unavailable/);
-await assert.rejects(()=>gate({loadChallenge:async()=>({actorId:'user-2',expiresAt:now+1000})})(base),/invalid/);
-await assert.rejects(()=>gate({loadChallenge:async()=>({actorId:'user-1',expiresAt:now})})(base),/invalid/);
+await assert.rejects(()=>gate({loadChallenge:async()=>({actorId:'user-2',createdAt:now-1000,expiresAt:now+1000})})(base),/invalid/);
+await assert.rejects(()=>gate({loadChallenge:async()=>({actorId:'user-1',createdAt:now-1000,expiresAt:now})})(base),/invalid/);
 console.log('PASS passkey verification boundary contracts (mock adapters only)');
