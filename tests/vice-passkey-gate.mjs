@@ -21,4 +21,5 @@ await assert.rejects(()=>gate({verifyAssertion:async()=>({verified:true,userVeri
 await assert.rejects(()=>gate({loadCredential:async()=>({id:'credential-1',actorId:'user-1',revoked:true})})(base),/unavailable/);
 await assert.rejects(()=>gate({loadChallenge:async()=>({actorId:'user-2',createdAt:now-1000,expiresAt:now+1000})})(base),/invalid/);
 await assert.rejects(()=>gate({loadChallenge:async()=>({actorId:'user-1',createdAt:now-1000,expiresAt:now})})(base),/invalid/);
+await assert.rejects(()=>gate({loadChallenge:async()=>({actorId:'user-1',createdAt:now-1000,expiresAt:now+1000,action:'ROLE_ASSIGN',payloadHash:'abc'})})(base),/invalid/);
 console.log('PASS passkey verification boundary contracts (mock adapters only)');
