@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {validatePasskeyChallenge as valid} from '../security/auth/passkey-challenge-policy.mjs';
+const now=1800000000000;
+const record={actorId:'actor',createdAt:now-1000,expiresAt:now+1000,used:false,action:'ROLE_ASSIGN',payloadHash:'digest'};
+const check=(patch={},args={})=>valid({record:{...record,...patch},actorId:'actor',now,action:'ROLE_ASSIGN',payloadHash:'digest',...args});
+assert.equal(check(),true);
+assert.equal(check({used:true}),false);
+assert.equal(check({actorId:'other'}),false);
+assert.equal(check({createdAt:now+1}),false);
+assert.equal(check({expiresAt:now}),false);
+assert.equal(check({expiresAt:now+300001}),false);
+assert.equal(check({action:'DISTRIBUTE'}),false);
+assert.equal(check({payloadHash:'different'}),false);
+assert.equal(check({}, {actorId:'other'}),false);
+console.log('PASS passkey challenge policy');
