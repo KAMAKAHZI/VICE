@@ -157,6 +157,8 @@ const ViceInstitutional=(()=>{
    const gateUnverified=p.status==='REVIEW'&&!serverGate;
    const gateTimestamp=serverGate?.computed_at?new Date(serverGate.computed_at).toLocaleTimeString():'';
    const stageLabel=proposalApplied?'EFFECTIVE':signedCount===2?'2/2 EXECUTIVES APPROVED — OFFICIAL OUV NOT UPDATED':'PENDING EXECUTIVE APPROVAL';
+   const reviewExpired=Number.isFinite(Date.parse(p.validation_until||''))&&Date.now()>Date.parse(p.validation_until);
+   const recoveryNote=reviewExpired&&signedCount<2?'Existing attestations remain recorded. Review window ended; executive recovery requires a newly authorized governance review, not a duplicate or transferred signature.':'';
    return `<section class="band"><div class="band-head"><h2>${esc(p.id)}</h2><span class="bdg gd">${esc(p.status)}</span></div>
     <p><strong>${esc(stageLabel)}</strong></p>
     <p class="meta">Active management references: VICE ${esc(fmtReference(currentVice))} · V4X ${esc(fmtReference(currentV4x))} / unit.</p>
@@ -164,6 +166,7 @@ const ViceInstitutional=(()=>{
     <p class="meta">${esc(issueText)} · Review ends ${esc(governanceDeadline(p.validation_until))}.</p>
     <p class="meta" role="status">${esc(governanceReviewRemaining(p.validation_until))} · ${signedCount}/2 CEO/CFO authorizations confirmed.</p>
     ${!proposalApplied?'<p class="note warn">Official issuer values and holder certificate totals have NOT changed. '+(signedCount===2?'No second vote is needed. ':'')+(gateUnverified?'Activation verification temporarily unavailable; do NOT assume approval means execution. '+esc(state.activationReadinessError||''):'Read-only backend activation check at '+esc(gateTimestamp)+'. ')+'Remaining gates: '+esc(effectiveBlockers.join(' · ')||'Verification required')+'.</p>':'<p class="note">Reference revision is recorded as effective; IRU unit balances remain unchanged.</p>'}
+    ${recoveryNote?`<p class="note warn">${esc(recoveryNote)}</p>`:""}
     <p class="meta">Executive authorizations: ${signedCount}/2 · CEO: ${esc(execAuthorizerLabel(a,'CEO'))} · CFO: ${esc(execAuthorizerLabel(a,'CFO'))}.</p>
     <p class="meta">On-chain quorum: ${p.quorum_verified_at?'verified':'awaiting configured verifier'} · Execution timelock: ${p.execute_after?esc(p.execute_after):'not started'}.</p>
     <p class="inst-hash">Payload SHA-256: ${esc(p.payload_hash)}</p>
