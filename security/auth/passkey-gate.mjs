@@ -7,7 +7,7 @@ export function makeVerifiedPasskeyGate({verifyAssertion,loadChallenge,consumeCh
   if(typeof actorId!=='string'||!actorId||typeof challengeId!=='string'||!challengeId||!assertion||typeof expectedOrigin!=='string'||typeof expectedRpId!=='string')throw new Error('Invalid passkey verification request');
   const challenge=await loadChallenge(challengeId);
   const now=clock();
-  if(!validatePasskeyChallenge({record:challenge,actorId,now,action,payloadHash}))throw new Error('Passkey challenge invalid or expired');
+  if(!validatePasskeyChallenge({record:challenge,actorId,now,action,payloadHash}) || (challenge.action!==undefined && action===undefined) || (challenge.payloadHash!==undefined && payloadHash===undefined))throw new Error('Passkey challenge invalid or expired');
   const credential=await loadCredential(actorId,assertion.id);
   if(!credential||credential.revoked||credential.actorId!==actorId)throw new Error('Passkey credential unavailable');
   // Adapter MUST validate signature, challenge, origin, RP ID, user verification,
