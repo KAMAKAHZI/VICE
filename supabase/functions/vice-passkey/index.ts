@@ -20,7 +20,7 @@ Deno.serve(async(req:Request)=>{
  if(userError||!userData.user)return reply(401,{error:"INVALID_SESSION"});
  let input:Record<string,unknown>;try{input=await req.json();}catch{return reply(400,{error:"INVALID_JSON"});}
  if(input.operation==="capabilities")return reply(200,{passkeyRegistration:false,passkeyAuthentication:false,transactionAuthorization:false,authenticated:true,reason:"Enrollment challenge issuance is staged; verification and atomic persistence must pass staging tests before activation."});
- if(!["register_options","register_verify","authenticate_options","authenticate_verify","authorize_options"].includes(String(input.operation)))return reply(501,{error:"WEBAUTHN_VERIFICATION_NOT_READY"});
+ if(!["register_options","register_verify","authenticate_options","authenticate_verify","authorize_options","authorize_verify"].includes(String(input.operation)))return reply(501,{error:"WEBAUTHN_VERIFICATION_NOT_READY"});
  if(!service)return reply(503,{error:"CREDENTIAL_STORE_UNAVAILABLE"});
  const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
  const {data:profile,error:profileError}=await admin.from("profiles").select("role").eq("id",userData.user.id).maybeSingle();
@@ -71,6 +71,12 @@ Deno.serve(async(req:Request)=>{
   }).select("id").single();
   if(saveError||!challenge)return reply(503,{error:"CHALLENGE_STORE_FAILED"});
   return reply(200,{...options,challengeId:challenge.id});
+ }
+ if(input.operation==="authorize_verify"){
+  // Fail closed until counter advancement and receipt insertion are a single
+  // atomic transaction following verified WebAuthn assertion.
+  return reply(501,{error:"ATOMIC_VERIFIED_AUTHORIZATION_NOT_READY",
+   message:"Authorization receipt issuance is disabled until cryptographic verification and counter CAS are committed atomically."});
  }
  if(input.operation==="authenticate_verify"){
   const challengeId=String(input.challengeId||""),response=input.response as Record<string,unknown>|undefined;
