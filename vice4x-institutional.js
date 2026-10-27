@@ -125,7 +125,7 @@ const ViceInstitutional=(()=>{
   ISSUER_LEDGER_RECONCILIATION_FAILED:'Issuer unit ledger has not reconciled',
   INDEPENDENT_ONCHAIN_QUORUM_NOT_VERIFIED:'Independent on-chain quorum is not verified',
   ONCHAIN_QUORUM_VERIFIER_NOT_CONFIGURED:'Independent on-chain quorum verifier is not installed',
-  '72_HOUR_TIMELOCK_NOT_COMPLETED':'Execution timelock has not completed',
+  '72_HOUR_TIMELOCK_NOT_COMPLETED':'Execution timelock has not completed (legacy server gate)',
   ATOMIC_GOVERNANCE_EXECUTOR_NOT_CONFIGURED:'Audited atomic governance execution service is not installed'
  };
  function sovereign(el){if(denied(el))return;
