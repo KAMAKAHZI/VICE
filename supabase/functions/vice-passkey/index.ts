@@ -20,11 +20,22 @@ Deno.serve(async(req:Request)=>{
  if(userError||!userData.user)return reply(401,{error:"INVALID_SESSION"});
  let input:Record<string,unknown>;try{input=await req.json();}catch{return reply(400,{error:"INVALID_JSON"});}
  if(input.operation==="capabilities")return reply(200,{passkeyRegistration:false,passkeyAuthentication:false,transactionAuthorization:false,authenticated:true,reason:"Enrollment challenge issuance is staged; verification and atomic persistence must pass staging tests before activation."});
- if(!["register_options","register_verify","authenticate_options","authenticate_verify"].includes(String(input.operation)))return reply(501,{error:"WEBAUTHN_VERIFICATION_NOT_READY"});
+ if(!["register_options","register_verify","authenticate_options","authenticate_verify","authorize_options"].includes(String(input.operation)))return reply(501,{error:"WEBAUTHN_VERIFICATION_NOT_READY"});
  if(!service)return reply(503,{error:"CREDENTIAL_STORE_UNAVAILABLE"});
  const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
  const {data:profile,error:profileError}=await admin.from("profiles").select("role").eq("id",userData.user.id).maybeSingle();
  if(profileError||!profile||!["SUPER_ADMIN","FINANCE_OFFICER"].includes(String(profile.role)))return reply(403,{error:"EXECUTIVE_ROLE_REQUIRED"});
+ if(input.operation==="authorize_options"){
+  const proposalId=String(input.proposalId||"");
+  const actionDigest=String(input.actionDigest||"");
+  if(!/^PROP-[A-Za-z0-9-]{8,80}$/.test(proposalId)||!/^[a-f0-9]{64}$/.test(actionDigest))
+   return reply(400,{error:"INVALID_PROPOSAL_BINDING"});
+  // Never trust a browser-supplied digest as authoritative.
+  // The governance engine must calculate this digest from a locked proposal snapshot.
+  // Until that integration exists, this endpoint must fail closed.
+  return reply(501,{error:"AUTHORITATIVE_PROPOSAL_DIGEST_NOT_WIRED",
+   message:"The server must load the locked proposal and calculate its digest before issuing a transaction-bound WebAuthn challenge."});
+ }
  if(input.operation==="authenticate_options"){
   const {data:keys,error:keysError}=await admin.from("vice_passkey_credentials")
    .select("credential_id,transports").eq("user_id",userData.user.id).is("revoked_at",null).limit(50);
