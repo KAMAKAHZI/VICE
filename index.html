@@ -2472,6 +2472,10 @@ function onAuthenticated(user){
 // Password-recovery sessions are handled separately by the recovery UI.
 let viceMfaPending=null;
 async function viceRequireSecondFactor(user,epoch){
+ // Coalesce concurrent sign-in and session-restoration callbacks. A single
+ // outstanding challenge must never open multiple authenticator dialogs.
+ if(viceMfaPending&&viceMfaPending.userId===user.id&&viceMfaPending.epoch===epoch)
+  return viceMfaPending.promise;
  const assurance=await sb.auth.mfa.getAuthenticatorAssuranceLevel();
  if(epoch!==authEpoch)return false;
  if(assurance.error)throw assurance.error;
