@@ -14,6 +14,8 @@ begin
  if p_role not in ('SUPER_ADMIN','FINANCE_OFFICER') or
     p_digest !~ '^[0-9a-f]{64}$' then return false; end if;
  if not exists(select 1 from public.profiles where id=p_user_id and role=p_role) then return false; end if;
+ perform 1 from public.vice_sovereign_proposals where id=p_proposal_id for update;
+ if not found then return false; end if;
  if not exists(select 1 from public.vice_sovereign_proposals
   where id=p_proposal_id and status='LOCKED'
    and lower(regexp_replace(payload_hash,'^0x','','i'))=p_digest
@@ -21,7 +23,7 @@ begin
  if not exists(select 1 from public.vice_passkey_credentials
   where user_id=p_user_id and credential_id=p_credential_id and revoked_at is null) then return false; end if;
  update public.vice_passkey_challenges set consumed_at=now()
- where id=p_challenge_id and user_id=p_user_id and purpose='AUTHORIZE'
+ where id=p_challenge_id and user_id=p_user_id and proposal_id=p_proposal_id and purpose='AUTHORIZE'
   and action_digest=p_digest and challenge_hash=p_challenge_hash
   and consumed_at is null and expires_at>now()
  returning id into v_ok;
