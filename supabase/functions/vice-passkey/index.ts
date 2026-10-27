@@ -20,11 +20,67 @@ Deno.serve(async(req:Request)=>{
  if(userError||!userData.user)return reply(401,{error:"INVALID_SESSION"});
  let input:Record<string,unknown>;try{input=await req.json();}catch{return reply(400,{error:"INVALID_JSON"});}
  if(input.operation==="capabilities")return reply(200,{passkeyRegistration:false,passkeyAuthentication:false,transactionAuthorization:false,authenticated:true,reason:"Enrollment challenge issuance is staged; verification and atomic persistence must pass staging tests before activation."});
- if(!["register_options","register_verify"].includes(String(input.operation)))return reply(501,{error:"WEBAUTHN_VERIFICATION_NOT_READY"});
+ if(!["register_options","register_verify","authenticate_options","authenticate_verify"].includes(String(input.operation)))return reply(501,{error:"WEBAUTHN_VERIFICATION_NOT_READY"});
  if(!service)return reply(503,{error:"CREDENTIAL_STORE_UNAVAILABLE"});
  const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
  const {data:profile,error:profileError}=await admin.from("profiles").select("role").eq("id",userData.user.id).maybeSingle();
  if(profileError||!profile||!["SUPER_ADMIN","FINANCE_OFFICER"].includes(String(profile.role)))return reply(403,{error:"EXECUTIVE_ROLE_REQUIRED"});
+ if(input.operation==="authenticate_options"){
+  const {data:keys,error:keysError}=await admin.from("vice_passkey_credentials")
+   .select("credential_id,transports").eq("user_id",userData.user.id).is("revoked_at",null).limit(50);
+  if(keysError)return reply(503,{error:"CREDENTIAL_LOOKUP_FAILED"});
+  if(!keys?.length)return reply(409,{error:"PASSKEY_NOT_ENROLLED"});
+  const options=await generateAuthenticationOptions({
+   rpID,userVerification:"required",timeout:180000,
+   allowCredentials:keys.map((k:{credential_id:string;transports:string[]})=>({id:k.credential_id,transports:k.transports as AuthenticatorTransport[]}))
+  });
+  const {data:challenge,error:saveError}=await admin.from("vice_passkey_challenges").insert({
+   user_id:userData.user.id,challenge_hash:await sha256(options.challenge),purpose:"AUTHENTICATE",
+   expires_at:new Date(Date.now()+180000).toISOString()
+  }).select("id").single();
+  if(saveError||!challenge)return reply(503,{error:"CHALLENGE_STORE_FAILED"});
+  return reply(200,{...options,challengeId:challenge.id});
+ }
+ if(input.operation==="authenticate_verify"){
+  const challengeId=String(input.challengeId||""),response=input.response as Record<string,unknown>|undefined;
+  if(!/^[0-9a-f-]{36}$/i.test(challengeId)||!response||typeof response!=="object"||typeof response.id!=="string")return reply(400,{error:"INVALID_ASSERTION"});
+  const {data:challenge,error:challengeError}=await admin.from("vice_passkey_challenges")
+   .select("challenge_hash,expires_at,consumed_at").eq("id",challengeId).eq("user_id",userData.user.id).eq("purpose","AUTHENTICATE").maybeSingle();
+  if(challengeError||!challenge||challenge.consumed_at||Date.parse(challenge.expires_at)<=Date.now())return reply(409,{error:"CHALLENGE_INVALID_OR_EXPIRED"});
+  const {data:credential,error:keyError}=await admin.from("vice_passkey_credentials")
+   .select("id,credential_id,public_key_cose,sign_count,transports").eq("user_id",userData.user.id)
+   .eq("credential_id",response.id).is("revoked_at",null).maybeSingle();
+  if(keyError||!credential)return reply(403,{error:"CREDENTIAL_NOT_AUTHORIZED"});
+  let expectedChallenge:string;
+  try{
+   const raw=(response.response as Record<string,unknown>)?.clientDataJSON;
+   if(typeof raw!=="string")throw Error("missing");
+   const parsed=JSON.parse(new TextDecoder().decode(fromB64(raw)));
+   if(parsed.type!=="webauthn.get"||typeof parsed.challenge!=="string")throw Error("type");
+   expectedChallenge=parsed.challenge;
+  }catch{return reply(400,{error:"INVALID_CLIENT_DATA"});}
+  if(await sha256(expectedChallenge)!==challenge.challenge_hash)return reply(403,{error:"CHALLENGE_MISMATCH"});
+  const {data:consumed,error:consumeError}=await admin.rpc("vice_passkey_consume_challenge",{
+   p_challenge_id:challengeId,p_user_id:userData.user.id,p_purpose:"AUTHENTICATE",
+   p_hash:challenge.challenge_hash,p_action_digest:null
+  });
+  if(consumeError||consumed!==true)return reply(409,{error:"CHALLENGE_ALREADY_USED"});
+  try{
+   const verified=await verifyAuthenticationResponse({
+    response:response as Parameters<typeof verifyAuthenticationResponse>[0]["response"],
+    expectedChallenge,expectedOrigin:origin,expectedRPID:rpID,requireUserVerification:true,
+    credential:{id:credential.credential_id,publicKey:fromB64(credential.public_key_cose),
+     counter:Number(credential.sign_count),transports:credential.transports}
+   });
+   if(!verified.verified)return reply(403,{error:"ASSERTION_NOT_VERIFIED"});
+   const {error:saveError}=await admin.from("vice_passkey_credentials")
+    .update({sign_count:verified.authenticationInfo.newCounter,last_used_at:new Date().toISOString()})
+    .eq("id",credential.id).eq("sign_count",credential.sign_count).is("revoked_at",null);
+   if(saveError)return reply(503,{error:"COUNTER_UPDATE_FAILED"});
+   // This is proof of authentication, not a new Supabase session or financial approval.
+   return reply(200,{verified:true,authenticated:true,authorizesTransaction:false});
+  }catch{return reply(403,{error:"WEBAUTHN_ASSERTION_REJECTED"});}
+ }
  if(input.operation==="register_verify"){
   const challengeId=String(input.challengeId||"");
   const response=input.response as Record<string,unknown>|undefined;
