@@ -73,10 +73,12 @@ Deno.serve(async(req:Request)=>{
      counter:Number(credential.sign_count),transports:credential.transports}
    });
    if(!verified.verified)return reply(403,{error:"ASSERTION_NOT_VERIFIED"});
-   const {error:saveError}=await admin.from("vice_passkey_credentials")
-    .update({sign_count:verified.authenticationInfo.newCounter,last_used_at:new Date().toISOString()})
-    .eq("id",credential.id).eq("sign_count",credential.sign_count).is("revoked_at",null);
+   const {data:advanced,error:saveError}=await admin.rpc("vice_passkey_advance_counter",{
+    p_credential_row_id:credential.id,p_user_id:userData.user.id,
+    p_expected_counter:credential.sign_count,p_new_counter:verified.authenticationInfo.newCounter
+   });
    if(saveError)return reply(503,{error:"COUNTER_UPDATE_FAILED"});
+   if(advanced!==true)return reply(409,{error:"CREDENTIAL_COUNTER_CONFLICT"});
    // This is proof of authentication, not a new Supabase session or financial approval.
    return reply(200,{verified:true,authenticated:true,authorizesTransaction:false});
   }catch{return reply(403,{error:"WEBAUTHN_ASSERTION_REJECTED"});}
