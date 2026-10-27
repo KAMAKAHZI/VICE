@@ -36,7 +36,24 @@ Deno.serve(async(req:Request)=>{
   const canonicalHash=String(records[0].payload_hash||"").replace(/^0x/,"").toLowerCase();
   if(!/^[a-f0-9]{64}$/.test(canonicalHash)||canonicalHash!==actionDigest)
    return reply(409,{error:"PROPOSAL_DIGEST_MISMATCH"});
-  return reply(501,{error:"ACTION_BOUND_CEREMONY_PENDING",proposalId});
+  const {data:keys,error:keysError}=await admin.from("vice_passkey_credentials")
+   .select("credential_id,transports").eq("user_id",userData.user.id).is("revoked_at",null).limit(50);
+  if(keysError)return reply(503,{error:"CREDENTIAL_LOOKUP_FAILED"});
+  if(!keys?.length)return reply(409,{error:"PASSKEY_NOT_ENROLLED"});
+  const options=await generateAuthenticationOptions({
+   rpID,userVerification:"required",timeout:180000,
+   allowCredentials:keys.map((k:{credential_id:string;transports:string[]})=>({
+    id:k.credential_id,transports:k.transports as AuthenticatorTransport[]
+   }))
+  });
+  const {data:challenge,error:saveError}=await admin.from("vice_passkey_challenges").insert({
+   user_id:userData.user.id,challenge_hash:await sha256(options.challenge),
+   purpose:"AUTHORIZE",action_digest:canonicalHash,
+   expires_at:new Date(Date.now()+180000).toISOString()
+  }).select("id").single();
+  if(saveError||!challenge)return reply(503,{error:"CHALLENGE_STORE_FAILED"});
+  return reply(200,{...options,challengeId:challenge.id,proposalId,actionDigest:canonicalHash,
+   notice:"Challenge issuance only; this is not an executive approval."});
 
  }
  if(input.operation==="authenticate_options"){
