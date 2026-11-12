@@ -37,5 +37,6 @@ s=s.replace("c.data=!error&&data?.policy_status==='MODEL_ONLY'?data:null;", "c.d
 p.write_text(s)
 PY
 node scripts/vice-deployment-identity.cjs
+python3 scripts/vice-public-artifact-guard.py "$target"
 find "$target" -mindepth 1 -maxdepth 1 -type f -printf '%f\n' | sort
 echo "Netlify publishes whitelisted dist/site only."
