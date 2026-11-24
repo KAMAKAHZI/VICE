@@ -14,3 +14,7 @@
 /executive-prime.html
   X-Robots-Tag: noindex, nofollow, noarchive
   Cache-Control: no-store, private
+
+/executive/prime
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store, private
