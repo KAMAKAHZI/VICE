@@ -10,3 +10,11 @@
   Cache-Control: no-store, max-age=0, must-revalidate
 /version.json
   Cache-Control: no-store, max-age=0, must-revalidate
+
+/executive-prime.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store, private
+
+/executive/prime
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store, private
